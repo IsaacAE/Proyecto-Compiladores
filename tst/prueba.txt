@@ -1,0 +1,25 @@
+proto int suma(int a, int b);
+proto void imprimir(string mensaje);
+
+func int main() {
+    int x, y, resultado;
+    string mensaje;
+
+    x = 10;
+    y = 20;
+
+    resultado = suma(x, y);
+    imprimir("El resultado es:");
+    imprimir(resultado);
+
+    return 0;
+}
+
+func int suma(int a, int b) {
+    return a + b;
+}
+
+func void imprimir(string mensaje) {
+    print mensaje;
+}
+
