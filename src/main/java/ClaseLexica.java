@@ -55,6 +55,7 @@ public enum ClaseLexica {
     LLAVE_CIERRA,     // Símbolo "}"
     CORCHETE_ABRE,    // Símbolo "["
     CORCHETE_CIERRA,  // Símbolo "]"
+    DOS_PUNTOS,       // Símbolo ":"
 
     // Literales
     LITERAL_ENTERA,   // Números enteros

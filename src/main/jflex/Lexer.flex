@@ -74,6 +74,7 @@ public Token actual;
 ">="                    { System.out.println("Token encontrado: MAYOR_IGUAL (" + yytext() + ")"); return new Token(ClaseLexica.MAYOR_IGUAL, yytext()); }
 ","                     { System.out.println("Token encontrado: COMA (" + yytext() + ")"); return new Token(ClaseLexica.COMA, yytext()); }
 ";"                     { System.out.println("Token encontrado: PUNTO_Y_COMA (" + yytext() + ")"); return new Token(ClaseLexica.PUNTO_Y_COMA, yytext()); }
+":"                     { System.out.println("Token encontrado: DOS_PUNTOS (" + yytext() + ")"); return new Token(ClaseLexica.DOS_PUNTOS, yytext()); }
 "."                     { System.out.println("Token encontrado: PUNTO (" + yytext() + ")"); return new Token(ClaseLexica.PUNTO, yytext()); }
 "("                     { System.out.println("Token encontrado: PARENTESIS_ABRE (" + yytext() + ")"); return new Token(ClaseLexica.PARENTESIS_ABRE, yytext()); }
 ")"                     { System.out.println("Token encontrado: PARENTESIS_CIERRA (" + yytext() + ")"); return new Token(ClaseLexica.PARENTESIS_CIERRA, yytext()); }
@@ -86,8 +87,10 @@ public Token actual;
 [a-zA-Z]+          { System.out.println("Token encontrado: ID (" + yytext() + ")"); return new Token(ClaseLexica.ID, yytext()); }
 [0-9]+                  { System.out.println("Token encontrado: LITERAL_ENTERA (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_ENTERA, yytext()); }
 [0-9]+"."[0-9]+         { System.out.println("Token encontrado: LITERAL_FLOTANTE (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_FLOTANTE, yytext()); }
-"cadena"           { System.out.println("Token encontrado: LITERAL_CADENA (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_CADENA, yytext()); }
+\"([^\"\\]|\\.)*\"      { System.out.println("Token encontrado: LITERAL_CADENA (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_CADENA, yytext()); }
 \'[^\']\'               { System.out.println("Token encontrado: LITERAL_RUNA (" +yytext() + ")"); return new Token(ClaseLexica.LITERAL_RUNA, yytext()); }
 // Comentarios
 "//" [^\n]*             { /* ignorar comentarios de una línea */ }
 "/*" [^*]* "*" ([^/]* "*" )* "/" { /* ignorar comentarios de varias líneas */ }
+
+<<EOF>>           { return new Token(ClaseLexica.EOF, yytext());}

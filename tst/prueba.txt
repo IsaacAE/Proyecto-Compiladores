@@ -9,8 +9,8 @@ func int main() {
     y = 20;
 
     resultado = suma(x, y);
-    imprimir("El resultado es:");
-    imprimir(resultado);
+    print("El resultado es:");
+    print(resultado);
 
     return 0;
 }

@@ -37,13 +37,13 @@ public class Lexer {
    * Translates characters to character classes
    */
   private static final String ZZ_CMAP_PACKED = 
-    "\11\0\1\1\1\57\1\0\2\1\22\0\1\1\1\40\3\0\1\35"+
-    "\1\36\1\56\1\46\1\47\1\33\1\31\1\43\1\32\1\45\1\34"+
-    "\12\55\1\0\1\44\1\41\1\30\1\42\2\0\32\54\1\52\1\0"+
-    "\1\53\3\0\1\6\1\24\1\14\1\23\1\16\1\11\1\5\1\22"+
-    "\1\15\1\54\1\25\1\17\1\7\1\13\1\4\1\2\1\54\1\3"+
-    "\1\20\1\10\1\12\1\27\1\21\1\26\2\54\1\50\1\37\1\51"+
-    "\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uff92\0";
+    "\11\0\1\1\1\61\1\63\1\62\1\62\22\0\1\1\1\40\1\57"+
+    "\2\0\1\35\1\36\1\64\1\47\1\50\1\33\1\31\1\43\1\32"+
+    "\1\46\1\34\12\56\1\45\1\44\1\41\1\30\1\42\2\0\32\55"+
+    "\1\53\1\60\1\54\3\0\1\6\1\24\1\14\1\23\1\16\1\11"+
+    "\1\5\1\22\1\15\1\55\1\25\1\17\1\7\1\13\1\4\1\2"+
+    "\1\55\1\3\1\20\1\10\1\12\1\27\1\21\1\26\2\55\1\51"+
+    "\1\37\1\52\7\0\1\63\u1fa2\0\1\63\1\63\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\uffff\0\udfe6\0";
 
   /** 
    * Translates characters to character classes
@@ -58,18 +58,18 @@ public class Lexer {
   private static final String ZZ_ACTION_PACKED_0 =
     "\1\0\1\1\15\2\1\3\1\4\1\5\1\6\1\7"+
     "\1\10\2\0\1\11\1\12\1\13\1\14\1\15\1\16"+
-    "\1\17\1\20\1\21\1\22\1\23\1\24\1\25\1\0"+
-    "\12\2\1\26\6\2\1\27\3\2\1\30\1\0\1\31"+
-    "\1\32\1\33\1\34\1\35\1\36\2\0\2\2\1\37"+
-    "\10\2\1\40\11\2\1\0\1\41\1\42\1\43\3\2"+
-    "\1\44\1\2\1\45\1\2\1\46\2\2\1\47\1\50"+
-    "\2\2\1\51\5\2\1\52\1\0\1\53\1\2\1\54"+
-    "\1\55\1\2\1\56\1\57\4\2\1\60\2\2\1\61"+
-    "\1\2\1\62\1\2\1\63\1\64\1\65\1\66\2\2"+
-    "\1\67\1\70\1\71";
+    "\1\17\1\20\1\21\1\22\1\23\1\24\1\25\1\26"+
+    "\2\0\12\2\1\27\6\2\1\30\3\2\1\31\1\0"+
+    "\1\32\1\33\1\34\1\35\1\36\1\37\1\0\1\40"+
+    "\2\0\2\2\1\41\10\2\1\42\11\2\1\0\1\43"+
+    "\1\44\1\45\3\2\1\46\1\2\1\47\1\2\1\50"+
+    "\2\2\1\51\1\52\2\2\1\53\5\2\1\54\1\0"+
+    "\1\55\1\2\1\56\1\57\1\2\1\60\1\61\4\2"+
+    "\1\62\2\2\1\63\1\2\1\64\1\2\1\65\1\66"+
+    "\1\67\1\70\2\2\1\71\1\72\1\73";
 
   private static int [] zzUnpackAction() {
-    int [] result = new int[142];
+    int [] result = new int[146];
     int offset = 0;
     offset = zzUnpackAction(ZZ_ACTION_PACKED_0, offset, result);
     return result;
@@ -94,27 +94,28 @@ public class Lexer {
   private static final int [] ZZ_ROWMAP = zzUnpackRowMap();
 
   private static final String ZZ_ROWMAP_PACKED_0 =
-    "\0\0\0\60\0\140\0\220\0\300\0\360\0\u0120\0\u0150"+
-    "\0\u0180\0\u01b0\0\u01e0\0\u0210\0\u0240\0\u0270\0\u02a0\0\u02d0"+
-    "\0\u0300\0\u0300\0\u0300\0\u0330\0\u0300\0\u0360\0\u0390\0\u03c0"+
-    "\0\u03f0\0\u0420\0\u0300\0\u0300\0\u0300\0\u0300\0\u0300\0\u0300"+
-    "\0\u0300\0\u0300\0\u0300\0\u0450\0\u0480\0\u04b0\0\u04e0\0\u0510"+
-    "\0\u0540\0\u0570\0\u05a0\0\u05d0\0\u0600\0\u0630\0\u0660\0\300"+
-    "\0\u0690\0\u06c0\0\u06f0\0\u0720\0\u0750\0\u0780\0\u07b0\0\u07e0"+
-    "\0\u0810\0\u0840\0\u0300\0\u0870\0\u08a0\0\u0300\0\u0300\0\u0300"+
-    "\0\u0300\0\u0300\0\u08d0\0\u0900\0\u0930\0\u0960\0\300\0\u0990"+
-    "\0\u09c0\0\u09f0\0\u0a20\0\u0a50\0\u0a80\0\u0ab0\0\u0ae0\0\300"+
-    "\0\u0b10\0\u0b40\0\u0b70\0\u0ba0\0\u0bd0\0\u0c00\0\u0c30\0\u0c60"+
-    "\0\u0c90\0\u0cc0\0\u08a0\0\u08d0\0\u0300\0\u0cf0\0\u0d20\0\u0d50"+
-    "\0\300\0\u0d80\0\300\0\u0db0\0\300\0\u0de0\0\u0e10\0\300"+
-    "\0\300\0\u0e40\0\u0e70\0\300\0\u0ea0\0\u0ed0\0\u0f00\0\u0f30"+
-    "\0\u0f60\0\300\0\u0f90\0\u0300\0\u0fc0\0\300\0\300\0\u0ff0"+
-    "\0\300\0\300\0\u1020\0\u1050\0\u1080\0\u10b0\0\300\0\u10e0"+
-    "\0\u1110\0\300\0\u1140\0\300\0\u1170\0\300\0\300\0\300"+
-    "\0\300\0\u11a0\0\u11d0\0\300\0\300\0\300";
+    "\0\0\0\65\0\152\0\237\0\324\0\u0109\0\u013e\0\u0173"+
+    "\0\u01a8\0\u01dd\0\u0212\0\u0247\0\u027c\0\u02b1\0\u02e6\0\u031b"+
+    "\0\u0350\0\u0350\0\u0350\0\u0385\0\u0350\0\u03ba\0\u03ef\0\u0424"+
+    "\0\u0459\0\u048e\0\u0350\0\u0350\0\u0350\0\u0350\0\u0350\0\u0350"+
+    "\0\u0350\0\u0350\0\u0350\0\u0350\0\u04c3\0\u04f8\0\u052d\0\u0562"+
+    "\0\u0597\0\u05cc\0\u0601\0\u0636\0\u066b\0\u06a0\0\u06d5\0\u070a"+
+    "\0\u073f\0\324\0\u0774\0\u07a9\0\u07de\0\u0813\0\u0848\0\u087d"+
+    "\0\u08b2\0\u08e7\0\u091c\0\u0951\0\u0350\0\u0986\0\u09bb\0\u0350"+
+    "\0\u0350\0\u0350\0\u0350\0\u0350\0\u09f0\0\u0350\0\u0a25\0\u0a5a"+
+    "\0\u0a8f\0\u0ac4\0\324\0\u0af9\0\u0b2e\0\u0b63\0\u0b98\0\u0bcd"+
+    "\0\u0c02\0\u0c37\0\u0c6c\0\324\0\u0ca1\0\u0cd6\0\u0d0b\0\u0d40"+
+    "\0\u0d75\0\u0daa\0\u0ddf\0\u0e14\0\u0e49\0\u0e7e\0\u09bb\0\u09f0"+
+    "\0\u0350\0\u0eb3\0\u0ee8\0\u0f1d\0\324\0\u0f52\0\324\0\u0f87"+
+    "\0\324\0\u0fbc\0\u0ff1\0\324\0\324\0\u1026\0\u105b\0\324"+
+    "\0\u1090\0\u10c5\0\u10fa\0\u112f\0\u1164\0\324\0\u1199\0\u0350"+
+    "\0\u11ce\0\324\0\324\0\u1203\0\324\0\324\0\u1238\0\u126d"+
+    "\0\u12a2\0\u12d7\0\324\0\u130c\0\u1341\0\324\0\u1376\0\324"+
+    "\0\u13ab\0\324\0\324\0\324\0\324\0\u13e0\0\u1415\0\324"+
+    "\0\324\0\324";
 
   private static int [] zzUnpackRowMap() {
-    int [] result = new int[142];
+    int [] result = new int[146];
     int offset = 0;
     offset = zzUnpackRowMap(ZZ_ROWMAP_PACKED_0, offset, result);
     return result;
@@ -141,78 +142,79 @@ public class Lexer {
     "\1\10\1\11\1\12\1\5\1\13\1\14\1\5\1\15"+
     "\1\16\2\5\1\17\1\20\1\21\1\22\1\23\1\24"+
     "\1\25\1\26\1\27\1\30\1\31\1\32\1\33\1\34"+
-    "\1\35\1\36\1\37\1\40\1\41\1\42\1\43\1\5"+
-    "\1\44\1\45\1\2\1\0\1\2\55\0\1\2\2\0"+
-    "\1\5\1\46\4\5\1\47\17\5\24\0\1\5\5\0"+
-    "\10\5\1\50\3\5\1\51\11\5\24\0\1\5\5\0"+
-    "\26\5\24\0\1\5\5\0\1\5\1\52\24\5\24\0"+
-    "\1\5\5\0\4\5\1\53\3\5\1\54\4\5\1\55"+
-    "\10\5\24\0\1\5\5\0\2\5\1\56\1\5\1\57"+
-    "\21\5\24\0\1\5\5\0\7\5\1\60\1\5\1\61"+
-    "\14\5\24\0\1\5\5\0\15\5\1\62\10\5\24\0"+
-    "\1\5\5\0\6\5\1\63\3\5\1\64\4\5\1\65"+
-    "\6\5\24\0\1\5\5\0\20\5\1\66\5\5\24\0"+
-    "\1\5\5\0\2\5\1\67\11\5\1\70\11\5\24\0"+
-    "\1\5\5\0\1\5\1\71\24\5\24\0\1\5\5\0"+
-    "\2\5\1\72\23\5\24\0\1\5\33\0\1\73\142\0"+
-    "\1\74\1\75\61\0\1\76\60\0\1\77\50\0\1\100"+
-    "\57\0\1\101\57\0\1\102\74\0\1\103\7\0\1\44"+
-    "\2\0\56\104\1\0\1\104\2\0\2\5\1\105\10\5"+
-    "\1\106\12\5\24\0\1\5\5\0\1\5\1\107\24\5"+
-    "\24\0\1\5\5\0\11\5\1\110\14\5\24\0\1\5"+
-    "\5\0\6\5\1\111\17\5\24\0\1\5\5\0\10\5"+
-    "\1\112\15\5\24\0\1\5\5\0\15\5\1\113\10\5"+
-    "\24\0\1\5\5\0\11\5\1\114\14\5\24\0\1\5"+
-    "\5\0\2\5\1\115\23\5\24\0\1\5\5\0\5\5"+
-    "\1\116\20\5\24\0\1\5\5\0\16\5\1\117\7\5"+
-    "\24\0\1\5\5\0\6\5\1\120\17\5\24\0\1\5"+
-    "\5\0\16\5\1\121\7\5\24\0\1\5\5\0\1\5"+
-    "\1\122\24\5\24\0\1\5\5\0\4\5\1\123\21\5"+
-    "\24\0\1\5\5\0\13\5\1\124\12\5\24\0\1\5"+
-    "\5\0\13\5\1\125\12\5\24\0\1\5\5\0\10\5"+
-    "\1\126\15\5\24\0\1\5\5\0\7\5\1\127\16\5"+
-    "\24\0\1\5\5\0\14\5\1\130\11\5\24\0\1\5"+
-    "\5\0\13\5\1\131\12\5\24\0\1\5\3\0\33\74"+
-    "\1\132\24\74\57\133\56\0\1\134\60\0\1\135\3\0"+
-    "\3\5\1\136\2\5\1\137\17\5\24\0\1\5\5\0"+
-    "\11\5\1\140\14\5\24\0\1\5\5\0\14\5\1\141"+
-    "\11\5\24\0\1\5\5\0\10\5\1\142\15\5\24\0"+
-    "\1\5\5\0\14\5\1\143\11\5\24\0\1\5\5\0"+
-    "\16\5\1\144\7\5\24\0\1\5\5\0\12\5\1\145"+
-    "\13\5\24\0\1\5\5\0\4\5\1\146\21\5\24\0"+
-    "\1\5\5\0\1\147\25\5\24\0\1\5\5\0\14\5"+
-    "\1\150\11\5\24\0\1\5\5\0\14\5\1\151\11\5"+
-    "\24\0\1\5\5\0\10\5\1\152\2\5\1\153\12\5"+
-    "\24\0\1\5\5\0\11\5\1\154\14\5\24\0\1\5"+
-    "\5\0\6\5\1\155\17\5\24\0\1\5\5\0\15\5"+
-    "\1\156\10\5\24\0\1\5\5\0\22\5\1\157\3\5"+
-    "\24\0\1\5\5\0\4\5\1\160\21\5\24\0\1\5"+
-    "\5\0\4\5\1\161\21\5\24\0\1\5\5\0\21\5"+
-    "\1\162\4\5\24\0\1\5\3\0\33\163\1\132\1\164"+
-    "\23\163\2\0\1\5\1\165\24\5\24\0\1\5\5\0"+
-    "\2\5\1\166\23\5\24\0\1\5\5\0\6\5\1\167"+
-    "\17\5\24\0\1\5\5\0\1\5\1\170\24\5\24\0"+
-    "\1\5\5\0\14\5\1\171\11\5\24\0\1\5\5\0"+
-    "\6\5\1\172\17\5\24\0\1\5\5\0\15\5\1\173"+
-    "\10\5\24\0\1\5\5\0\12\5\1\174\13\5\24\0"+
-    "\1\5\5\0\11\5\1\175\14\5\24\0\1\5\5\0"+
-    "\12\5\1\176\13\5\24\0\1\5\5\0\14\5\1\177"+
-    "\11\5\24\0\1\5\5\0\15\5\1\200\10\5\24\0"+
-    "\1\5\5\0\10\5\1\201\15\5\24\0\1\5\5\0"+
-    "\23\5\1\202\2\5\24\0\1\5\3\0\33\163\1\132"+
-    "\1\0\23\163\2\0\4\5\1\203\21\5\24\0\1\5"+
-    "\5\0\11\5\1\204\14\5\24\0\1\5\5\0\14\5"+
-    "\1\205\11\5\24\0\1\5\5\0\6\5\1\206\17\5"+
-    "\24\0\1\5\5\0\3\5\1\207\22\5\24\0\1\5"+
-    "\5\0\20\5\1\210\5\5\24\0\1\5\5\0\14\5"+
-    "\1\211\11\5\24\0\1\5\5\0\15\5\1\212\10\5"+
-    "\24\0\1\5\5\0\5\5\1\213\20\5\24\0\1\5"+
-    "\5\0\24\5\1\214\1\5\24\0\1\5\5\0\6\5"+
-    "\1\215\17\5\24\0\1\5\5\0\4\5\1\216\21\5"+
-    "\24\0\1\5\3\0";
+    "\1\35\1\36\1\37\1\40\1\41\1\42\1\43\1\44"+
+    "\1\5\1\45\1\46\1\0\2\2\1\0\1\47\1\0"+
+    "\1\2\57\0\2\2\4\0\1\5\1\50\4\5\1\51"+
+    "\17\5\25\0\1\5\11\0\10\5\1\52\3\5\1\53"+
+    "\11\5\25\0\1\5\11\0\26\5\25\0\1\5\11\0"+
+    "\1\5\1\54\24\5\25\0\1\5\11\0\4\5\1\55"+
+    "\3\5\1\56\4\5\1\57\10\5\25\0\1\5\11\0"+
+    "\2\5\1\60\1\5\1\61\21\5\25\0\1\5\11\0"+
+    "\7\5\1\62\1\5\1\63\14\5\25\0\1\5\11\0"+
+    "\15\5\1\64\10\5\25\0\1\5\11\0\6\5\1\65"+
+    "\3\5\1\66\4\5\1\67\6\5\25\0\1\5\11\0"+
+    "\20\5\1\70\5\5\25\0\1\5\11\0\2\5\1\71"+
+    "\11\5\1\72\11\5\25\0\1\5\11\0\1\5\1\73"+
+    "\24\5\25\0\1\5\11\0\2\5\1\74\23\5\25\0"+
+    "\1\5\37\0\1\75\154\0\1\76\1\77\66\0\1\100"+
+    "\65\0\1\101\55\0\1\102\64\0\1\103\64\0\1\104"+
+    "\102\0\1\105\7\0\1\45\6\0\57\46\1\106\1\107"+
+    "\4\46\64\110\3\0\2\5\1\111\10\5\1\112\12\5"+
+    "\25\0\1\5\11\0\1\5\1\113\24\5\25\0\1\5"+
+    "\11\0\11\5\1\114\14\5\25\0\1\5\11\0\6\5"+
+    "\1\115\17\5\25\0\1\5\11\0\10\5\1\116\15\5"+
+    "\25\0\1\5\11\0\15\5\1\117\10\5\25\0\1\5"+
+    "\11\0\11\5\1\120\14\5\25\0\1\5\11\0\2\5"+
+    "\1\121\23\5\25\0\1\5\11\0\5\5\1\122\20\5"+
+    "\25\0\1\5\11\0\16\5\1\123\7\5\25\0\1\5"+
+    "\11\0\6\5\1\124\17\5\25\0\1\5\11\0\16\5"+
+    "\1\125\7\5\25\0\1\5\11\0\1\5\1\126\24\5"+
+    "\25\0\1\5\11\0\4\5\1\127\21\5\25\0\1\5"+
+    "\11\0\13\5\1\130\12\5\25\0\1\5\11\0\13\5"+
+    "\1\131\12\5\25\0\1\5\11\0\10\5\1\132\15\5"+
+    "\25\0\1\5\11\0\7\5\1\133\16\5\25\0\1\5"+
+    "\11\0\14\5\1\134\11\5\25\0\1\5\11\0\13\5"+
+    "\1\135\12\5\25\0\1\5\7\0\33\76\1\136\31\76"+
+    "\61\137\1\0\3\137\56\0\1\140\6\0\61\46\3\0"+
+    "\1\46\64\0\1\141\2\0\3\5\1\142\2\5\1\143"+
+    "\17\5\25\0\1\5\11\0\11\5\1\144\14\5\25\0"+
+    "\1\5\11\0\14\5\1\145\11\5\25\0\1\5\11\0"+
+    "\10\5\1\146\15\5\25\0\1\5\11\0\14\5\1\147"+
+    "\11\5\25\0\1\5\11\0\16\5\1\150\7\5\25\0"+
+    "\1\5\11\0\12\5\1\151\13\5\25\0\1\5\11\0"+
+    "\4\5\1\152\21\5\25\0\1\5\11\0\1\153\25\5"+
+    "\25\0\1\5\11\0\14\5\1\154\11\5\25\0\1\5"+
+    "\11\0\14\5\1\155\11\5\25\0\1\5\11\0\10\5"+
+    "\1\156\2\5\1\157\12\5\25\0\1\5\11\0\11\5"+
+    "\1\160\14\5\25\0\1\5\11\0\6\5\1\161\17\5"+
+    "\25\0\1\5\11\0\15\5\1\162\10\5\25\0\1\5"+
+    "\11\0\22\5\1\163\3\5\25\0\1\5\11\0\4\5"+
+    "\1\164\21\5\25\0\1\5\11\0\4\5\1\165\21\5"+
+    "\25\0\1\5\11\0\21\5\1\166\4\5\25\0\1\5"+
+    "\7\0\33\167\1\136\1\170\30\167\2\0\1\5\1\171"+
+    "\24\5\25\0\1\5\11\0\2\5\1\172\23\5\25\0"+
+    "\1\5\11\0\6\5\1\173\17\5\25\0\1\5\11\0"+
+    "\1\5\1\174\24\5\25\0\1\5\11\0\14\5\1\175"+
+    "\11\5\25\0\1\5\11\0\6\5\1\176\17\5\25\0"+
+    "\1\5\11\0\15\5\1\177\10\5\25\0\1\5\11\0"+
+    "\12\5\1\200\13\5\25\0\1\5\11\0\11\5\1\201"+
+    "\14\5\25\0\1\5\11\0\12\5\1\202\13\5\25\0"+
+    "\1\5\11\0\14\5\1\203\11\5\25\0\1\5\11\0"+
+    "\15\5\1\204\10\5\25\0\1\5\11\0\10\5\1\205"+
+    "\15\5\25\0\1\5\11\0\23\5\1\206\2\5\25\0"+
+    "\1\5\7\0\33\167\1\136\1\0\30\167\2\0\4\5"+
+    "\1\207\21\5\25\0\1\5\11\0\11\5\1\210\14\5"+
+    "\25\0\1\5\11\0\14\5\1\211\11\5\25\0\1\5"+
+    "\11\0\6\5\1\212\17\5\25\0\1\5\11\0\3\5"+
+    "\1\213\22\5\25\0\1\5\11\0\20\5\1\214\5\5"+
+    "\25\0\1\5\11\0\14\5\1\215\11\5\25\0\1\5"+
+    "\11\0\15\5\1\216\10\5\25\0\1\5\11\0\5\5"+
+    "\1\217\20\5\25\0\1\5\11\0\24\5\1\220\1\5"+
+    "\25\0\1\5\11\0\6\5\1\221\17\5\25\0\1\5"+
+    "\11\0\4\5\1\222\21\5\25\0\1\5\7\0";
 
   private static int [] zzUnpackTrans() {
-    int [] result = new int[4608];
+    int [] result = new int[5194];
     int offset = 0;
     offset = zzUnpackTrans(ZZ_TRANS_PACKED_0, offset, result);
     return result;
@@ -250,12 +252,13 @@ public class Lexer {
   private static final int [] ZZ_ATTRIBUTE = zzUnpackAttribute();
 
   private static final String ZZ_ATTRIBUTE_PACKED_0 =
-    "\1\0\17\1\3\11\1\1\1\11\2\0\3\1\11\11"+
-    "\1\1\1\0\25\1\1\11\1\0\1\1\5\11\2\0"+
-    "\25\1\1\0\2\1\1\11\25\1\1\0\1\11\32\1";
+    "\1\0\17\1\3\11\1\1\1\11\2\0\3\1\12\11"+
+    "\1\1\2\0\25\1\1\11\1\0\1\1\5\11\1\0"+
+    "\1\11\2\0\25\1\1\0\2\1\1\11\25\1\1\0"+
+    "\1\11\32\1";
 
   private static int [] zzUnpackAttribute() {
-    int [] result = new int[142];
+    int [] result = new int[146];
     int offset = 0;
     offset = zzUnpackAttribute(ZZ_ATTRIBUTE_PACKED_0, offset, result);
     return result;
@@ -356,7 +359,7 @@ public Token actual;
     char [] map = new char[0x110000];
     int i = 0;  /* index in packed string  */
     int j = 0;  /* index in unpacked array */
-    while (i < 154) {
+    while (i < 168) {
       int  count = packed.charAt(i++);
       char value = packed.charAt(i++);
       do map[j++] = value; while (--count > 0);
@@ -646,7 +649,9 @@ public Token actual;
 
       if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
         zzAtEOF = true;
-        return null;
+              {
+                return new Token(ClaseLexica.EOF, yytext());
+              }
       }
       else {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
@@ -654,287 +659,297 @@ public Token actual;
             { /* ignorar */
             } 
             // fall through
-          case 58: break;
+          case 60: break;
           case 2: 
             { System.out.println("Token encontrado: ID (" + yytext() + ")"); return new Token(ClaseLexica.ID, yytext());
             } 
             // fall through
-          case 59: break;
+          case 61: break;
           case 3: 
             { System.out.println("Token encontrado: ASIGNACION (" + yytext() + ")"); return new Token(ClaseLexica.ASIGNACION, yytext());
             } 
             // fall through
-          case 60: break;
+          case 62: break;
           case 4: 
             { System.out.println("Token encontrado: MAS (" + yytext() + ")"); return new Token(ClaseLexica.MAS, yytext());
             } 
             // fall through
-          case 61: break;
+          case 63: break;
           case 5: 
             { System.out.println("Token encontrado: MENOS (" + yytext() + ")"); return new Token(ClaseLexica.MENOS, yytext());
             } 
             // fall through
-          case 62: break;
+          case 64: break;
           case 6: 
             { System.out.println("Token encontrado: MULTIPLICACION (" + yytext() + ")"); return new Token(ClaseLexica.MULTIPLICACION, yytext());
             } 
             // fall through
-          case 63: break;
+          case 65: break;
           case 7: 
             { System.out.println("Token encontrado: DIVISION (" + yytext() + ")"); return new Token(ClaseLexica.DIVISION, yytext());
             } 
             // fall through
-          case 64: break;
+          case 66: break;
           case 8: 
             { System.out.println("Token encontrado: MODULO (" + yytext() + ")"); return new Token(ClaseLexica.MODULO, yytext());
             } 
             // fall through
-          case 65: break;
+          case 67: break;
           case 9: 
             { System.out.println("Token encontrado: NOT (" + yytext() + ")"); return new Token(ClaseLexica.NOT, yytext());
             } 
             // fall through
-          case 66: break;
+          case 68: break;
           case 10: 
             { System.out.println("Token encontrado: MENOR (" + yytext() + ")"); return new Token(ClaseLexica.MENOR, yytext());
             } 
             // fall through
-          case 67: break;
+          case 69: break;
           case 11: 
             { System.out.println("Token encontrado: MAYOR (" + yytext() + ")"); return new Token(ClaseLexica.MAYOR, yytext());
             } 
             // fall through
-          case 68: break;
+          case 70: break;
           case 12: 
             { System.out.println("Token encontrado: COMA (" + yytext() + ")"); return new Token(ClaseLexica.COMA, yytext());
             } 
             // fall through
-          case 69: break;
+          case 71: break;
           case 13: 
             { System.out.println("Token encontrado: PUNTO_Y_COMA (" + yytext() + ")"); return new Token(ClaseLexica.PUNTO_Y_COMA, yytext());
             } 
             // fall through
-          case 70: break;
-          case 14: 
-            { System.out.println("Token encontrado: PUNTO (" + yytext() + ")"); return new Token(ClaseLexica.PUNTO, yytext());
-            } 
-            // fall through
-          case 71: break;
-          case 15: 
-            { System.out.println("Token encontrado: PARENTESIS_ABRE (" + yytext() + ")"); return new Token(ClaseLexica.PARENTESIS_ABRE, yytext());
-            } 
-            // fall through
           case 72: break;
-          case 16: 
-            { System.out.println("Token encontrado: PARENTESIS_CIERRA (" + yytext() + ")"); return new Token(ClaseLexica.PARENTESIS_CIERRA, yytext());
+          case 14: 
+            { System.out.println("Token encontrado: DOS_PUNTOS (" + yytext() + ")"); return new Token(ClaseLexica.DOS_PUNTOS, yytext());
             } 
             // fall through
           case 73: break;
-          case 17: 
-            { System.out.println("Token encontrado: LLAVE_ABRE (" + yytext() + ")"); return new Token(ClaseLexica.LLAVE_ABRE, yytext());
+          case 15: 
+            { System.out.println("Token encontrado: PUNTO (" + yytext() + ")"); return new Token(ClaseLexica.PUNTO, yytext());
             } 
             // fall through
           case 74: break;
-          case 18: 
-            { System.out.println("Token encontrado: LLAVE_CIERRA (" + yytext() + ")"); return new Token(ClaseLexica.LLAVE_CIERRA, yytext());
+          case 16: 
+            { System.out.println("Token encontrado: PARENTESIS_ABRE (" + yytext() + ")"); return new Token(ClaseLexica.PARENTESIS_ABRE, yytext());
             } 
             // fall through
           case 75: break;
-          case 19: 
-            { System.out.println("Token encontrado: CORCHETE_ABRE (" + yytext() + ")"); return new Token(ClaseLexica.CORCHETE_ABRE, yytext());
+          case 17: 
+            { System.out.println("Token encontrado: PARENTESIS_CIERRA (" + yytext() + ")"); return new Token(ClaseLexica.PARENTESIS_CIERRA, yytext());
             } 
             // fall through
           case 76: break;
-          case 20: 
-            { System.out.println("Token encontrado: CORCHETE_CIERRA (" + yytext() + ")"); return new Token(ClaseLexica.CORCHETE_CIERRA, yytext());
+          case 18: 
+            { System.out.println("Token encontrado: LLAVE_ABRE (" + yytext() + ")"); return new Token(ClaseLexica.LLAVE_ABRE, yytext());
             } 
             // fall through
           case 77: break;
-          case 21: 
-            { System.out.println("Token encontrado: LITERAL_ENTERA (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_ENTERA, yytext());
+          case 19: 
+            { System.out.println("Token encontrado: LLAVE_CIERRA (" + yytext() + ")"); return new Token(ClaseLexica.LLAVE_CIERRA, yytext());
             } 
             // fall through
           case 78: break;
-          case 22: 
-            { System.out.println("Token encontrado: IF (" + yytext() + ")"); return new Token(ClaseLexica.IF, yytext());
+          case 20: 
+            { System.out.println("Token encontrado: CORCHETE_ABRE (" + yytext() + ")"); return new Token(ClaseLexica.CORCHETE_ABRE, yytext());
             } 
             // fall through
           case 79: break;
-          case 23: 
-            { System.out.println("Token encontrado: DO (" + yytext() + ")"); return new Token(ClaseLexica.DO, yytext());
+          case 21: 
+            { System.out.println("Token encontrado: CORCHETE_CIERRA (" + yytext() + ")"); return new Token(ClaseLexica.CORCHETE_CIERRA, yytext());
             } 
             // fall through
           case 80: break;
-          case 24: 
-            { System.out.println("Token encontrado: IGUAL (" + yytext() + ")"); return new Token(ClaseLexica.IGUAL, yytext());
+          case 22: 
+            { System.out.println("Token encontrado: LITERAL_ENTERA (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_ENTERA, yytext());
             } 
             // fall through
           case 81: break;
-          case 25: 
-            { System.out.println("Token encontrado: DIVISION_ENTERA (" + yytext() + ")"); return new Token(ClaseLexica.DIVISION_ENTERA, yytext());
+          case 23: 
+            { System.out.println("Token encontrado: IF (" + yytext() + ")"); return new Token(ClaseLexica.IF, yytext());
             } 
             // fall through
           case 82: break;
-          case 26: 
-            { System.out.println("Token encontrado: AND (" + yytext() + ")"); return new Token(ClaseLexica.AND, yytext());
+          case 24: 
+            { System.out.println("Token encontrado: DO (" + yytext() + ")"); return new Token(ClaseLexica.DO, yytext());
             } 
             // fall through
           case 83: break;
-          case 27: 
-            { System.out.println("Token encontrado: OR (" + yytext() + ")"); return new Token(ClaseLexica.OR, yytext());
+          case 25: 
+            { System.out.println("Token encontrado: IGUAL (" + yytext() + ")"); return new Token(ClaseLexica.IGUAL, yytext());
             } 
             // fall through
           case 84: break;
-          case 28: 
-            { System.out.println("Token encontrado: DIFERENTE (" + yytext() + ")"); return new Token(ClaseLexica.DIFERENTE, yytext());
+          case 26: 
+            { System.out.println("Token encontrado: DIVISION_ENTERA (" + yytext() + ")"); return new Token(ClaseLexica.DIVISION_ENTERA, yytext());
             } 
             // fall through
           case 85: break;
-          case 29: 
-            { System.out.println("Token encontrado: MENOR_IGUAL (" + yytext() + ")"); return new Token(ClaseLexica.MENOR_IGUAL, yytext());
+          case 27: 
+            { System.out.println("Token encontrado: AND (" + yytext() + ")"); return new Token(ClaseLexica.AND, yytext());
             } 
             // fall through
           case 86: break;
-          case 30: 
-            { System.out.println("Token encontrado: MAYOR_IGUAL (" + yytext() + ")"); return new Token(ClaseLexica.MAYOR_IGUAL, yytext());
+          case 28: 
+            { System.out.println("Token encontrado: OR (" + yytext() + ")"); return new Token(ClaseLexica.OR, yytext());
             } 
             // fall through
           case 87: break;
-          case 31: 
-            { System.out.println("Token encontrado: PTR (" + yytext() + ")"); return new Token(ClaseLexica.PTR, yytext());
+          case 29: 
+            { System.out.println("Token encontrado: DIFERENTE (" + yytext() + ")"); return new Token(ClaseLexica.DIFERENTE, yytext());
             } 
             // fall through
           case 88: break;
-          case 32: 
-            { System.out.println("Token encontrado: INT (" + yytext() + ")"); return new Token(ClaseLexica.INT, yytext());
+          case 30: 
+            { System.out.println("Token encontrado: MENOR_IGUAL (" + yytext() + ")"); return new Token(ClaseLexica.MENOR_IGUAL, yytext());
             } 
             // fall through
           case 89: break;
-          case 33: 
-            { /* ignorar comentarios de una línea */
+          case 31: 
+            { System.out.println("Token encontrado: MAYOR_IGUAL (" + yytext() + ")"); return new Token(ClaseLexica.MAYOR_IGUAL, yytext());
             } 
             // fall through
           case 90: break;
-          case 34: 
-            { System.out.println("Token encontrado: LITERAL_FLOTANTE (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_FLOTANTE, yytext());
+          case 32: 
+            { System.out.println("Token encontrado: LITERAL_CADENA (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_CADENA, yytext());
             } 
             // fall through
           case 91: break;
-          case 35: 
-            { System.out.println("Token encontrado: LITERAL_RUNA (" +yytext() + ")"); return new Token(ClaseLexica.LITERAL_RUNA, yytext());
+          case 33: 
+            { System.out.println("Token encontrado: PTR (" + yytext() + ")"); return new Token(ClaseLexica.PTR, yytext());
             } 
             // fall through
           case 92: break;
-          case 36: 
-            { System.out.println("Token encontrado: RUNE (" + yytext() + ")"); return new Token(ClaseLexica.RUNE, yytext());
+          case 34: 
+            { System.out.println("Token encontrado: INT (" + yytext() + ")"); return new Token(ClaseLexica.INT, yytext());
             } 
             // fall through
           case 93: break;
-          case 37: 
-            { System.out.println("Token encontrado: TRUE (" + yytext() + ")"); return new Token(ClaseLexica.TRUE, yytext());
+          case 35: 
+            { /* ignorar comentarios de una línea */
             } 
             // fall through
           case 94: break;
-          case 38: 
-            { System.out.println("Token encontrado: FUNC (" + yytext() + ")"); return new Token(ClaseLexica.FUNC, yytext());
+          case 36: 
+            { System.out.println("Token encontrado: LITERAL_FLOTANTE (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_FLOTANTE, yytext());
             } 
             // fall through
           case 95: break;
-          case 39: 
-            { System.out.println("Token encontrado: CASE (" + yytext() + ")"); return new Token(ClaseLexica.CASE, yytext());
+          case 37: 
+            { System.out.println("Token encontrado: LITERAL_RUNA (" +yytext() + ")"); return new Token(ClaseLexica.LITERAL_RUNA, yytext());
             } 
             // fall through
           case 96: break;
-          case 40: 
-            { System.out.println("Token encontrado: ELSE (" + yytext() + ")"); return new Token(ClaseLexica.ELSE, yytext());
+          case 38: 
+            { System.out.println("Token encontrado: RUNE (" + yytext() + ")"); return new Token(ClaseLexica.RUNE, yytext());
             } 
             // fall through
           case 97: break;
-          case 41: 
-            { System.out.println("Token encontrado: SCAN (" + yytext() + ")"); return new Token(ClaseLexica.SCAN, yytext());
+          case 39: 
+            { System.out.println("Token encontrado: TRUE (" + yytext() + ")"); return new Token(ClaseLexica.TRUE, yytext());
             } 
             // fall through
           case 98: break;
-          case 42: 
-            { System.out.println("Token encontrado: VOID (" + yytext() + ")"); return new Token(ClaseLexica.VOID, yytext());
+          case 40: 
+            { System.out.println("Token encontrado: FUNC (" + yytext() + ")"); return new Token(ClaseLexica.FUNC, yytext());
             } 
             // fall through
           case 99: break;
-          case 43: 
-            { /* ignorar comentarios de varias líneas */
+          case 41: 
+            { System.out.println("Token encontrado: CASE (" + yytext() + ")"); return new Token(ClaseLexica.CASE, yytext());
             } 
             // fall through
           case 100: break;
-          case 44: 
-            { System.out.println("Token encontrado: PROTO (" + yytext() + ")"); return new Token(ClaseLexica.PROTO, yytext());
+          case 42: 
+            { System.out.println("Token encontrado: ELSE (" + yytext() + ")"); return new Token(ClaseLexica.ELSE, yytext());
             } 
             // fall through
           case 101: break;
-          case 45: 
-            { System.out.println("Token encontrado: PRINT (" + yytext() + ")"); return new Token(ClaseLexica.PRINT, yytext());
+          case 43: 
+            { System.out.println("Token encontrado: SCAN (" + yytext() + ")"); return new Token(ClaseLexica.SCAN, yytext());
             } 
             // fall through
           case 102: break;
-          case 46: 
-            { System.out.println("Token encontrado: FALSE (" + yytext() + ")"); return new Token(ClaseLexica.FALSE, yytext());
+          case 44: 
+            { System.out.println("Token encontrado: VOID (" + yytext() + ")"); return new Token(ClaseLexica.VOID, yytext());
             } 
             // fall through
           case 103: break;
-          case 47: 
-            { System.out.println("Token encontrado: FLOAT (" + yytext() + ")"); return new Token(ClaseLexica.FLOAT, yytext());
+          case 45: 
+            { /* ignorar comentarios de varias líneas */
             } 
             // fall through
           case 104: break;
-          case 48: 
-            { System.out.println("Token encontrado: WHILE (" + yytext() + ")"); return new Token(ClaseLexica.WHILE, yytext());
+          case 46: 
+            { System.out.println("Token encontrado: PROTO (" + yytext() + ")"); return new Token(ClaseLexica.PROTO, yytext());
             } 
             // fall through
           case 105: break;
-          case 49: 
-            { System.out.println("Token encontrado: BREAK (" + yytext() + ")"); return new Token(ClaseLexica.BREAK, yytext());
+          case 47: 
+            { System.out.println("Token encontrado: PRINT (" + yytext() + ")"); return new Token(ClaseLexica.PRINT, yytext());
             } 
             // fall through
           case 106: break;
-          case 50: 
-            { System.out.println("Token encontrado: RETURN (" + yytext() + ")"); return new Token(ClaseLexica.RETURN, yytext());
+          case 48: 
+            { System.out.println("Token encontrado: FALSE (" + yytext() + ")"); return new Token(ClaseLexica.FALSE, yytext());
             } 
             // fall through
           case 107: break;
-          case 51: 
-            { System.out.println("Token encontrado: STRUCT (" + yytext() + ")"); return new Token(ClaseLexica.STRUCT, yytext());
+          case 49: 
+            { System.out.println("Token encontrado: FLOAT (" + yytext() + ")"); return new Token(ClaseLexica.FLOAT, yytext());
             } 
             // fall through
           case 108: break;
-          case 52: 
-            { System.out.println("Token encontrado: STRING (" + yytext() + ")"); return new Token(ClaseLexica.STRING, yytext());
+          case 50: 
+            { System.out.println("Token encontrado: WHILE (" + yytext() + ")"); return new Token(ClaseLexica.WHILE, yytext());
             } 
             // fall through
           case 109: break;
-          case 53: 
-            { System.out.println("Token encontrado: SWITCH (" + yytext() + ")"); return new Token(ClaseLexica.SWITCH, yytext());
+          case 51: 
+            { System.out.println("Token encontrado: BREAK (" + yytext() + ")"); return new Token(ClaseLexica.BREAK, yytext());
             } 
             // fall through
           case 110: break;
-          case 54: 
-            { System.out.println("Token encontrado: DOUBLE (" + yytext() + ")"); return new Token(ClaseLexica.DOUBLE, yytext());
+          case 52: 
+            { System.out.println("Token encontrado: RETURN (" + yytext() + ")"); return new Token(ClaseLexica.RETURN, yytext());
             } 
             // fall through
           case 111: break;
-          case 55: 
-            { System.out.println("Token encontrado: COMPLEX (" + yytext() + ")"); return new Token(ClaseLexica.COMPLEX, yytext());
+          case 53: 
+            { System.out.println("Token encontrado: STRUCT (" + yytext() + ")"); return new Token(ClaseLexica.STRUCT, yytext());
             } 
             // fall through
           case 112: break;
-          case 56: 
-            { System.out.println("Token encontrado: DEFAULT (" + yytext() + ")"); return new Token(ClaseLexica.DEFAULT, yytext());
+          case 54: 
+            { System.out.println("Token encontrado: STRING (" + yytext() + ")"); return new Token(ClaseLexica.STRING, yytext());
             } 
             // fall through
           case 113: break;
-          case 57: 
-            { System.out.println("Token encontrado: PROGRAMA (" + yytext() + ")"); return new Token(ClaseLexica.PROGRAMA, yytext());
+          case 55: 
+            { System.out.println("Token encontrado: SWITCH (" + yytext() + ")"); return new Token(ClaseLexica.SWITCH, yytext());
             } 
             // fall through
           case 114: break;
+          case 56: 
+            { System.out.println("Token encontrado: DOUBLE (" + yytext() + ")"); return new Token(ClaseLexica.DOUBLE, yytext());
+            } 
+            // fall through
+          case 115: break;
+          case 57: 
+            { System.out.println("Token encontrado: COMPLEX (" + yytext() + ")"); return new Token(ClaseLexica.COMPLEX, yytext());
+            } 
+            // fall through
+          case 116: break;
+          case 58: 
+            { System.out.println("Token encontrado: DEFAULT (" + yytext() + ")"); return new Token(ClaseLexica.DEFAULT, yytext());
+            } 
+            // fall through
+          case 117: break;
+          case 59: 
+            { System.out.println("Token encontrado: PROGRAMA (" + yytext() + ")"); return new Token(ClaseLexica.PROGRAMA, yytext());
+            } 
+            // fall through
+          case 118: break;
           default:
             zzScanError(ZZ_NO_MATCH);
         }

@@ -38,7 +38,7 @@ P3
 
 ```bash
 $ jflex src/main/jflex/Lexer.flex
-$ javac --source-path src -d build src/main/jflex/Main.java
+$ javac --source-path src -d build src/main/java/Main.java
 ```
 
 #### Ejecucion
