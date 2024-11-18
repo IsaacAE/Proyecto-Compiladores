@@ -63,5 +63,7 @@ public enum ClaseLexica {
     LITERAL_RUNA,     // Literales tipo "rune"
 
     // Identificadores
-    ID                // Identificadores
+    ID,                // Identificadores
+    
+    EOF
 }

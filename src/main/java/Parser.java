@@ -1,6 +1,9 @@
 package main.java;
 
 import java.util.List;
+import java.io.IOException;
+import main.jflex.Lexer;
+
 
 public class Parser {
     private Lexer lexer;
@@ -8,14 +11,22 @@ public class Parser {
 
     public Parser(Lexer lexer) {
         this.lexer = lexer;
-        tokenActual = lexer.yylex(); // Obtener el primer token
+        try {
+            tokenActual = lexer.yylex(); // Obtener el primer token
+        } catch (IOException ioe) {
+            System.err.println("Failed to read next token");
+        }
     }
 
     private void eat(ClaseLexica claseEsperada) {
-        if (tokenActual.clase == claseEsperada) {
-            tokenActual = lexer.yylex(); // Consumir token
+        if (tokenActual.getClase() == claseEsperada) {
+            try {
+                tokenActual = lexer.yylex(); // Obtener el primer token
+            } catch (IOException ioe) {
+                System.err.println("Failed to read next token");
+            }
         } else {
-            error("Se esperaba: " + claseEsperada + ", pero se encontró: " + tokenActual.clase);
+            error("Se esperaba: " + claseEsperada + ", pero se encontró: " + tokenActual.getClase());
         }
     }
 
@@ -24,11 +35,21 @@ public class Parser {
     }
 
     public void parse() {
+        try {
+            this.tokenActual = lexer.yylex();
+        } catch (IOException ioe) {
+            System.err.println("Error: No fue posible obtener el primer token de la entrada.");
+            System.exit(1);
+        }
         programa();
-        if (tokenActual.clase != null) { // null representa EOF
-            error("Tokens extra después del programa.");
+        if (this.tokenActual.getClase() == ClaseLexica.EOF) { // llegamos al EOF sin error
+            System.out.println("La cadena es aceptada");
+        } else {
+            error("Se esperaba el final del archivo");
         }
     }
+
+    
 
     // Producción principal
     private void programa() {
@@ -39,7 +60,7 @@ public class Parser {
 
     // Producción decl_proto
     private void decl_proto() {
-        if (tokenActual.clase == ClaseLexica.PROTO) {
+        if (tokenActual.getClase() == ClaseLexica.PROGRAMA) {
             eat(ClaseLexica.PROTO);
             tipo();
             eat(ClaseLexica.ID);
@@ -52,14 +73,14 @@ public class Parser {
     }
 
     private void decl_proto_prima() {
-        if (tokenActual.clase == ClaseLexica.PROTO) {
+        if (tokenActual.getClase() == ClaseLexica.PROTO) {
             decl_proto();
         }
     }
 
     // Producción decl_var
     private void decl_var() {
-        if (esTipo(tokenActual.clase)) {
+        if (esTipo(tokenActual.getClase())) {
             tipo();
             lista_var();
             eat(ClaseLexica.PUNTO_Y_COMA);
@@ -68,14 +89,14 @@ public class Parser {
     }
 
     private void decl_var_prima() {
-        if (esTipo(tokenActual.clase)) {
+        if (esTipo(tokenActual.getClase())) {
             decl_var();
         }
     }
 
     // Producción decl_func
     private void decl_func() {
-        if (tokenActual.clase == ClaseLexica.FUNC) {
+        if (tokenActual.getClase() == ClaseLexica.FUNC) {
             eat(ClaseLexica.FUNC);
             tipo();
             eat(ClaseLexica.ID);
@@ -88,22 +109,22 @@ public class Parser {
     }
 
     private void decl_func_prima() {
-        if (tokenActual.clase == ClaseLexica.FUNC) {
+        if (tokenActual.getClase() == ClaseLexica.FUNC) {
             decl_func();
         }
     }
 
     // Producción tipo
     private void tipo() {
-        if (esTipoBasico(tokenActual.clase)) {
+        if (esTipoBasico(tokenActual.getClase())) {
             basico();
             tipo_prima();
-        } else if (tokenActual.clase == ClaseLexica.STRUCT) {
+        } else if (tokenActual.getClase() == ClaseLexica.STRUCT) {
             eat(ClaseLexica.STRUCT);
             eat(ClaseLexica.LLAVE_ABRE);
             decl_var();
             eat(ClaseLexica.LLAVE_CIERRA);
-        } else if (tokenActual.clase == ClaseLexica.PTR) {
+        } else if (tokenActual.getClase() == ClaseLexica.PTR) {
             puntero();
         } else {
             error("Se esperaba un tipo.");
@@ -111,7 +132,7 @@ public class Parser {
     }
 
     private void tipo_prima() {
-        if (tokenActual.clase == ClaseLexica.CORCHETE_ABRE) {
+        if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
             compuesto();
         }
     }
@@ -122,11 +143,19 @@ public class Parser {
     }
 
     private void basico() {
-        switch (tokenActual.clase) {
-            case INT, FLOAT, DOUBLE, COMPLEX, RUNE, VOID, STRING -> eat(tokenActual.clase);
-            default -> error("Se esperaba un tipo básico.");
+        if (tokenActual.getClase() == ClaseLexica.INT || 
+            tokenActual.getClase() == ClaseLexica.FLOAT || 
+            tokenActual.getClase() == ClaseLexica.DOUBLE || 
+            tokenActual.getClase() == ClaseLexica.COMPLEX || 
+            tokenActual.getClase() == ClaseLexica.RUNE || 
+            tokenActual.getClase() == ClaseLexica.VOID || 
+            tokenActual.getClase() == ClaseLexica.STRING) {
+            eat(tokenActual.getClase());
+        } else {
+            error("Se esperaba un tipo básico.");
         }
     }
+
 
     private void compuesto() {
         eat(ClaseLexica.CORCHETE_ABRE);
@@ -136,7 +165,7 @@ public class Parser {
     }
 
     private void compuesto_prima() {
-        while (tokenActual.clase == ClaseLexica.CORCHETE_ABRE) {
+        while (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
             eat(ClaseLexica.CORCHETE_ABRE);
             eat(ClaseLexica.LITERAL_ENTERA);
             eat(ClaseLexica.CORCHETE_CIERRA);
@@ -150,7 +179,7 @@ public class Parser {
     }
 
     private void lista_var_prima() {
-        while (tokenActual.clase == ClaseLexica.COMA) {
+        while (tokenActual.getClase() == ClaseLexica.COMA) {
             eat(ClaseLexica.COMA);
             eat(ClaseLexica.ID);
         }
@@ -158,7 +187,7 @@ public class Parser {
 
     // Producción argumentos
     private void argumentos() {
-        if (esTipo(tokenActual.clase)) {
+        if (tokenActual.getClase() == ClaseLexica.PARENTESIS_ABRE) {
             lista_args();
         }
     }
@@ -170,7 +199,7 @@ public class Parser {
     }
 
     private void lista_args_prima() {
-        while (tokenActual.clase == ClaseLexica.COMA) {
+        while (tokenActual.getClase() == ClaseLexica.COMA) {
             eat(ClaseLexica.COMA);
             tipo();
             eat(ClaseLexica.ID);
@@ -186,7 +215,7 @@ public class Parser {
     }
 
     private void declaraciones() {
-        while (esTipo(tokenActual.clase)) {
+        while (esTipo(tokenActual.getClase())) {
             decl_var();
         }
     }
@@ -199,57 +228,52 @@ public class Parser {
 
     // Producción sentencia
     private void sentencia() {
-        switch (tokenActual.clase) {
-            case ID -> {
-                eat(ClaseLexica.ID);
-                if (tokenActual.clase == ClaseLexica.IGUAL) {
-                    eat(ClaseLexica.IGUAL);
-                    exp();
-                    eat(ClaseLexica.PUNTO_Y_COMA);
-                }
-            }
-            case IF -> {
-                eat(ClaseLexica.IF);
-                eat(ClaseLexica.PARENTESIS_ABRE);
+        if (tokenActual.getClase() == ClaseLexica.ID) {
+            eat(ClaseLexica.ID);
+            if (tokenActual.getClase() == ClaseLexica.IGUAL) {
+                eat(ClaseLexica.IGUAL);
                 exp();
-                eat(ClaseLexica.PARENTESIS_CIERRA);
-                sentencia();
-                elseif();
-            }
-            case WHILE -> {
-                eat(ClaseLexica.WHILE);
-                eat(ClaseLexica.PARENTESIS_ABRE);
-                exp();
-                eat(ClaseLexica.PARENTESIS_CIERRA);
-                sentencia();
-            }
-            case DO -> {
-                eat(ClaseLexica.DO);
-                sentencia();
-                eat(ClaseLexica.WHILE);
-                eat(ClaseLexica.PARENTESIS_ABRE);
-                exp();
-                eat(ClaseLexica.PARENTESIS_CIERRA);
                 eat(ClaseLexica.PUNTO_Y_COMA);
             }
-            case BREAK -> {
-                eat(ClaseLexica.BREAK);
-                eat(ClaseLexica.PUNTO_Y_COMA);
+        } else if (tokenActual.getClase() == ClaseLexica.IF) {
+            eat(ClaseLexica.IF);
+            eat(ClaseLexica.PARENTESIS_ABRE);
+            exp();
+            eat(ClaseLexica.PARENTESIS_CIERRA);
+            sentencia();
+            elseif();
+        } else if (tokenActual.getClase() == ClaseLexica.WHILE) {
+            eat(ClaseLexica.WHILE);
+            eat(ClaseLexica.PARENTESIS_ABRE);
+            exp();
+            eat(ClaseLexica.PARENTESIS_CIERRA);
+            sentencia();
+        } else if (tokenActual.getClase() == ClaseLexica.DO) {
+            eat(ClaseLexica.DO);
+            sentencia();
+            eat(ClaseLexica.WHILE);
+            eat(ClaseLexica.PARENTESIS_ABRE);
+            exp();
+            eat(ClaseLexica.PARENTESIS_CIERRA);
+            eat(ClaseLexica.PUNTO_Y_COMA);
+        } else if (tokenActual.getClase() == ClaseLexica.BREAK) {
+            eat(ClaseLexica.BREAK);
+            eat(ClaseLexica.PUNTO_Y_COMA);
+        } else if (tokenActual.getClase() == ClaseLexica.RETURN) {
+            eat(ClaseLexica.RETURN);
+            if (esInicioExpresion()) {
+                exp();
             }
-            case RETURN -> {
-                eat(ClaseLexica.RETURN);
-                if (esInicioExpresion()) {
-                    exp();
-                }
-                eat(ClaseLexica.PUNTO_Y_COMA);
-            }
-            case LLAVE_ABRE -> bloque();
-            default -> error("Inicio no válido de una sentencia.");
+            eat(ClaseLexica.PUNTO_Y_COMA);
+        } else if (tokenActual.getClase() == ClaseLexica.LLAVE_ABRE) {
+            bloque();
+        } else {
+            error("Inicio no válido de una sentencia.");
         }
     }
 
     private void elseif() {
-        if (tokenActual.clase == ClaseLexica.ELSE) {
+        if (tokenActual.getClase() == ClaseLexica.ELSE) {
             eat(ClaseLexica.ELSE);
             sentencia();
         }
@@ -262,7 +286,7 @@ public class Parser {
 
     private void exp_or() {
         exp_and();
-        while (tokenActual.clase == ClaseLexica.OR) {
+        while (tokenActual.getClase() == ClaseLexica.OR) {
             eat(ClaseLexica.OR);
             exp_and();
         }
@@ -270,7 +294,7 @@ public class Parser {
 
     private void exp_and() {
         exp_eq();
-        while (tokenActual.clase == ClaseLexica.AND) {
+        while (tokenActual.getClase() == ClaseLexica.AND) {
             eat(ClaseLexica.AND);
             exp_eq();
         }
@@ -278,39 +302,39 @@ public class Parser {
 
     private void exp_eq() {
         exp_rel();
-        while (tokenActual.clase == ClaseLexica.IGUAL_IGUAL || tokenActual.clase == ClaseLexica.DIFERENTE) {
-            eat(tokenActual.clase);
+        while (tokenActual.getClase() == ClaseLexica.IGUAL || tokenActual.getClase() == ClaseLexica.DIFERENTE) {
+            eat(tokenActual.getClase());
             exp_rel();
         }
     }
 
     private void exp_rel() {
         exp_add();
-        while (esOperadorRelacional(tokenActual.clase)) {
-            eat(tokenActual.clase);
+        while (esOperadorRelacional(tokenActual.getClase())) {
+            eat(tokenActual.getClase());
             exp_add();
         }
     }
 
     private void exp_add() {
         exp_mul();
-        while (tokenActual.clase == ClaseLexica.MAS || tokenActual.clase == ClaseLexica.MENOS) {
-            eat(tokenActual.clase);
+        while (tokenActual.getClase() == ClaseLexica.MAS || tokenActual.getClase() == ClaseLexica.MENOS) {
+            eat(tokenActual.getClase());
             exp_mul();
         }
     }
 
     private void exp_mul() {
         exp_unary();
-        while (esOperadorMultiplicativo(tokenActual.clase)) {
-            eat(tokenActual.clase);
+        while (esOperadorMultiplicativo(tokenActual.getClase())) {
+            eat(tokenActual.getClase());
             exp_unary();
         }
     }
 
     private void exp_unary() {
-        if (tokenActual.clase == ClaseLexica.NOT || tokenActual.clase == ClaseLexica.MENOS) {
-            eat(tokenActual.clase);
+        if (tokenActual.getClase() == ClaseLexica.NOT || tokenActual.getClase() == ClaseLexica.MENOS) {
+            eat(tokenActual.getClase());
             exp_unary();
         } else {
             primary();
@@ -318,22 +342,26 @@ public class Parser {
     }
 
     private void primary() {
-        switch (tokenActual.clase) {
-            case PARENTESIS_ABRE -> {
-                eat(ClaseLexica.PARENTESIS_ABRE);
-                exp();
-                eat(ClaseLexica.PARENTESIS_CIERRA);
+        if (tokenActual.getClase() == ClaseLexica.PARENTESIS_ABRE) {
+            eat(ClaseLexica.PARENTESIS_ABRE);
+            exp();
+            eat(ClaseLexica.PARENTESIS_CIERRA);
+        } else if (tokenActual.getClase() == ClaseLexica.ID) {
+            eat(ClaseLexica.ID);
+            if (tokenActual.getClase() == ClaseLexica.PARENTESIS_ABRE) {
+                llamada();
             }
-            case ID -> {
-                eat(ClaseLexica.ID);
-                if (tokenActual.clase == ClaseLexica.PARENTESIS_ABRE) {
-                    llamada();
-                }
-            }
-            case LITERAL_ENTERA, LITERAL_FLOTANTE, LITERAL_STRING, TRUE, FALSE -> eat(tokenActual.clase);
-            default -> error("Expresión no válida.");
+        } else if (tokenActual.getClase() == ClaseLexica.LITERAL_ENTERA || 
+                   tokenActual.getClase() == ClaseLexica.LITERAL_FLOTANTE || 
+                   tokenActual.getClase() == ClaseLexica.LITERAL_CADENA || 
+                   tokenActual.getClase() == ClaseLexica.TRUE || 
+                   tokenActual.getClase() == ClaseLexica.FALSE) {
+            eat(tokenActual.getClase());
+        } else {
+            error("Expresión no válida.");
         }
     }
+
 
     private void llamada() {
         eat(ClaseLexica.PARENTESIS_ABRE);
@@ -345,7 +373,7 @@ public class Parser {
 
     private void lista_exp() {
         exp();
-        while (tokenActual.clase == ClaseLexica.COMA) {
+        while (tokenActual.getClase() == ClaseLexica.COMA) {
             eat(ClaseLexica.COMA);
             exp();
         }
@@ -357,38 +385,58 @@ public class Parser {
     }
 
     private boolean esTipoBasico(ClaseLexica clase) {
-        return switch (clase) {
-            case INT, FLOAT, DOUBLE, COMPLEX, RUNE, VOID, STRING -> true;
-            default -> false;
-        };
+        return clase == ClaseLexica.INT ||
+               clase == ClaseLexica.FLOAT ||
+               clase == ClaseLexica.DOUBLE ||
+               clase == ClaseLexica.COMPLEX ||
+               clase == ClaseLexica.RUNE ||
+               clase == ClaseLexica.VOID ||
+               clase == ClaseLexica.STRING;
     }
 
     private boolean esInicioSentencia() {
-        return switch (tokenActual.clase) {
-            case ID, IF, WHILE, DO, BREAK, RETURN, LLAVE_ABRE -> true;
-            default -> false;
-        };
+        return tokenActual.getClase() == ClaseLexica.ID || 
+               tokenActual.getClase() == ClaseLexica.IF || 
+               tokenActual.getClase() == ClaseLexica.WHILE || 
+               tokenActual.getClase() == ClaseLexica.DO || 
+               tokenActual.getClase() == ClaseLexica.BREAK || 
+               tokenActual.getClase() == ClaseLexica.RETURN || 
+               tokenActual.getClase() == ClaseLexica.LLAVE_ABRE;
     }
 
     private boolean esInicioExpresion() {
-        return switch (tokenActual.clase) {
-            case PARENTESIS_ABRE, ID, LITERAL_ENTERA, LITERAL_FLOTANTE, LITERAL_STRING, TRUE, FALSE -> true;
-            default -> false;
-        };
+        return tokenActual.getClase() == ClaseLexica.PARENTESIS_ABRE || 
+               tokenActual.getClase() == ClaseLexica.ID || 
+               tokenActual.getClase() == ClaseLexica.LITERAL_ENTERA || 
+               tokenActual.getClase() == ClaseLexica.LITERAL_FLOTANTE || 
+               tokenActual.getClase() == ClaseLexica.LITERAL_CADENA || 
+               tokenActual.getClase() == ClaseLexica.TRUE || 
+               tokenActual.getClase() == ClaseLexica.FALSE;
     }
 
     private boolean esOperadorRelacional(ClaseLexica clase) {
-        return switch (clase) {
-            case MENOR, MENOR_IGUAL, MAYOR, MAYOR_IGUAL -> true;
-            default -> false;
-        };
+        if (clase == ClaseLexica.MENOR || 
+            clase == ClaseLexica.MENOR_IGUAL || 
+            clase == ClaseLexica.MAYOR || 
+            clase == ClaseLexica.MAYOR_IGUAL) {
+            return true;
+        } else {
+            return false;
+        }
     }
-
+    
     private boolean esOperadorMultiplicativo(ClaseLexica clase) {
-        return switch (clase) {
-            case MULTIPLICACION, DIVISION, MODULO -> true;
-            default -> false;
-        };
+        if (clase == ClaseLexica.MULTIPLICACION || 
+            clase == ClaseLexica.DIVISION || 
+            clase == ClaseLexica.MODULO) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
+
+
+
+
 

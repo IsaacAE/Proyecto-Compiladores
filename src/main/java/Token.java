@@ -10,6 +10,10 @@ public class Token {
         this.lexema = lexema;
     }
 
+
+public ClaseLexica getClase(){
+	return this.clase;
+}
     //Modificamos toString() para que nos de la presentación requerida para los tokens en el formato <clase, lexema>
     @Override
     public String toString() {
