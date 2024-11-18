@@ -218,12 +218,16 @@ public class Parser {
     }
 
     private void instrucciones() {
-        while (esInicioSentencia()) {
-            System.out.println("Se entra a sentencia");
+        System.out.println("Entrando a instrucciones");
+        if (esInicioSentencia()) { // Método auxiliar para verificar inicio válido
             sentencia();
+            instrucciones(); // Llamada recursiva para procesar el resto
+        } else {
+            // epsilon, no hacer nada
+            System.out.println("Instrucciones vacías (epsilon)");
         }
-        System.out.println("Saliendo de instrucciones");
     }
+    
 
     // Producción sentencia
 private void sentencia() {
@@ -264,6 +268,7 @@ private void sentencia() {
         eat(ClaseLexica.PARENTESIS_CIERRA);
         eat(ClaseLexica.PUNTO_Y_COMA);
     } else if (tokenActual.getClase() == ClaseLexica.BREAK) {
+        System.out.println("Entrando al caso del break");
         eat(ClaseLexica.BREAK);
         eat(ClaseLexica.PUNTO_Y_COMA);
     } else if (tokenActual.getClase() == ClaseLexica.RETURN) {
@@ -292,6 +297,7 @@ private void sentencia() {
     } else {
         error("Inicio no válido de una sentencia.");
     }
+    System.out.println("Saliendo de sentencia");
 }
 
 private void parteIzquierda() {
@@ -315,19 +321,39 @@ private void parteIzquierda() {
 
 
 private void casos() {
-    while (tokenActual.getClase() == ClaseLexica.CASE || tokenActual.getClase() == ClaseLexica.DEFAULT) {
-        if (tokenActual.getClase() == ClaseLexica.CASE) {
-            eat(ClaseLexica.CASE);
-            exp();
-            eat(ClaseLexica.DOS_PUNTOS); // `:` después del case
-            sentencia(); // Sentencias dentro del case
-        } else if (tokenActual.getClase() == ClaseLexica.DEFAULT) {
-            eat(ClaseLexica.DEFAULT);
-            eat(ClaseLexica.DOS_PUNTOS); // `:` después del default
-            sentencia(); // Sentencias dentro del default
-        }
+    if (tokenActual.getClase() == ClaseLexica.CASE) {
+        caso();
+        casos(); // Llamada recursiva para manejar más casos
+    } else if (tokenActual.getClase() == ClaseLexica.DEFAULT) {
+        predeterminado(); // Manejar el caso predeterminado
+    } else {
+        // Producción `epsilon`: no hacer nada
     }
 }
+
+private void caso() {
+    eat(ClaseLexica.CASE);
+    opcion(); // Procesar literal_entera o literal_runa
+    eat(ClaseLexica.DOS_PUNTOS); // `:` después de la opción
+    instrucciones(); // Procesar el bloque de instrucciones
+}
+
+private void predeterminado() {
+    eat(ClaseLexica.DEFAULT);
+    eat(ClaseLexica.DOS_PUNTOS); // `:` después de default
+    instrucciones(); // Procesar el bloque de instrucciones
+}
+
+private void opcion() {
+    if (tokenActual.getClase() == ClaseLexica.LITERAL_ENTERA) {
+        eat(ClaseLexica.LITERAL_ENTERA);
+    } else if (tokenActual.getClase() == ClaseLexica.LITERAL_RUNA) {
+        eat(ClaseLexica.LITERAL_RUNA);
+    } else {
+        error("Se esperaba un literal entero o runa como opción de case.");
+    }
+}
+
 
 
     private void elseif() {
@@ -456,6 +482,7 @@ private void casos() {
         return tokenActual.getClase() == ClaseLexica.ID || 
                tokenActual.getClase() == ClaseLexica.IF || 
                tokenActual.getClase() == ClaseLexica.WHILE || 
+               tokenActual.getClase() == ClaseLexica.SWITCH || 
                tokenActual.getClase() == ClaseLexica.DO || 
                tokenActual.getClase() == ClaseLexica.BREAK || 
                tokenActual.getClase() == ClaseLexica.RETURN || 

@@ -1,0 +1,30 @@
+proto int suma(int a, int b);
+proto void imprimir(string mensaje);
+
+int [4][4]matriz;
+string r;
+
+func int main() {
+   switch (texto) {
+    case 1:
+        print "Saludo reconocido";
+        break;
+    case 2:
+        print "Despedida reconocida";
+        break;
+    default:
+        print "Entrada desconocida";
+}
+   
+   return 1;
+   
+}
+
+func int suma(int a, int b) {
+    return a + b;
+}
+
+func void imprimir(string mensaje) {
+    print mensaje;
+}
+
