@@ -1,0 +1,73 @@
+// Prototipos
+proto int add(int a, int b);
+proto void printResult(string msg);
+proto float calculate(float x, float y);
+
+// Variables globales
+int x, y, z;
+string message;
+ptr int p;
+
+struct {
+    int a;
+    float b;
+}a;
+
+// Funciones
+func int add(int a, int b) {
+    return a + b;
+}
+
+func void printResult(string msg) {
+    print msg;
+}
+
+func float calculate(float x, float y) {
+    if (x > y) {
+        return x / y;
+    } else {
+        return y / x;
+    }
+}
+
+// Código principal
+func void main() {
+    int i;
+    int result;
+   // rune r;
+    
+    i=0;
+    resulto=0;
+   // r= 'r';
+
+    // Bucle while con operador lógico
+    while (i < 10 && r != 3) {
+        result = result + i;
+        print result;
+        r = r + 1;
+        i = i + 1;
+    }
+
+    // Bucle do-while con operación compleja
+    do {
+        result = result - i * 2;
+        print result;
+        i = i - 1;
+    } while (i > 0 || result < -10);
+
+    // Operadores de comparación en switch
+    switch (result) {
+        case 0:
+            print "Zero result.";
+            break;
+        case '@':
+            print "Result is one.";
+            break;
+        default:
+            print "Result is something else.";
+    }
+
+    // Retorno
+    return;
+}
+

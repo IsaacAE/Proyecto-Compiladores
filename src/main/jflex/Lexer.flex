@@ -88,7 +88,7 @@ public Token actual;
 [0-9]+                  { System.out.println("Token encontrado: LITERAL_ENTERA (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_ENTERA, yytext()); }
 [0-9]+"."[0-9]+         { System.out.println("Token encontrado: LITERAL_FLOTANTE (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_FLOTANTE, yytext()); }
 \"([^\"\\]|\\.)*\"      { System.out.println("Token encontrado: LITERAL_CADENA (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_CADENA, yytext()); }
-\'[^\']\'               { System.out.println("Token encontrado: LITERAL_RUNA (" +yytext() + ")"); return new Token(ClaseLexica.LITERAL_RUNA, yytext()); }
+'([^'\\]|\\.)'          { System.out.println("Token encontrado: LITERAL_RUNA (" +yytext() + ")"); return new Token(ClaseLexica.LITERAL_RUNA, yytext()); }
 // Comentarios
 "//" [^\n]*             { /* ignorar comentarios de una línea */ }
 "/*" [^*]* "*" ([^/]* "*" )* "/" { /* ignorar comentarios de varias líneas */ }
