@@ -84,11 +84,11 @@ public Token actual;
 "]"                     { System.out.println("Token encontrado: CORCHETE_CIERRA (" + yytext() + ")"); return new Token(ClaseLexica.CORCHETE_CIERRA, yytext()); }
 
 // Identificadores y literales
-[a-zA-Z]+          { System.out.println("Token encontrado: ID (" + yytext() + ")"); return new Token(ClaseLexica.ID, yytext()); }
-[0-9]+                  { System.out.println("Token encontrado: LITERAL_ENTERA (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_ENTERA, yytext()); }
-[0-9]+"."[0-9]+         { System.out.println("Token encontrado: LITERAL_FLOTANTE (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_FLOTANTE, yytext()); }
-\"([^\"\\]|\\.)*\"      { System.out.println("Token encontrado: LITERAL_CADENA (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_CADENA, yytext()); }
-'([^'\\]|\\.)'          { System.out.println("Token encontrado: LITERAL_RUNA (" +yytext() + ")"); return new Token(ClaseLexica.LITERAL_RUNA, yytext()); }
+[a-zA-ZñÑáéíóúÁÉÍÓÚüÜöÖ]+   { System.out.println("Token encontrado: ID (" + yytext() + ")"); return new Token(ClaseLexica.ID, yytext()); }
+[0-9]+                      { System.out.println("Token encontrado: LITERAL_ENTERA (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_ENTERA, yytext()); }
+[0-9]+"."[0-9]+             { System.out.println("Token encontrado: LITERAL_FLOTANTE (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_FLOTANTE, yytext()); }
+\"([^\"\\]|\\.)*\"          { System.out.println("Token encontrado: LITERAL_CADENA (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_CADENA, yytext()); }
+'([^'\\]|\\.)'              { System.out.println("Token encontrado: LITERAL_RUNA (" +yytext() + ")"); return new Token(ClaseLexica.LITERAL_RUNA, yytext()); }
 // Comentarios
 "//" [^\n]*             { /* ignorar comentarios de una línea */ }
 "/*" [^*]* "*" ([^/]* "*" )* "/" { /* ignorar comentarios de varias líneas */ }

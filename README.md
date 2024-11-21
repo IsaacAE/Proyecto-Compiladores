@@ -5,8 +5,7 @@
 
 ## Alumnos
 Alcántara Estrada Kevin Isaac
-
-
+Sandoval Mendoza Angel
 
 ### Estructura del directorio
 ```c++
