@@ -41,7 +41,7 @@ func void main() {
    // r= 'r';
 
     // Bucle while con operador lógico
-    while (i < 10 && r != 3) {
+    while (i < 10.5555555555 && r != 3) {
         result = result + i;
         print result;
         r = r + 1;

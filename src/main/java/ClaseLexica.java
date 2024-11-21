@@ -60,6 +60,7 @@ public enum ClaseLexica {
     // Literales
     LITERAL_ENTERA,   // Números enteros
     LITERAL_FLOTANTE, // Números flotantes
+    LITERAL_DOUBLE,   // Números double
     LITERAL_CADENA,   // Cadenas de texto
     LITERAL_RUNA,     // Literales tipo "rune"
 

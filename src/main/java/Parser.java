@@ -50,14 +50,10 @@ public class Parser {
 
     // Producción principal
     private void programa() {
-        while (tokenActual.getClase() != ClaseLexica.EOF) {
-            if (tokenActual.getClase() == ClaseLexica.PROTO) decl_proto();
-            else if (esTipo(tokenActual.getClase())) decl_var();
-            else if (tokenActual.getClase() == ClaseLexica.FUNC) decl_func();
-            else error("Se esperaba una declaración válida.");
-        }
+        decl_proto();
+        decl_var();
+        decl_func();
     }
-    
 
     // Producción decl_proto
     private void decl_proto() {
@@ -441,6 +437,7 @@ private void opcion() {
             }
         } else if (tokenActual.getClase() == ClaseLexica.LITERAL_ENTERA || 
                    tokenActual.getClase() == ClaseLexica.LITERAL_FLOTANTE || 
+                   tokenActual.getClase() == ClaseLexica.LITERAL_DOUBLE ||
                    tokenActual.getClase() == ClaseLexica.LITERAL_CADENA || 
                    tokenActual.getClase() == ClaseLexica.TRUE || 
                    tokenActual.getClase() == ClaseLexica.FALSE) {
@@ -499,6 +496,7 @@ private void opcion() {
                tokenActual.getClase() == ClaseLexica.ID || 
                tokenActual.getClase() == ClaseLexica.LITERAL_ENTERA || 
                tokenActual.getClase() == ClaseLexica.LITERAL_FLOTANTE || 
+               tokenActual.getClase() == ClaseLexica.LITERAL_DOUBLE || 
                tokenActual.getClase() == ClaseLexica.LITERAL_CADENA || 
                tokenActual.getClase() == ClaseLexica.TRUE || 
                tokenActual.getClase() == ClaseLexica.FALSE;
