@@ -363,68 +363,123 @@ private void opcion() {
         }
     }
 
-    // Producción exp
-    private void exp() {
-        exp_or();
-    }
+  // Producción exp → exp_or
+private void exp() {
+    exp_or();
+}
 
-    private void exp_or() {
+// Producción exp_or → exp_and exp_or'
+private void exp_or() {
+    exp_and();
+    while (tokenActual.getClase() == ClaseLexica.OR) {
+        eat(ClaseLexica.OR);
         exp_and();
-        while (tokenActual.getClase() == ClaseLexica.OR) {
-            eat(ClaseLexica.OR);
-            exp_and();
-        }
     }
+}
 
-    private void exp_and() {
+// Producción exp_or' → || exp_and exp_or' | epsilon
+private void exp_or_prima() {
+    while (tokenActual.getClase() == ClaseLexica.OR) {
+        eat(ClaseLexica.OR);
+        exp_and();
+    }
+}
+
+// Producción exp_and → exp_eq exp_and'
+private void exp_and() {
+    exp_eq();
+    while (tokenActual.getClase() == ClaseLexica.AND) {
+        eat(ClaseLexica.AND);
         exp_eq();
-        while (tokenActual.getClase() == ClaseLexica.AND) {
-            eat(ClaseLexica.AND);
-            exp_eq();
-        }
     }
+}
 
-    private void exp_eq() {
+// Producción exp_and' → && exp_eq exp_and' | epsilon
+private void exp_and_prima() {
+    while (tokenActual.getClase() == ClaseLexica.AND) {
+        eat(ClaseLexica.AND);
+        exp_eq();
+    }
+}
+
+// Producción exp_eq → exp_rel exp_eq'
+private void exp_eq() {
+    exp_rel();
+    while (tokenActual.getClase() == ClaseLexica.IGUAL || tokenActual.getClase() == ClaseLexica.DIFERENTE) {
+        eat(tokenActual.getClase());
         exp_rel();
-        while (tokenActual.getClase() == ClaseLexica.IGUAL || tokenActual.getClase() == ClaseLexica.DIFERENTE) {
-            eat(tokenActual.getClase());
-            exp_rel();
-        }
     }
+}
 
-    private void exp_rel() {
+// Producción exp_eq' → == exp_rel exp_eq' | != exp_rel exp_eq' | epsilon
+private void exp_eq_prima() {
+    while (tokenActual.getClase() == ClaseLexica.IGUAL || tokenActual.getClase() == ClaseLexica.DIFERENTE) {
+        eat(tokenActual.getClase());
+        exp_rel();
+    }
+}
+
+// Producción exp_rel → exp_add exp_rel'
+private void exp_rel() {
+    exp_add();
+    while (esOperadorRelacional(tokenActual.getClase())) {
+        eat(tokenActual.getClase());
         exp_add();
-        while (esOperadorRelacional(tokenActual.getClase())) {
-            eat(tokenActual.getClase());
-            exp_add();
-        }
     }
+}
 
-    private void exp_add() {
+// Producción exp_rel' → < exp_add exp_rel' | <= exp_add exp_rel' | >= exp_add exp_rel' | > exp_add exp_rel' | epsilon
+private void exp_rel_prima() {
+    while (esOperadorRelacional(tokenActual.getClase())) {
+        eat(tokenActual.getClase());
+        exp_add();
+    }
+}
+
+// Producción exp_add → exp_mul exp_add'
+private void exp_add() {
+    exp_mul();
+    while (tokenActual.getClase() == ClaseLexica.MAS || tokenActual.getClase() == ClaseLexica.MENOS) {
+        eat(tokenActual.getClase());
         exp_mul();
-        while (tokenActual.getClase() == ClaseLexica.MAS || tokenActual.getClase() == ClaseLexica.MENOS) {
-            eat(tokenActual.getClase());
-            exp_mul();
-        }
     }
+}
 
-    private void exp_mul() {
+// Producción exp_add' → + exp_mul exp_add' | - exp_mul exp_add' | epsilon
+private void exp_add_prima() {
+    while (tokenActual.getClase() == ClaseLexica.MAS || tokenActual.getClase() == ClaseLexica.MENOS) {
+        eat(tokenActual.getClase());
+        exp_mul();
+    }
+}
+
+// Producción exp_mul → exp_unary exp_mul'
+private void exp_mul() {
+    exp_unary();
+    while (esOperadorMultiplicativo(tokenActual.getClase())) {
+        eat(tokenActual.getClase());
         exp_unary();
-        while (esOperadorMultiplicativo(tokenActual.getClase())) {
-            eat(tokenActual.getClase());
-            exp_unary();
-        }
     }
+}
 
-    private void exp_unary() {
-        if (tokenActual.getClase() == ClaseLexica.NOT || tokenActual.getClase() == ClaseLexica.MENOS) {
-            eat(tokenActual.getClase());
-            exp_unary();
-        } else {
-            primary();
-        }
+// Producción exp_mul' → * exp_unary exp_mul' | / exp_unary exp_mul' | % exp_unary exp_mul' | // exp_unary exp_mul' | epsilon
+private void exp_mul_prima() {
+    while (esOperadorMultiplicativo(tokenActual.getClase())) {
+        eat(tokenActual.getClase());
+        exp_unary();
     }
+}
 
+// Producción exp_unary → ! exp_unary | - exp_unary | epsilon
+private void exp_unary() {
+    if (tokenActual.getClase() == ClaseLexica.NOT || tokenActual.getClase() == ClaseLexica.MENOS) {
+        eat(tokenActual.getClase());
+        exp_unary();
+    } else {
+        // Aquí asumimos que primary maneja los casos base de la gramática
+        primary();
+    }
+}
     private void primary() {
         if (tokenActual.getClase() == ClaseLexica.PARENTESIS_ABRE) {
             eat(ClaseLexica.PARENTESIS_ABRE);
