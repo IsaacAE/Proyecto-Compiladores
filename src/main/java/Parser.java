@@ -29,7 +29,7 @@ public class Parser {
         throw new RuntimeException("Error de sintaxis: " + mensaje);
     }
 
-    public void parse() {
+    public ArbolSemantico parse() {
         try {
             this.tokenActual = lexer.yylex();
         } catch (IOException ioe) {
@@ -40,11 +40,12 @@ public class Parser {
         arbol.setRaiz(nodoPrograma); // Asignar la raíz construida al árbol
         if (this.tokenActual.getClase() == ClaseLexica.EOF) { // Llegamos al EOF sin error
             System.out.println("La cadena es aceptada");
-            System.out.println("Árbol Semántico:");
-            System.out.println(arbol);
+            
         } else {
             error("Se esperaba el final del archivo");
         }
+
+        return arbol;
     }
 
     // Producción principal

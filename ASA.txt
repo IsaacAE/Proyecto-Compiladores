@@ -1,0 +1,480 @@
+PROGRAMA
+  PROTO -> proto
+    TIPO_BASICO -> int
+    ID -> add
+    ARGUMENTOS
+      LISTA_ARGS
+        TIPO_BASICO -> int
+        ID -> a
+        LISTA_ARGS_PRIMA
+          TIPO_BASICO -> int
+          ID -> b
+    PROTO -> proto
+      TIPO_BASICO -> void
+      ID -> printResult
+      ARGUMENTOS
+        LISTA_ARGS
+          TIPO_BASICO -> string
+          ID -> msg
+      PROTO -> proto
+        TIPO_BASICO -> float
+        ID -> calculate
+        ARGUMENTOS
+          LISTA_ARGS
+            TIPO_BASICO -> float
+            ID -> x
+            LISTA_ARGS_PRIMA
+              TIPO_BASICO -> float
+              ID -> y
+  DECL_VAR
+    TIPO_BASICO -> int
+    LISTA_VAR
+      ID -> x
+      LISTA_VAR_PRIMA
+        ID -> y
+        ID -> z
+    DECL_VAR
+      TIPO_BASICO -> string
+      LISTA_VAR
+        ID -> message
+      DECL_VAR
+        PTR -> ptr
+          TIPO_BASICO -> int
+        LISTA_VAR
+          ID -> p
+        DECL_VAR
+          STRUCT
+            DECL_VAR
+              TIPO_BASICO -> int
+              LISTA_VAR
+                ID -> a
+              DECL_VAR
+                TIPO_BASICO -> float
+                LISTA_VAR
+                  ID -> b
+          LISTA_VAR
+            ID -> a
+  FUNC -> func
+    TIPO_BASICO -> int
+    ID -> add
+    ARGUMENTOS
+      LISTA_ARGS
+        TIPO_BASICO -> int
+        ID -> a
+        LISTA_ARGS_PRIMA
+          TIPO_BASICO -> int
+          ID -> b
+    BLOQUE
+      INSTRUCCIONES
+        SENTENCIA
+          RETURN -> return
+            EXP
+              EXP_OR
+                EXP_AND
+                  EXP_EQ
+                    EXP_REL
+                      EXP_ADD
+                        EXP_MUL
+                          EXP_UNARY
+                            PRIMARY
+                              ID -> a
+                        OPERADOR_ADD -> +
+                        EXP_MUL
+                          EXP_UNARY
+                            PRIMARY
+                              ID -> b
+    FUNC -> func
+      TIPO_BASICO -> void
+      ID -> printResult
+      ARGUMENTOS
+        LISTA_ARGS
+          TIPO_BASICO -> string
+          ID -> msg
+      BLOQUE
+        INSTRUCCIONES
+          SENTENCIA
+            PRINT -> print
+              EXP
+                EXP_OR
+                  EXP_AND
+                    EXP_EQ
+                      EXP_REL
+                        EXP_ADD
+                          EXP_MUL
+                            EXP_UNARY
+                              PRIMARY
+                                ID -> msg
+      FUNC -> func
+        TIPO_BASICO -> float
+        ID -> calculate
+        ARGUMENTOS
+          LISTA_ARGS
+            TIPO_BASICO -> float
+            ID -> x
+            LISTA_ARGS_PRIMA
+              TIPO_BASICO -> float
+              ID -> y
+        BLOQUE
+          INSTRUCCIONES
+            SENTENCIA
+              IF
+                EXP
+                  EXP_OR
+                    EXP_AND
+                      EXP_EQ
+                        EXP_REL
+                          EXP_ADD
+                            EXP_MUL
+                              EXP_UNARY
+                                PRIMARY
+                                  ID -> x
+                          OPERADOR_REL -> >
+                          EXP_ADD
+                            EXP_MUL
+                              EXP_UNARY
+                                PRIMARY
+                                  ID -> y
+                CUERPO_IF
+                SENTENCIA
+                  BLOQUE
+                    INSTRUCCIONES
+                      SENTENCIA
+                        RETURN -> return
+                          EXP
+                            EXP_OR
+                              EXP_AND
+                                EXP_EQ
+                                  EXP_REL
+                                    EXP_ADD
+                                      EXP_MUL
+                                        EXP_UNARY
+                                          PRIMARY
+                                            ID -> x
+                                        OPERADOR_MUL -> /
+                                        EXP_UNARY
+                                          PRIMARY
+                                            ID -> y
+                CUERPO_ELSE
+                SENTENCIA
+                  BLOQUE
+                    INSTRUCCIONES
+                      SENTENCIA
+                        RETURN -> return
+                          EXP
+                            EXP_OR
+                              EXP_AND
+                                EXP_EQ
+                                  EXP_REL
+                                    EXP_ADD
+                                      EXP_MUL
+                                        EXP_UNARY
+                                          PRIMARY
+                                            ID -> y
+                                        OPERADOR_MUL -> /
+                                        EXP_UNARY
+                                          PRIMARY
+                                            ID -> x
+        FUNC -> func
+          TIPO_BASICO -> void
+          ID -> main
+          BLOQUE
+            DECLARACIONES
+              DECL_VAR
+                TIPO_BASICO -> int
+                LISTA_VAR
+                  ID -> i
+                DECL_VAR
+                  TIPO_BASICO -> int
+                  LISTA_VAR
+                    ID -> result
+            INSTRUCCIONES
+              SENTENCIA
+                ID -> i
+                ASIGNACION -> =
+                  ID -> i
+                  EXP
+                    EXP_OR
+                      EXP_AND
+                        EXP_EQ
+                          EXP_REL
+                            EXP_ADD
+                              EXP_MUL
+                                EXP_UNARY
+                                  PRIMARY
+                                    LITERAL -> 0
+              SENTENCIA
+                ID -> resulto
+                ASIGNACION -> =
+                  ID -> resulto
+                  EXP
+                    EXP_OR
+                      EXP_AND
+                        EXP_EQ
+                          EXP_REL
+                            EXP_ADD
+                              EXP_MUL
+                                EXP_UNARY
+                                  PRIMARY
+                                    LITERAL -> 0
+              SENTENCIA
+                WHILE
+                  EXP
+                    EXP_OR
+                      EXP_AND
+                        EXP_EQ
+                          EXP_REL
+                            EXP_ADD
+                              EXP_MUL
+                                EXP_UNARY
+                                  PRIMARY
+                                    ID -> i
+                            OPERADOR_REL -> <
+                            EXP_ADD
+                              EXP_MUL
+                                EXP_UNARY
+                                  PRIMARY
+                                    LITERAL -> 10.5555555555
+                        AND -> &&
+                        EXP_EQ
+                          EXP_REL
+                            EXP_ADD
+                              EXP_MUL
+                                EXP_UNARY
+                                  PRIMARY
+                                    ID -> r
+                          OPERADOR_EQ -> !=
+                          EXP_REL
+                            EXP_ADD
+                              EXP_MUL
+                                EXP_UNARY
+                                  PRIMARY
+                                    LITERAL -> 3
+                  SENTENCIA
+                    BLOQUE
+                      INSTRUCCIONES
+                        SENTENCIA
+                          ID -> result
+                          ASIGNACION -> =
+                            ID -> result
+                            EXP
+                              EXP_OR
+                                EXP_AND
+                                  EXP_EQ
+                                    EXP_REL
+                                      EXP_ADD
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              ID -> result
+                                        OPERADOR_ADD -> +
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              ID -> i
+                        SENTENCIA
+                          PRINT -> print
+                            EXP
+                              EXP_OR
+                                EXP_AND
+                                  EXP_EQ
+                                    EXP_REL
+                                      EXP_ADD
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              ID -> result
+                        SENTENCIA
+                          ID -> r
+                          ASIGNACION -> =
+                            ID -> r
+                            EXP
+                              EXP_OR
+                                EXP_AND
+                                  EXP_EQ
+                                    EXP_REL
+                                      EXP_ADD
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              ID -> r
+                                        OPERADOR_ADD -> +
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              LITERAL -> 1
+                        SENTENCIA
+                          ID -> i
+                          ASIGNACION -> =
+                            ID -> i
+                            EXP
+                              EXP_OR
+                                EXP_AND
+                                  EXP_EQ
+                                    EXP_REL
+                                      EXP_ADD
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              ID -> i
+                                        OPERADOR_ADD -> +
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              LITERAL -> 1
+              SENTENCIA
+                DO_WHILE
+                  SENTENCIA
+                    BLOQUE
+                      INSTRUCCIONES
+                        SENTENCIA
+                          ID -> result
+                          ASIGNACION -> =
+                            ID -> result
+                            EXP
+                              EXP_OR
+                                EXP_AND
+                                  EXP_EQ
+                                    EXP_REL
+                                      EXP_ADD
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              ID -> result
+                                        OPERADOR_ADD -> -
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              ID -> i
+                                          OPERADOR_MUL -> *
+                                          EXP_UNARY
+                                            PRIMARY
+                                              LITERAL -> 2
+                        SENTENCIA
+                          PRINT -> print
+                            EXP
+                              EXP_OR
+                                EXP_AND
+                                  EXP_EQ
+                                    EXP_REL
+                                      EXP_ADD
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              ID -> result
+                        SENTENCIA
+                          ID -> i
+                          ASIGNACION -> =
+                            ID -> i
+                            EXP
+                              EXP_OR
+                                EXP_AND
+                                  EXP_EQ
+                                    EXP_REL
+                                      EXP_ADD
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              ID -> i
+                                        OPERADOR_ADD -> -
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              LITERAL -> 1
+                  EXP
+                    EXP_OR
+                      EXP_AND
+                        EXP_EQ
+                          EXP_REL
+                            EXP_ADD
+                              EXP_MUL
+                                EXP_UNARY
+                                  PRIMARY
+                                    ID -> i
+                            OPERADOR_REL -> >
+                            EXP_ADD
+                              EXP_MUL
+                                EXP_UNARY
+                                  PRIMARY
+                                    LITERAL -> 0
+                      OR -> ||
+                      EXP_AND
+                        EXP_EQ
+                          EXP_REL
+                            EXP_ADD
+                              EXP_MUL
+                                EXP_UNARY
+                                  PRIMARY
+                                    ID -> result
+                            OPERADOR_REL -> <
+                            EXP_ADD
+                              EXP_MUL
+                                EXP_UNARY
+                                  OPERADOR_UNARY -> -
+                                  EXP_UNARY
+                                    PRIMARY
+                                      LITERAL -> 10
+              SENTENCIA
+                SWITCH
+                  EXP
+                    EXP_OR
+                      EXP_AND
+                        EXP_EQ
+                          EXP_REL
+                            EXP_ADD
+                              EXP_MUL
+                                EXP_UNARY
+                                  PRIMARY
+                                    ID -> result
+                  CASOS
+                    CASE
+                      OPCION
+                        LITERAL -> 0
+                      INSTRUCCIONES
+                        SENTENCIA
+                          PRINT -> print
+                            EXP
+                              EXP_OR
+                                EXP_AND
+                                  EXP_EQ
+                                    EXP_REL
+                                      EXP_ADD
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              LITERAL -> "Zero result."
+                        SENTENCIA
+                          BREAK -> break
+                    CASE
+                      OPCION
+                        LITERAL -> '@'
+                      INSTRUCCIONES
+                        SENTENCIA
+                          PRINT -> print
+                            EXP
+                              EXP_OR
+                                EXP_AND
+                                  EXP_EQ
+                                    EXP_REL
+                                      EXP_ADD
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              LITERAL -> "Result is one."
+                        SENTENCIA
+                          BREAK -> break
+                    DEFAULT
+                      INSTRUCCIONES
+                        SENTENCIA
+                          PRINT -> print
+                            EXP
+                              EXP_OR
+                                EXP_AND
+                                  EXP_EQ
+                                    EXP_REL
+                                      EXP_ADD
+                                        EXP_MUL
+                                          EXP_UNARY
+                                            PRIMARY
+                                              LITERAL -> "Result is something else."
+              SENTENCIA
+                RETURN -> return
