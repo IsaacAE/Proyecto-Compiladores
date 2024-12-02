@@ -1,24 +1,29 @@
 package main.java;
 
-import main.jflex.Lexer;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import main.jflex.Lexer;
 
 public class Parser {
     private Lexer lexer;
     private Token tokenActual;
-    private ArbolSemantico arbol; // Árbol de análisis semántico
+
+    private SymbolTableStack stackSymbolTable = new SymbolTableStack();
+    private TypeTable typeTable = new TypeTable();
 
     public Parser(Lexer lexer) {
         this.lexer = lexer;
-        this.arbol = new ArbolSemantico(new NodoArbol("PROGRAMA", "")); // Inicializar árbol
     }
 
     private void eat(ClaseLexica claseEsperada) {
         if (tokenActual.getClase() == claseEsperada) {
             try {
-                tokenActual = lexer.yylex(); // Obtener el siguiente token
+                tokenActual = lexer.yylex();
             } catch (IOException ioe) {
-                System.err.println("Failed to read next token");
+                System.err.println("Error al leer el siguiente token");
             }
         } else {
             error("Se esperaba: " + claseEsperada + ", pero se encontró: " + tokenActual.getClase());
@@ -29,646 +34,520 @@ public class Parser {
         throw new RuntimeException("Error de sintaxis: " + mensaje);
     }
 
-    public ArbolSemantico parse() {
+    public void parse() {
         try {
             this.tokenActual = lexer.yylex();
         } catch (IOException ioe) {
             System.err.println("Error: No fue posible obtener el primer token de la entrada.");
             System.exit(1);
         }
-        NodoArbol nodoPrograma = programa();
-        arbol.setRaiz(nodoPrograma); // Asignar la raíz construida al árbol
-        if (this.tokenActual.getClase() == ClaseLexica.EOF) { // Llegamos al EOF sin error
+
+        // Inicializar la tabla global de símbolos
+        stackSymbolTable.push(new SymbolTable());
+        programa();
+
+        if (this.tokenActual.getClase() == ClaseLexica.EOF) {
             System.out.println("La cadena es aceptada");
-            
         } else {
             error("Se esperaba el final del archivo");
         }
-
-        return arbol;
     }
 
     // Producción principal
-    private NodoArbol programa() {
-        NodoArbol nodoPrograma = new NodoArbol("PROGRAMA", "");
-
-        NodoArbol nodoDeclProto = decl_proto();
-        if (nodoDeclProto != null) nodoPrograma.agregarHijo(nodoDeclProto);
-
-        NodoArbol nodoDeclVar = decl_var();
-        if (nodoDeclVar != null) nodoPrograma.agregarHijo(nodoDeclVar);
-
-        NodoArbol nodoDeclFunc = decl_func();
-        if (nodoDeclFunc != null) nodoPrograma.agregarHijo(nodoDeclFunc);
-
-        return nodoPrograma;
+    private void programa() {
+        decl_proto();
+        decl_var();
+        decl_func();
     }
 
     // Producción decl_proto
-    private NodoArbol decl_proto() {
-        if (tokenActual.getClase() == ClaseLexica.PROTO) {
-            NodoArbol nodoProto = new NodoArbol("PROTO", tokenActual.getLexema());
+    private void decl_proto() {
+        while (tokenActual.getClase() == ClaseLexica.PROTO) {
             eat(ClaseLexica.PROTO);
-
-            NodoArbol nodoTipo = tipo();
-            nodoProto.agregarHijo(nodoTipo);
-
-            NodoArbol nodoID = new NodoArbol("ID", tokenActual.getLexema());
+            int tipo = tipo();
+            String id = tokenActual.getLexema();
             eat(ClaseLexica.ID);
-            nodoProto.agregarHijo(nodoID);
-
             eat(ClaseLexica.PARENTESIS_ABRE);
-            NodoArbol nodoArgs = argumentos();
-            if (nodoArgs != null) nodoProto.agregarHijo(nodoArgs);
+            List<Symbol> args = argumentos();
             eat(ClaseLexica.PARENTESIS_CIERRA);
             eat(ClaseLexica.PUNTO_Y_COMA);
 
-            NodoArbol nodoRecursivo = decl_proto_prima();
-            if (nodoRecursivo != null) nodoProto.agregarHijo(nodoRecursivo);
-
-            return nodoProto;
+            // Registrar el prototipo como símbolo
+            Symbol protoSymbol = new Symbol(-1, tipo, "prototipo", null);
+            agregarSimbolo(id, protoSymbol);
         }
-        return null;
-    }
-
-    private NodoArbol decl_proto_prima() {
-        if (tokenActual.getClase() == ClaseLexica.PROTO) {
-            return decl_proto();
-        }
-        return null;
     }
 
     // Producción decl_var
-    private NodoArbol decl_var() {
-        if (esTipo(tokenActual.getClase())) {
-            NodoArbol nodoVar = new NodoArbol("DECL_VAR", "");
-
-            NodoArbol nodoTipo = tipo();
-            nodoVar.agregarHijo(nodoTipo);
-
-            NodoArbol nodoListaVar = lista_var();
-            nodoVar.agregarHijo(nodoListaVar);
-
+    private void decl_var() {
+        while (esTipo(tokenActual.getClase())) {
+            int tipo = tipo();
+            List<String> variables = lista_var();
             eat(ClaseLexica.PUNTO_Y_COMA);
 
-            NodoArbol nodoRecursivo = decl_var_prima();
-            if (nodoRecursivo != null) nodoVar.agregarHijo(nodoRecursivo);
-
-            return nodoVar;
+            // Registrar cada variable en la tabla de símbolos actual
+            for (String var : variables) {
+                Symbol varSymbol = new Symbol(-1, tipo, "variable", null);
+                agregarSimbolo(var, varSymbol);
+            }
         }
-        return null;
-    }
-
-    private NodoArbol decl_var_prima() {
-        if (esTipo(tokenActual.getClase())) {
-            return decl_var();
-        }
-        return null;
     }
 
     // Producción decl_func
-    private NodoArbol decl_func() {
-        if (tokenActual.getClase() == ClaseLexica.FUNC) {
-            NodoArbol nodoFunc = new NodoArbol("FUNC", tokenActual.getLexema());
+    private void decl_func() {
+        while (tokenActual.getClase() == ClaseLexica.FUNC) {
             eat(ClaseLexica.FUNC);
-
-            NodoArbol nodoTipo = tipo();
-            nodoFunc.agregarHijo(nodoTipo);
-
-            NodoArbol nodoID = new NodoArbol("ID", tokenActual.getLexema());
+            int tipo = tipo();
+            String id = tokenActual.getLexema();
             eat(ClaseLexica.ID);
-            nodoFunc.agregarHijo(nodoID);
-
             eat(ClaseLexica.PARENTESIS_ABRE);
-            NodoArbol nodoArgs = argumentos();
-            if (nodoArgs != null) nodoFunc.agregarHijo(nodoArgs);
+            List<Symbol> args = argumentos();
             eat(ClaseLexica.PARENTESIS_CIERRA);
 
-            NodoArbol nodoBloque = bloque();
-            nodoFunc.agregarHijo(nodoBloque);
+            // Registrar la función como símbolo
+            Symbol funcSymbol = new Symbol(-1, tipo, "funcion", null);
+            agregarSimbolo(id, funcSymbol);
 
-            NodoArbol nodoRecursivo = decl_func_prima();
-            if (nodoRecursivo != null) nodoFunc.agregarHijo(nodoRecursivo);
+            // Crear un nuevo scope
+            stackSymbolTable.push(new SymbolTable());
+            for (Symbol arg : args) {
+                agregarSimbolo(arg.getCat(), arg);
+            }
 
-            return nodoFunc;
+            bloque();
+            stackSymbolTable.pop(); // Cerrar scope
         }
-        return null;
     }
 
-    private NodoArbol decl_func_prima() {
-        if (tokenActual.getClase() == ClaseLexica.FUNC) {
-            return decl_func();
-        }
-        return null;
-    }
-
-    // Producción tipo
-    private NodoArbol tipo() {
+    private int tipo() {
+        int tipoBase;
+    
         if (esTipoBasico(tokenActual.getClase())) {
-            NodoArbol nodoTipo = new NodoArbol("TIPO_BASICO", tokenActual.getLexema());
-            eat(tokenActual.getClase());
-            return nodoTipo;
+            tipoBase = basico(); // Identificar el tipo básico
+            tipoBase = tipo_prima(tipoBase); // Manejar tipos compuestos, si los hay
         } else if (tokenActual.getClase() == ClaseLexica.STRUCT) {
-            NodoArbol nodoStruct = new NodoArbol("STRUCT", "");
+            // Procesar estructuras (structs)
             eat(ClaseLexica.STRUCT);
             eat(ClaseLexica.LLAVE_ABRE);
-            NodoArbol nodoDeclVar = decl_var();
-            if (nodoDeclVar != null) nodoStruct.agregarHijo(nodoDeclVar);
+            decl_var(); // Manejar declaraciones dentro del struct
             eat(ClaseLexica.LLAVE_CIERRA);
-            return nodoStruct;
+            tipoBase = typeTable.addType((short) 0, (short) 0, null); // Registrar un nuevo tipo struct
         } else if (tokenActual.getClase() == ClaseLexica.PTR) {
-            NodoArbol nodoPtr = puntero();
-            return nodoPtr;
+            // Manejar punteros
+            eat(ClaseLexica.PTR);
+            tipoBase = -1; // Representar un puntero
         } else {
-            error("Se esperaba un tipo.");
-            return null; // Unreachable
+            error("Se esperaba un tipo válido.");
+            tipoBase = -1; // Código inaccesible en caso de error
         }
-    }
-
-    private NodoArbol puntero() {
-        NodoArbol nodoPtr = new NodoArbol("PTR", tokenActual.getLexema());
-        eat(ClaseLexica.PTR);
-        NodoArbol nodoBasico = tipo();
-        nodoPtr.agregarHijo(nodoBasico);
-        return nodoPtr;
-    }
-
-    private NodoArbol lista_var() {
-        NodoArbol nodoListaVar = new NodoArbol("LISTA_VAR", "");
-        NodoArbol nodoID = new NodoArbol("ID", tokenActual.getLexema());
-        eat(ClaseLexica.ID);
-        nodoListaVar.agregarHijo(nodoID);
-        NodoArbol nodoListaVarPrima = lista_var_prima();
-        if (nodoListaVarPrima != null) nodoListaVar.agregarHijo(nodoListaVarPrima);
-        return nodoListaVar;
-    }
-
-    private NodoArbol lista_var_prima() {
-        NodoArbol nodoListaVarPrima = new NodoArbol("LISTA_VAR_PRIMA", "");
-        while (tokenActual.getClase() == ClaseLexica.COMA) {
-            eat(ClaseLexica.COMA);
-            NodoArbol nodoID = new NodoArbol("ID", tokenActual.getLexema());
-            eat(ClaseLexica.ID);
-            nodoListaVarPrima.agregarHijo(nodoID);
-        }
-        return nodoListaVarPrima.getHijos().isEmpty() ? null : nodoListaVarPrima;
-    }
-
-    private NodoArbol argumentos() {
-        NodoArbol nodoArgumentos = new NodoArbol("ARGUMENTOS", "");
-        if (esTipo(tokenActual.getClase())) {
-            NodoArbol nodoListaArgs = lista_args();
-            nodoArgumentos.agregarHijo(nodoListaArgs);
-        }
-        return nodoArgumentos.getHijos().isEmpty() ? null : nodoArgumentos;
-    }
-
-    private NodoArbol lista_args() {
-        NodoArbol nodoListaArgs = new NodoArbol("LISTA_ARGS", "");
-        NodoArbol nodoTipo = tipo();
-        nodoListaArgs.agregarHijo(nodoTipo);
-
-        NodoArbol nodoID = new NodoArbol("ID", tokenActual.getLexema());
-        eat(ClaseLexica.ID);
-        nodoListaArgs.agregarHijo(nodoID);
-
-        NodoArbol nodoListaArgsPrima = lista_args_prima();
-        if (nodoListaArgsPrima != null) nodoListaArgs.agregarHijo(nodoListaArgsPrima);
-
-        return nodoListaArgs;
-    }
-
-    private NodoArbol lista_args_prima() {
-        NodoArbol nodoListaArgsPrima = new NodoArbol("LISTA_ARGS_PRIMA", "");
-        while (tokenActual.getClase() == ClaseLexica.COMA) {
-            eat(ClaseLexica.COMA);
-
-            NodoArbol nodoTipo = tipo();
-            nodoListaArgsPrima.agregarHijo(nodoTipo);
-
-            NodoArbol nodoID = new NodoArbol("ID", tokenActual.getLexema());
-            eat(ClaseLexica.ID);
-            nodoListaArgsPrima.agregarHijo(nodoID);
-        }
-        return nodoListaArgsPrima.getHijos().isEmpty() ? null : nodoListaArgsPrima;
-    }
-
-    private NodoArbol bloque() {
-        NodoArbol nodoBloque = new NodoArbol("BLOQUE", "");
-        eat(ClaseLexica.LLAVE_ABRE);
-
-        NodoArbol nodoDeclaraciones = declaraciones();
-        if (nodoDeclaraciones != null) nodoBloque.agregarHijo(nodoDeclaraciones);
-
-        NodoArbol nodoInstrucciones = instrucciones();
-        if (nodoInstrucciones != null) nodoBloque.agregarHijo(nodoInstrucciones);
-
-        eat(ClaseLexica.LLAVE_CIERRA);
-        return nodoBloque;
-    }
-
-    private NodoArbol declaraciones() {
-        NodoArbol nodoDeclaraciones = new NodoArbol("DECLARACIONES", "");
-        while (esTipo(tokenActual.getClase())) {
-            NodoArbol nodoDeclVar = decl_var();
-            if (nodoDeclVar != null) nodoDeclaraciones.agregarHijo(nodoDeclVar);
-        }
-        return nodoDeclaraciones.getHijos().isEmpty() ? null : nodoDeclaraciones;
-    }
-
-    private NodoArbol instrucciones() {
-        NodoArbol nodoInstrucciones = new NodoArbol("INSTRUCCIONES", "");
-        while (esInicioSentencia()) {
-            NodoArbol nodoSentencia = sentencia();
-            if (nodoSentencia != null) nodoInstrucciones.agregarHijo(nodoSentencia);
-        }
-        return nodoInstrucciones.getHijos().isEmpty() ? null : nodoInstrucciones;
-    }
-
-    private NodoArbol sentencia() {
-    NodoArbol nodoSentencia = new NodoArbol("SENTENCIA", "");
-    System.out.println("Entrando a sentencia");
     
-    if (tokenActual.getClase() == ClaseLexica.ID) {
-        NodoArbol nodoID = new NodoArbol("ID", tokenActual.getLexema());
-        eat(ClaseLexica.ID);
-        nodoSentencia.agregarHijo(nodoID);
-
-        if (tokenActual.getClase() == ClaseLexica.ASIGNACION) {
-            NodoArbol nodoAsignacion = new NodoArbol("ASIGNACION", "=");
-            eat(ClaseLexica.ASIGNACION);
-            NodoArbol nodoExp = exp();
-            nodoAsignacion.agregarHijo(nodoID);
-            nodoAsignacion.agregarHijo(nodoExp);
-            nodoSentencia.agregarHijo(nodoAsignacion);
-            eat(ClaseLexica.PUNTO_Y_COMA);
-        } else {
-            error("Se esperaba '=' después del identificador.");
-        }
-    } else if (tokenActual.getClase() == ClaseLexica.IF) {
-        eat(ClaseLexica.IF);
-        NodoArbol nodoIf = new NodoArbol("IF", "");
-        eat(ClaseLexica.PARENTESIS_ABRE);
-        NodoArbol nodoCondicion = exp();
-        nodoIf.agregarHijo(nodoCondicion);
-        eat(ClaseLexica.PARENTESIS_CIERRA);
-
-        NodoArbol nodoCuerpoIf = sentencia();
-        nodoIf.agregarHijo(new NodoArbol("CUERPO_IF", ""));
-        nodoIf.agregarHijo(nodoCuerpoIf);
-
-        if (tokenActual.getClase() == ClaseLexica.ELSE) {
-            eat(ClaseLexica.ELSE);
-            NodoArbol nodoCuerpoElse = sentencia();
-            nodoIf.agregarHijo(new NodoArbol("CUERPO_ELSE", ""));
-            nodoIf.agregarHijo(nodoCuerpoElse);
-        }
-        nodoSentencia.agregarHijo(nodoIf);
-    } else if (tokenActual.getClase() == ClaseLexica.WHILE) {
-        eat(ClaseLexica.WHILE);
-        NodoArbol nodoWhile = new NodoArbol("WHILE", "");
-        eat(ClaseLexica.PARENTESIS_ABRE);
-        NodoArbol nodoCondicion = exp();
-        nodoWhile.agregarHijo(nodoCondicion);
-        eat(ClaseLexica.PARENTESIS_CIERRA);
-
-        NodoArbol nodoCuerpoWhile = sentencia();
-        nodoWhile.agregarHijo(nodoCuerpoWhile);
-        nodoSentencia.agregarHijo(nodoWhile);
-    } else if (tokenActual.getClase() == ClaseLexica.DO) {
-        eat(ClaseLexica.DO);
-        NodoArbol nodoDoWhile = new NodoArbol("DO_WHILE", "");
-        NodoArbol nodoCuerpoDo = sentencia();
-        nodoDoWhile.agregarHijo(nodoCuerpoDo);
-        eat(ClaseLexica.WHILE);
-        eat(ClaseLexica.PARENTESIS_ABRE);
-        NodoArbol nodoCondicion = exp();
-        nodoDoWhile.agregarHijo(nodoCondicion);
-        eat(ClaseLexica.PARENTESIS_CIERRA);
-        eat(ClaseLexica.PUNTO_Y_COMA);
-        nodoSentencia.agregarHijo(nodoDoWhile);
-    } else if (tokenActual.getClase() == ClaseLexica.BREAK) {
-        eat(ClaseLexica.BREAK);
-        nodoSentencia.agregarHijo(new NodoArbol("BREAK", "break"));
-        eat(ClaseLexica.PUNTO_Y_COMA);
-    } else if (tokenActual.getClase() == ClaseLexica.RETURN) {
-        eat(ClaseLexica.RETURN);
-        NodoArbol nodoReturn = new NodoArbol("RETURN", "return");
-        if (esInicioExpresion()) {
-            NodoArbol nodoExp = exp();
-            nodoReturn.agregarHijo(nodoExp);
-        }
-        eat(ClaseLexica.PUNTO_Y_COMA);
-        nodoSentencia.agregarHijo(nodoReturn);
-    } else if (tokenActual.getClase() == ClaseLexica.SWITCH) {
-        eat(ClaseLexica.SWITCH);
-        NodoArbol nodoSwitch = new NodoArbol("SWITCH", "");
-        eat(ClaseLexica.PARENTESIS_ABRE);
-        NodoArbol nodoExp = exp();
-        nodoSwitch.agregarHijo(nodoExp);
-        eat(ClaseLexica.PARENTESIS_CIERRA);
-        eat(ClaseLexica.LLAVE_ABRE);
-        NodoArbol nodoCasos = casos();
-        nodoSwitch.agregarHijo(nodoCasos);
-        eat(ClaseLexica.LLAVE_CIERRA);
-        nodoSentencia.agregarHijo(nodoSwitch);
-    } else if (tokenActual.getClase() == ClaseLexica.PRINT) {
-        eat(ClaseLexica.PRINT);
-        NodoArbol nodoPrint = new NodoArbol("PRINT", "print");
-        NodoArbol nodoExp = exp();
-        nodoPrint.agregarHijo(nodoExp);
-        eat(ClaseLexica.PUNTO_Y_COMA);
-        nodoSentencia.agregarHijo(nodoPrint);
-    } else if (tokenActual.getClase() == ClaseLexica.SCAN) {
-        eat(ClaseLexica.SCAN);
-        NodoArbol nodoScan = new NodoArbol("SCAN", "scan");
-        NodoArbol nodoParteIzquierda = parteIzquierda();
-        nodoScan.agregarHijo(nodoParteIzquierda);
-        nodoSentencia.agregarHijo(nodoScan);
-    } else if (tokenActual.getClase() == ClaseLexica.LLAVE_ABRE) {
-        NodoArbol nodoBloque = bloque();
-        nodoSentencia.agregarHijo(nodoBloque);
-    } else {
-        error("Inicio no válido de una sentencia.");
+        return tipoBase;
     }
-    System.out.println("Saliendo de sentencia");
-    return nodoSentencia;
+    
+    private int tipo_prima(int tipoBase) {
+        if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
+            tipoBase = compuesto(tipoBase); // Procesar la primera dimensión y las adicionales
+        }
+        return tipoBase; // Retorna el tipo final, ya sea básico o compuesto
+    }
+    
+
+private int compuesto(int tipoBase) {
+    eat(ClaseLexica.CORCHETE_ABRE);
+
+    if (tokenActual.getClase() == ClaseLexica.LITERAL_ENTERA) {
+        int dimension = Integer.parseInt(tokenActual.getLexema());
+        eat(ClaseLexica.LITERAL_ENTERA);
+
+        // Registrar la primera dimensión en la tabla de tipos
+        tipoBase = typeTable.addType((short) dimension, (short) 0, tipoBase);
+    } else {
+        error("Se esperaba un literal entero como tamaño del arreglo.");
+    }
+
+    eat(ClaseLexica.CORCHETE_CIERRA);
+    return compuesto_prima(tipoBase); // Manejar dimensiones adicionales
+}
+
+private int compuesto_prima(int tipoBase) {
+    while (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
+        eat(ClaseLexica.CORCHETE_ABRE);
+
+        if (tokenActual.getClase() == ClaseLexica.LITERAL_ENTERA) {
+            int dimension = Integer.parseInt(tokenActual.getLexema());
+            eat(ClaseLexica.LITERAL_ENTERA);
+
+            // Registrar dimensiones adicionales en la tabla de tipos
+            tipoBase = typeTable.addType((short) dimension, (short) 0, tipoBase);
+        } else {
+            error("Se esperaba un literal entero como tamaño del arreglo.");
+        }
+
+        eat(ClaseLexica.CORCHETE_CIERRA);
+    }
+    return tipoBase; // Retorna el tipo compuesto final
 }
 
 
-    private NodoArbol exp() {
-        NodoArbol nodoExp = new NodoArbol("EXP", "");
-        NodoArbol nodoTermino = exp_or();
-        nodoExp.agregarHijo(nodoTermino);
-        return nodoExp;
-    }
-
-    private NodoArbol exp_or() {
-        NodoArbol nodoExpOr = new NodoArbol("EXP_OR", "");
-        NodoArbol nodoExpAnd = exp_and();
-        nodoExpOr.agregarHijo(nodoExpAnd);
-
-        while (tokenActual.getClase() == ClaseLexica.OR) {
-            eat(ClaseLexica.OR);
-            NodoArbol nodoExpAnd2 = exp_and();
-            nodoExpOr.agregarHijo(new NodoArbol("OR", "||"));
-            nodoExpOr.agregarHijo(nodoExpAnd2);
+    private int basico() {
+        int tipo;
+        eat(tokenActual.getClase());
+        switch (tokenActual.getClase()) {
+            case INT: tipo = 1;
+            case FLOAT: tipo = 2;
+            case DOUBLE: tipo = 3;
+            case STRING: tipo = 4;
+            case TRUE: tipo = 5;
+            case FALSE: tipo = 5;
+            case VOID: tipo = 0;
+            default: tipo = -1;
         }
-        return nodoExpOr;
+        
+        return tipo;
     }
 
-    private NodoArbol exp_and() {
-        NodoArbol nodoExpAnd = new NodoArbol("EXP_AND", "");
-        NodoArbol nodoExpEq = exp_eq();
-        nodoExpAnd.agregarHijo(nodoExpEq);
-
-        while (tokenActual.getClase() == ClaseLexica.AND) {
-            eat(ClaseLexica.AND);
-            NodoArbol nodoExpEq2 = exp_eq();
-            nodoExpAnd.agregarHijo(new NodoArbol("AND", "&&"));
-            nodoExpAnd.agregarHijo(nodoExpEq2);
-        }
-        return nodoExpAnd;
+    private void puntero() {
+        eat(ClaseLexica.PTR);
+        basico();
     }
 
-    private NodoArbol exp_eq() {
-        NodoArbol nodoExpEq = new NodoArbol("EXP_EQ", "");
-        NodoArbol nodoExpRel = exp_rel();
-        nodoExpEq.agregarHijo(nodoExpRel);
+    // Producción lista_var
+private List<String> lista_var() {
+    List<String> variables = new ArrayList<>();
+    variables.add(tokenActual.getLexema()); // Registrar la primera variable
+    eat(ClaseLexica.ID);
+    lista_var_prima(variables);
+    return variables;
+}
 
-        while (tokenActual.getClase() == ClaseLexica.IGUAL || tokenActual.getClase() == ClaseLexica.DIFERENTE) {
-            String operador = tokenActual.getClase() == ClaseLexica.IGUAL ? "==" : "!=";
-            eat(tokenActual.getClase());
-            NodoArbol nodoExpRel2 = exp_rel();
-            nodoExpEq.agregarHijo(new NodoArbol("OPERADOR_EQ", operador));
-            nodoExpEq.agregarHijo(nodoExpRel2);
-        }
-        return nodoExpEq;
+// Producción lista_var_prima
+private void lista_var_prima(List<String> variables) {
+    while (tokenActual.getClase() == ClaseLexica.COMA) {
+        eat(ClaseLexica.COMA);
+        variables.add(tokenActual.getLexema()); // Registrar las siguientes variables
+        eat(ClaseLexica.ID);
     }
+}
 
-    private NodoArbol exp_rel() {
-        NodoArbol nodoExpRel = new NodoArbol("EXP_REL", "");
-        NodoArbol nodoExpAdd = exp_add();
-        nodoExpRel.agregarHijo(nodoExpAdd);
-
-        while (esOperadorRelacional(tokenActual.getClase())) {
-            String operador = tokenActual.getLexema();
-            eat(tokenActual.getClase());
-            NodoArbol nodoExpAdd2 = exp_add();
-            nodoExpRel.agregarHijo(new NodoArbol("OPERADOR_REL", operador));
-            nodoExpRel.agregarHijo(nodoExpAdd2);
-        }
-        return nodoExpRel;
-    }
-
-    private NodoArbol exp_add() {
-        NodoArbol nodoExpAdd = new NodoArbol("EXP_ADD", "");
-        NodoArbol nodoExpMul = exp_mul();
-        nodoExpAdd.agregarHijo(nodoExpMul);
-
-        while (tokenActual.getClase() == ClaseLexica.MAS || tokenActual.getClase() == ClaseLexica.MENOS) {
-            String operador = tokenActual.getClase() == ClaseLexica.MAS ? "+" : "-";
-            eat(tokenActual.getClase());
-            NodoArbol nodoExpMul2 = exp_mul();
-            nodoExpAdd.agregarHijo(new NodoArbol("OPERADOR_ADD", operador));
-            nodoExpAdd.agregarHijo(nodoExpMul2);
-        }
-        return nodoExpAdd;
-    }
-
-    private NodoArbol exp_mul() {
-        NodoArbol nodoExpMul = new NodoArbol("EXP_MUL", "");
-        NodoArbol nodoExpUnary = exp_unary();
-        nodoExpMul.agregarHijo(nodoExpUnary);
-
-        while (esOperadorMultiplicativo(tokenActual.getClase())) {
-            String operador = tokenActual.getLexema();
-            eat(tokenActual.getClase());
-            NodoArbol nodoExpUnary2 = exp_unary();
-            nodoExpMul.agregarHijo(new NodoArbol("OPERADOR_MUL", operador));
-            nodoExpMul.agregarHijo(nodoExpUnary2);
-        }
-        return nodoExpMul;
-    }
-
-    private NodoArbol exp_unary() {
-        NodoArbol nodoExpUnary = new NodoArbol("EXP_UNARY", "");
-        if (tokenActual.getClase() == ClaseLexica.NOT || tokenActual.getClase() == ClaseLexica.MENOS) {
-            String operador = tokenActual.getClase() == ClaseLexica.NOT ? "!" : "-";
-            eat(tokenActual.getClase());
-            NodoArbol nodoExpUnary2 = exp_unary();
-            nodoExpUnary.agregarHijo(new NodoArbol("OPERADOR_UNARY", operador));
-            nodoExpUnary.agregarHijo(nodoExpUnary2);
-        } else {
-            NodoArbol nodoPrimary = primary();
-            nodoExpUnary.agregarHijo(nodoPrimary);
-        }
-        return nodoExpUnary;
-    }
-
-    private NodoArbol primary() {
-        NodoArbol nodoPrimary = new NodoArbol("PRIMARY", "");
-        if (tokenActual.getClase() == ClaseLexica.PARENTESIS_ABRE) {
-            eat(ClaseLexica.PARENTESIS_ABRE);
-            NodoArbol nodoExp = exp();
-            nodoPrimary.agregarHijo(nodoExp);
-            eat(ClaseLexica.PARENTESIS_CIERRA);
-        } else if (tokenActual.getClase() == ClaseLexica.ID) {
-            NodoArbol nodoID = new NodoArbol("ID", tokenActual.getLexema());
-            eat(ClaseLexica.ID);
-            nodoPrimary.agregarHijo(nodoID);
-
-            if (tokenActual.getClase() == ClaseLexica.PARENTESIS_ABRE) {
-                NodoArbol nodoLlamada = llamada();
-                nodoPrimary.agregarHijo(nodoLlamada);
-            }
-        } else if (esLiteral(tokenActual.getClase())) {
-            NodoArbol nodoLiteral = new NodoArbol("LITERAL", tokenActual.getLexema());
-            eat(tokenActual.getClase());
-            nodoPrimary.agregarHijo(nodoLiteral);
-        } else {
-            error("Expresión no válida.");
-        }
-        return nodoPrimary;
-    }
-
-    private NodoArbol llamada() {
-        NodoArbol nodoLlamada = new NodoArbol("LLAMADA", "");
-        eat(ClaseLexica.PARENTESIS_ABRE);
-        if (esInicioExpresion()) {
-            NodoArbol nodoListaExp = lista_exp();
-            nodoLlamada.agregarHijo(nodoListaExp);
-        }
-        eat(ClaseLexica.PARENTESIS_CIERRA);
-        return nodoLlamada;
-    }
-
-    private NodoArbol lista_exp() {
-        NodoArbol nodoListaExp = new NodoArbol("LISTA_EXP", "");
-        NodoArbol nodoExp = exp();
-        nodoListaExp.agregarHijo(nodoExp);
-
-        while (tokenActual.getClase() == ClaseLexica.COMA) {
-            eat(ClaseLexica.COMA);
-            NodoArbol nodoExp2 = exp();
-            nodoListaExp.agregarHijo(nodoExp2);
-        }
-        return nodoListaExp;
-    }
-
-    private NodoArbol casos() {
-        NodoArbol nodoCasos = new NodoArbol("CASOS", "");
-        while (tokenActual.getClase() == ClaseLexica.CASE || tokenActual.getClase() == ClaseLexica.DEFAULT) {
-            if (tokenActual.getClase() == ClaseLexica.CASE) {
-                NodoArbol nodoCaso = caso();
-                nodoCasos.agregarHijo(nodoCaso);
-            } else if (tokenActual.getClase() == ClaseLexica.DEFAULT) {
-                NodoArbol nodoDefault = predeterminado();
-                nodoCasos.agregarHijo(nodoDefault);
-            }
-        }
-        return nodoCasos;
-    }
-    
-    private NodoArbol caso() {
-        NodoArbol nodoCaso = new NodoArbol("CASE", "");
-        eat(ClaseLexica.CASE);
-    
-        NodoArbol nodoOpcion = opcion();
-        nodoCaso.agregarHijo(nodoOpcion);
-    
-        eat(ClaseLexica.DOS_PUNTOS); // ':'
-    
-        NodoArbol nodoInstrucciones = instrucciones();
-        if (nodoInstrucciones != null) nodoCaso.agregarHijo(nodoInstrucciones);
-    
-        return nodoCaso;
-    }
-    
-    private NodoArbol predeterminado() {
-        NodoArbol nodoDefault = new NodoArbol("DEFAULT", "");
-        eat(ClaseLexica.DEFAULT);
-        eat(ClaseLexica.DOS_PUNTOS); // ':'
-    
-        NodoArbol nodoInstrucciones = instrucciones();
-        if (nodoInstrucciones != null) nodoDefault.agregarHijo(nodoInstrucciones);
-    
-        return nodoDefault;
-    }
-    
-    private NodoArbol opcion() {
-        NodoArbol nodoOpcion = new NodoArbol("OPCION", "");
-        if (tokenActual.getClase() == ClaseLexica.LITERAL_ENTERA || tokenActual.getClase() == ClaseLexica.LITERAL_RUNA) {
-            nodoOpcion.agregarHijo(new NodoArbol("LITERAL", tokenActual.getLexema()));
-            eat(tokenActual.getClase());
-        } else {
-            error("Se esperaba un literal entero o runa como opción de `case`.");
-        }
-        return nodoOpcion;
-    }
-    
-    private NodoArbol parteIzquierda() {
-        NodoArbol nodoParteIzquierda = new NodoArbol("PARTE_IZQUIERDA", "");
-        if (tokenActual.getClase() == ClaseLexica.ID) {
-            NodoArbol nodoID = new NodoArbol("ID", tokenActual.getLexema());
-            eat(ClaseLexica.ID);
-            nodoParteIzquierda.agregarHijo(nodoID);
-    
-            // Manejar posibles accesos a estructuras (arrays, structs)
-            while (tokenActual.getClase() == ClaseLexica.PUNTO || tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
-                if (tokenActual.getClase() == ClaseLexica.PUNTO) {
-                    eat(ClaseLexica.PUNTO);
-                    NodoArbol nodoAccesoStruct = new NodoArbol("ACCESO_STRUCT", tokenActual.getLexema());
-                    eat(ClaseLexica.ID);
-                    nodoParteIzquierda.agregarHijo(nodoAccesoStruct);
-                } else if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
-                    eat(ClaseLexica.CORCHETE_ABRE);
-                    NodoArbol nodoIndice = exp();
-                    NodoArbol nodoArrayAccess = new NodoArbol("ACCESO_ARRAY", "");
-                    nodoArrayAccess.agregarHijo(nodoIndice);
-                    nodoParteIzquierda.agregarHijo(nodoArrayAccess);
-                    eat(ClaseLexica.CORCHETE_CIERRA);
+    private List<Symbol> argumentos() {
+        List<Symbol> args = new ArrayList<>();
+        if (esTipo(tokenActual.getClase())) {
+            do {
+                int tipo = tipo();
+                String id = tokenActual.getLexema();
+                eat(ClaseLexica.ID);
+                args.add(new Symbol(-1, tipo, id, null));
+                if (tokenActual.getClase() == ClaseLexica.COMA) {
+                    eat(ClaseLexica.COMA);
+                } else {
+                    break;
                 }
+            } while (true);
+        }
+        return args;
+    }
+
+    private void bloque() {
+        eat(ClaseLexica.LLAVE_ABRE);
+        decl_var();
+        instrucciones();
+        eat(ClaseLexica.LLAVE_CIERRA);
+    }
+
+    private void instrucciones() {
+        while (esInicioSentencia()) {
+            sentencia();
+        }
+    }
+
+    private void sentencia() {
+        System.out.println("Entrando a sentencia");
+    
+        if (tokenActual.getClase() == ClaseLexica.ID) {
+            // Asignación
+            String id = tokenActual.getLexema();
+            eat(ClaseLexica.ID);
+    
+            Symbol simbolo = lookupSimbolo(id);
+            if (simbolo == null) {
+                error("Identificador no declarado: " + id);
             }
+    
+            if (tokenActual.getClase() == ClaseLexica.ASIGNACION) {
+                System.out.println("Entrando a sentencia-igual");
+                eat(ClaseLexica.ASIGNACION);
+                int tipoExpresion = exp();
+                if (simbolo.getType() != tipoExpresion) {
+                    error("Incompatibilidad de tipos en asignación: esperado "
+                            + simbolo.getType() + ", encontrado " + tipoExpresion);
+                }
+                eat(ClaseLexica.PUNTO_Y_COMA);
+            } else {
+                error("Se esperaba '=' después del identificador.");
+            }
+    
+        } else if (tokenActual.getClase() == ClaseLexica.IF) {
+            // Sentencia if
+            eat(ClaseLexica.IF);
+            eat(ClaseLexica.PARENTESIS_ABRE);
+            int tipoCondicion = exp();
+            if (tipoCondicion != 5) { // 5 representa boolean
+                error("La condición del 'if' debe ser de tipo boolean.");
+            }
+            eat(ClaseLexica.PARENTESIS_CIERRA);
+            sentencia();
+            if (tokenActual.getClase() == ClaseLexica.ELSE) {
+                eat(ClaseLexica.ELSE);
+                sentencia();
+            }
+    
+        } else if (tokenActual.getClase() == ClaseLexica.WHILE) {
+            // Sentencia while
+            eat(ClaseLexica.WHILE);
+            eat(ClaseLexica.PARENTESIS_ABRE);
+            int tipoCondicion = exp();
+            if (tipoCondicion != 5) {
+                error("La condición del 'while' debe ser de tipo boolean.");
+            }
+            eat(ClaseLexica.PARENTESIS_CIERRA);
+            sentencia();
+    
+        } else if (tokenActual.getClase() == ClaseLexica.DO) {
+            // Sentencia do-while
+            eat(ClaseLexica.DO);
+            sentencia();
+            eat(ClaseLexica.WHILE);
+            eat(ClaseLexica.PARENTESIS_ABRE);
+            int tipoCondicion = exp();
+            if (tipoCondicion != 5) {
+                error("La condición del 'do-while' debe ser de tipo boolean.");
+            }
+            eat(ClaseLexica.PARENTESIS_CIERRA);
+            eat(ClaseLexica.PUNTO_Y_COMA);
+    
+        } else if (tokenActual.getClase() == ClaseLexica.BREAK) {
+            // Sentencia break
+            System.out.println("Entrando al caso del break");
+            eat(ClaseLexica.BREAK);
+            eat(ClaseLexica.PUNTO_Y_COMA);
+    
+        } else if (tokenActual.getClase() == ClaseLexica.RETURN) {
+            // Sentencia return
+            eat(ClaseLexica.RETURN);
+            int tipoReturn = -1; // Asumimos que void es por defecto
+            if (esInicioExpresion()) {
+                tipoReturn = exp();
+            }
+            eat(ClaseLexica.PUNTO_Y_COMA);
+    
+            // Validar el tipo de retorno con el tipo de la función actual
+            SymbolTable tablaActual = stackSymbolTable.peek();
+            Symbol funcionActual = obtenerFuncionActual(tablaActual);
+            if (funcionActual == null) {
+                error("No se encontró la función actual para validar el retorno.");
+            }
+            if (tipoReturn != funcionActual.getType() && funcionActual.getType() != 0) { // 0 es void
+                error("El tipo de retorno no coincide con el tipo de la función: esperado "
+                        + funcionActual.getType() + ", encontrado " + tipoReturn);
+            }
+    
+        } else if (tokenActual.getClase() == ClaseLexica.SWITCH) {
+            // Sentencia switch
+            eat(ClaseLexica.SWITCH);
+            eat(ClaseLexica.PARENTESIS_ABRE);
+            int tipoExpresion = exp();
+            eat(ClaseLexica.PARENTESIS_CIERRA);
+            eat(ClaseLexica.LLAVE_ABRE);
+            casos(tipoExpresion); // Validar casos del switch con la expresión
+            eat(ClaseLexica.LLAVE_CIERRA);
+    
+        } else if (tokenActual.getClase() == ClaseLexica.PRINT) {
+            // Sentencia print
+            eat(ClaseLexica.PRINT);
+            int tipo = exp();
+            // Aquí puedes validar que `tipo` sea imprimible si tienes reglas adicionales
+            eat(ClaseLexica.PUNTO_Y_COMA);
+    
+        } else if (tokenActual.getClase() == ClaseLexica.SCAN) {
+            // Sentencia scan
+            eat(ClaseLexica.SCAN);
+            parteIzquierda();
+            eat(ClaseLexica.PUNTO_Y_COMA);
+    
+        } else if (tokenActual.getClase() == ClaseLexica.LLAVE_ABRE) {
+            // Bloque
+            bloque();
+    
+        } else {
+            error("Inicio no válido de una sentencia.");
+        }
+        System.out.println("Saliendo de sentencia");
+    }
+    
+    
+    private void casos(int tipoSwitch) {
+        while (tokenActual.getClase() == ClaseLexica.CASE) {
+            eat(ClaseLexica.CASE);
+            int tipoCaso = exp();
+            if (tipoCaso != tipoSwitch) {
+                error("El tipo del caso no coincide con el tipo del switch.");
+            }
+            eat(ClaseLexica.DOS_PUNTOS);
+            instrucciones(); // Procesar las instrucciones del caso
+        }
+        if (tokenActual.getClase() == ClaseLexica.DEFAULT) {
+            eat(ClaseLexica.DEFAULT);
+            eat(ClaseLexica.DOS_PUNTOS);
+            instrucciones(); // Procesar las instrucciones del caso default
+        }
+    }
+
+    private void parteIzquierda() {
+        if (tokenActual.getClase() == ClaseLexica.ID) {
+            String id = tokenActual.getLexema();
+            eat(ClaseLexica.ID);
+            Symbol simbolo = lookupSimbolo(id);
+            if (simbolo == null) {
+                error("Identificador no declarado: " + id);
+            }
+            // Manejo adicional si es necesario (arrays, structs, etc.)
         } else {
             error("Se esperaba una parte izquierda válida.");
         }
-        return nodoParteIzquierda;
     }
     
-    private boolean esTipo(ClaseLexica clase) {
-        return esTipoBasico(clase) || clase == ClaseLexica.STRUCT || clase == ClaseLexica.PTR;
+    
+    // Evaluación de expresiones
+private int exp() {
+    return exp_or();
+}
+
+// Producción exp_or → exp_and { '||' exp_and }
+private int exp_or() {
+    int tipoIzquierdo = exp_and();
+    while (tokenActual.getClase() == ClaseLexica.OR) {
+        eat(ClaseLexica.OR);
+        int tipoDerecho = exp_and();
+        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, ClaseLexica.OR);
+    }
+    return tipoIzquierdo;
+}
+
+// Producción exp_and → exp_eq { '&&' exp_eq }
+private int exp_and() {
+    int tipoIzquierdo = exp_eq();
+    while (tokenActual.getClase() == ClaseLexica.AND) {
+        eat(ClaseLexica.AND);
+        int tipoDerecho = exp_eq();
+        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, ClaseLexica.AND);
+    }
+    return tipoIzquierdo;
+}
+
+// Producción exp_eq → exp_rel { ('==' | '!=') exp_rel }
+private int exp_eq() {
+    int tipoIzquierdo = exp_rel();
+    while (tokenActual.getClase() == ClaseLexica.IGUAL || tokenActual.getClase() == ClaseLexica.DIFERENTE) {
+        eat(tokenActual.getClase());
+        int tipoDerecho = exp_rel();
+        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, ClaseLexica.IGUAL);
+    }
+    return tipoIzquierdo;
+}
+
+// Producción exp_rel → exp_add { ('<' | '>' | '<=' | '>=') exp_add }
+private int exp_rel() {
+    int tipoIzquierdo = exp_add();
+    while (esOperadorRelacional(tokenActual.getClase())) {
+        eat(tokenActual.getClase());
+        int tipoDerecho = exp_add();
+        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, tokenActual.getClase());
+    }
+    return tipoIzquierdo;
+}
+
+// Producción exp_add → exp_mul { ('+' | '-') exp_mul }
+private int exp_add() {
+    int tipoIzquierdo = exp_mul();
+    while (tokenActual.getClase() == ClaseLexica.MAS || tokenActual.getClase() == ClaseLexica.MENOS) {
+        eat(tokenActual.getClase());
+        int tipoDerecho = exp_mul();
+        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, ClaseLexica.MAS);
+    }
+    return tipoIzquierdo;
+}
+
+// Producción exp_mul → exp_unary { ('*' | '/') exp_unary }
+private int exp_mul() {
+    int tipoIzquierdo = exp_unary();
+    while (tokenActual.getClase() == ClaseLexica.MULTIPLICACION || tokenActual.getClase() == ClaseLexica.DIVISION) {
+        eat(tokenActual.getClase());
+        int tipoDerecho = exp_unary();
+        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, ClaseLexica.MULTIPLICACION);
+    }
+    return tipoIzquierdo;
+}
+
+// Producción exp_unary → ('-' | '!') exp_unary | primary
+private int exp_unary() {
+    if (tokenActual.getClase() == ClaseLexica.MENOS || tokenActual.getClase() == ClaseLexica.NOT) {
+        eat(tokenActual.getClase());
+        return exp_unary();
+    } else {
+        return primary();
+    }
+}
+
+// Producción primary → '(' exp ')' | ID | LITERAL
+private int primary() {
+    if (tokenActual.getClase() == ClaseLexica.PARENTESIS_ABRE) {
+        eat(ClaseLexica.PARENTESIS_ABRE);
+        int tipo = exp();
+        eat(ClaseLexica.PARENTESIS_CIERRA);
+        return tipo;
+    } else if (tokenActual.getClase() == ClaseLexica.ID) {
+        String id = tokenActual.getLexema();
+        eat(ClaseLexica.ID);
+
+        // Buscar en la tabla de símbolos
+        Symbol simbolo = lookupSimbolo(id);
+        if (simbolo == null) {
+            error("Identificador no declarado: " + id);
+        }
+        return simbolo.getType();
+    } else if (esLiteral(tokenActual.getClase())) {
+        int tipo = getTipoLiteral(tokenActual.getClase());
+        eat(tokenActual.getClase());
+        return tipo;
+    } else {
+        error("Expresión no válida.");
+        return -1; // Inaccesible
+    }
+}
+
+// Métodos auxiliares para validación y compatibilidad de tipos
+
+private int validarCompatibilidadTipos(int tipoIzquierdo, int tipoDerecho, ClaseLexica operacion) {
+    // Usar la lógica de promoción y compatibilidad de tipos
+    Type tipoPromocionado = Type.getPromotedType(
+        typeTable.getType(tipoIzquierdo),
+        typeTable.getType(tipoDerecho)
+    );
+
+    if (tipoPromocionado == null) {
+        error("Tipos incompatibles en operación: " + operacion);
     }
 
-    private boolean esTipoBasico(ClaseLexica clase) {
-        return clase == ClaseLexica.INT ||
-               clase == ClaseLexica.FLOAT ||
-               clase == ClaseLexica.DOUBLE ||
-               clase == ClaseLexica.COMPLEX ||
-               clase == ClaseLexica.RUNE ||
-               clase == ClaseLexica.VOID ||
-               clase == ClaseLexica.STRING;
-    }
+    return tipoPromocionado.getId();
+}
 
-    private boolean esLiteral(ClaseLexica clase) {
-        return clase == ClaseLexica.LITERAL_ENTERA || 
-               clase == ClaseLexica.LITERAL_FLOTANTE || 
-               clase == ClaseLexica.LITERAL_DOUBLE || 
-               clase == ClaseLexica.LITERAL_CADENA || 
-               clase == ClaseLexica.TRUE || 
-               clase == ClaseLexica.FALSE;
-    }
-
-    private boolean esInicioSentencia() {
-        return tokenActual.getClase() == ClaseLexica.ID || 
-               tokenActual.getClase() == ClaseLexica.IF || 
-               tokenActual.getClase() == ClaseLexica.WHILE || 
-               tokenActual.getClase() == ClaseLexica.SWITCH || 
-               tokenActual.getClase() == ClaseLexica.DO || 
-               tokenActual.getClase() == ClaseLexica.BREAK || 
-               tokenActual.getClase() == ClaseLexica.RETURN || 
-               tokenActual.getClase() == ClaseLexica.PRINT || 
-               tokenActual.getClase() == ClaseLexica.LLAVE_ABRE;
+    private void agregarSimbolo(String id, Symbol symbol) {
+        Optional<SymbolTable> tablaActual = Optional.ofNullable(stackSymbolTable.peek());
+        if (tablaActual.isPresent()) {
+            tablaActual.get().addSymbol(id, symbol);
+        } else {
+            error("No hay tabla de símbolos activa.");
+        }
     }
 
     private boolean esInicioExpresion() {
@@ -683,16 +562,88 @@ public class Parser {
     }
 
     private boolean esOperadorRelacional(ClaseLexica clase) {
-        return clase == ClaseLexica.MENOR || 
-               clase == ClaseLexica.MENOR_IGUAL || 
-               clase == ClaseLexica.MAYOR || 
-               clase == ClaseLexica.MAYOR_IGUAL;
+        if (clase == ClaseLexica.MENOR || 
+            clase == ClaseLexica.MENOR_IGUAL || 
+            clase == ClaseLexica.MAYOR || 
+            clase == ClaseLexica.MAYOR_IGUAL) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    // Métodos auxiliares
+    private boolean esTipo(ClaseLexica clase) {
+        return esTipoBasico(clase) || clase == ClaseLexica.STRUCT || clase == ClaseLexica.PTR;
     }
 
-    private boolean esOperadorMultiplicativo(ClaseLexica clase) {
-        return clase == ClaseLexica.MULTIPLICACION || 
-               clase == ClaseLexica.DIVISION || 
-               clase == ClaseLexica.MODULO || 
-               clase == ClaseLexica.DIVISION_ENTERA;
+    private boolean esTipoBasico(ClaseLexica clase) {
+        return clase == ClaseLexica.INT ||
+               clase == ClaseLexica.FLOAT ||
+               clase == ClaseLexica.DOUBLE ||
+               clase == ClaseLexica.STRING ||
+               clase == ClaseLexica.VOID;
     }
+
+    private boolean esInicioSentencia() {
+        return tokenActual.getClase() == ClaseLexica.ID || 
+               tokenActual.getClase() == ClaseLexica.IF || 
+               tokenActual.getClase() == ClaseLexica.WHILE || 
+               tokenActual.getClase() == ClaseLexica.SWITCH || 
+               tokenActual.getClase() == ClaseLexica.DO || 
+               tokenActual.getClase() == ClaseLexica.BREAK || 
+               tokenActual.getClase() == ClaseLexica.RETURN || 
+               tokenActual.getClase() == ClaseLexica.PRINT || 
+               tokenActual.getClase() == ClaseLexica.LLAVE_ABRE;
+    }
+
+
+private int getTipoLiteral(ClaseLexica clase) {
+    switch (clase) {
+        case LITERAL_ENTERA: return 1;
+        
+        case LITERAL_FLOTANTE: return 2;
+        
+        case LITERAL_DOUBLE: return 3;
+        
+        case LITERAL_CADENA: return 4;
+      
+        case TRUE: return 5;
+       
+        case FALSE: return 5; // Booleanos
+       
+        default: return -1;
+    }
+}
+
+private boolean esLiteral(ClaseLexica clase) {
+    return clase == ClaseLexica.LITERAL_ENTERA ||
+           clase == ClaseLexica.LITERAL_FLOTANTE ||
+           clase == ClaseLexica.LITERAL_DOUBLE ||
+           clase == ClaseLexica.LITERAL_CADENA ||
+           clase == ClaseLexica.TRUE ||
+           clase == ClaseLexica.FALSE;
+}
+    private Symbol lookupSimbolo(String id) {
+        SymbolTable tablaActual = stackSymbolTable.peek();
+        while (tablaActual != null) {
+            Optional<Symbol> simbolo = tablaActual.getSymbol(id);
+            if (simbolo.isPresent()) {
+                return simbolo.get();
+            }
+            // Moverse a la tabla de símbolos del scope anterior
+            stackSymbolTable.pop();
+            tablaActual = stackSymbolTable.peek();
+        }
+        return null; // No encontrado
+}
+
+private Symbol obtenerFuncionActual(SymbolTable tabla) {
+    // Busca una función en la tabla actual; asume que es la última declarada
+    for (Symbol symbol : tabla.getAllSymbols()) {
+        if ("funcion".equals(symbol.getCat())) {
+            return symbol;
+        }
+    }
+    return null;
+}
 }

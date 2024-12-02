@@ -1,11 +1,11 @@
 proto int suma(int a, int b);
 proto void imprimir(string mensaje);
 
-int [4][4]matriz;
-string r;
+int a;
+string r, texto;
 
 func int main() {
-   switch (texto) {
+   switch (a) {
     case 1:
         print "Saludo reconocido";
         break;

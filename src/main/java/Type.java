@@ -1,22 +1,22 @@
 package main.java;
 
-public abstract class Type {
-    private final String name;     // Nombre del tipo (por ejemplo, "int", "float")
-    private final short items;     // Número de elementos (por ejemplo, en un array o colección)
-    private final short tam;       // Tamaño del tipo (en bytes)
-    private final TypeParent parent; // Tipo padre (opcional, si lo necesitas para conversiones de tipos)
+public class Type {
+    private final int id;       // ID del tipo
+    private final short items;  // Número de elementos
+    private final short tam;    // Tamaño en bytes
+    private final Integer parent; // ID del tipo padre (nullable)
 
     // Constructor
-    public Type(String name, short items, short tam, TypeParent parent) {
-        this.name = name;
+    public Type(int id, short items, short tam, Integer parent) {
+        this.id = id;
         this.items = items;
         this.tam = tam;
         this.parent = parent;
     }
 
     // Métodos getter
-    public String getName() {
-        return name;
+    public int getId() {
+        return id;
     }
 
     public short getItems() {
@@ -27,17 +27,24 @@ public abstract class Type {
         return tam;
     }
 
-    public TypeParent getParent() {
+    public Integer getParent() {
         return parent;
     }
 
-    // Método para verificar si un tipo puede ser convertido a otro
-    public abstract boolean canBeCastedTo(Type other);
+    // Promoción de tipos
+    public static Type getPromotedType(Type type1, Type type2) {
+        if (type1.canBeCastedTo(type2)) {
+            return type2;
+        } else if (type2.canBeCastedTo(type1)) {
+            return type1;
+        } else {
+            throw new IllegalArgumentException("No se puede promocionar entre " + type1.id + " y " + type2.id);
+        }
+    }
 
-    // Representación en cadena del tipo (por ejemplo, "int", "float")
-    @Override
-    public String toString() {
-        return name;
+    // Verificar si un tipo puede convertirse a otro
+    public boolean canBeCastedTo(Type other) {
+        return this.id == other.id || (this.parent != null && this.parent.equals(other.id));
     }
 }
 
