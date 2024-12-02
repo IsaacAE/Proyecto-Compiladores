@@ -46,5 +46,7 @@ public class Type {
     public boolean canBeCastedTo(Type other) {
         return this.id == other.id || (this.parent != null && this.parent.equals(other.id));
     }
+    
+    
 }
 

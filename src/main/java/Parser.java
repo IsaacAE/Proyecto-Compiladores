@@ -3,6 +3,7 @@ package main.java;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import main.jflex.Lexer;
@@ -82,6 +83,7 @@ public class Parser {
     private void decl_var() {
         while (esTipo(tokenActual.getClase())) {
             int tipo = tipo();
+            System.out.println("El tipo de las siguientes variables es:"+ tipo);
             List<String> variables = lista_var();
             eat(ClaseLexica.PUNTO_Y_COMA);
 
@@ -123,6 +125,7 @@ public class Parser {
         int tipoBase;
     
         if (esTipoBasico(tokenActual.getClase())) {
+            System.out.println("Entrando a tipo basico");
             tipoBase = basico(); // Identificar el tipo básico
             tipoBase = tipo_prima(tipoBase); // Manejar tipos compuestos, si los hay
         } else if (tokenActual.getClase() == ClaseLexica.STRUCT) {
@@ -191,17 +194,26 @@ private int compuesto_prima(int tipoBase) {
 
     private int basico() {
         int tipo;
-        eat(tokenActual.getClase());
         switch (tokenActual.getClase()) {
             case INT: tipo = 1;
+            break;
             case FLOAT: tipo = 2;
+            break;
             case DOUBLE: tipo = 3;
+            break;
             case STRING: tipo = 4;
+            break;
             case TRUE: tipo = 5;
+            break;
             case FALSE: tipo = 5;
+            break;
             case VOID: tipo = 0;
-            default: tipo = -1;
+            break;
+            default: tipo = 8;
         }
+        eat(tokenActual.getClase());
+        
+        
         
         return tipo;
     }
@@ -356,6 +368,7 @@ private void lista_var_prima(List<String> variables) {
             eat(ClaseLexica.SWITCH);
             eat(ClaseLexica.PARENTESIS_ABRE);
             int tipoExpresion = exp();
+            System.out.println(tipoExpresion);
             eat(ClaseLexica.PARENTESIS_CIERRA);
             eat(ClaseLexica.LLAVE_ABRE);
             casos(tipoExpresion); // Validar casos del switch con la expresión
@@ -388,9 +401,10 @@ private void lista_var_prima(List<String> variables) {
     private void casos(int tipoSwitch) {
         while (tokenActual.getClase() == ClaseLexica.CASE) {
             eat(ClaseLexica.CASE);
-            int tipoCaso = exp();
+            int tipoCaso = exp(); // Evaluar el tipo del caso
             if (tipoCaso != tipoSwitch) {
-                error("El tipo del caso no coincide con el tipo del switch.");
+                error("El tipo del caso no coincide con el tipo de la expresión del switch. "
+                        + "Esperado: " + tipoSwitch + ", encontrado: " + tipoCaso);
             }
             eat(ClaseLexica.DOS_PUNTOS);
             instrucciones(); // Procesar las instrucciones del caso
@@ -401,6 +415,7 @@ private void lista_var_prima(List<String> variables) {
             instrucciones(); // Procesar las instrucciones del caso default
         }
     }
+    
 
     private void parteIzquierda() {
         if (tokenActual.getClase() == ClaseLexica.ID) {
@@ -417,80 +432,130 @@ private void lista_var_prima(List<String> variables) {
     }
     
     
-    // Evaluación de expresiones
+// Evaluación de Expresiones
 private int exp() {
-    return exp_or();
+    System.out.println("Entrando en exp");
+    int tipo = exp_or();
+    System.out.println("Saliendo de exp con tipo: " + tipo);
+    return tipo;
 }
 
 // Producción exp_or → exp_and { '||' exp_and }
 private int exp_or() {
+    System.out.println("Entrando en exp_or");
     int tipoIzquierdo = exp_and();
+    System.out.println("Tipo izquierdo de exp_or: " + tipoIzquierdo);
+
     while (tokenActual.getClase() == ClaseLexica.OR) {
+        System.out.println("Operador '||' encontrado");
         eat(ClaseLexica.OR);
         int tipoDerecho = exp_and();
+        System.out.println("Tipo derecho de exp_or: " + tipoDerecho);
         tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, ClaseLexica.OR);
     }
+
+    System.out.println("Saliendo de exp_or con tipo: " + tipoIzquierdo);
     return tipoIzquierdo;
 }
 
 // Producción exp_and → exp_eq { '&&' exp_eq }
 private int exp_and() {
+    System.out.println("Entrando en exp_and");
     int tipoIzquierdo = exp_eq();
+    System.out.println("Tipo izquierdo de exp_and: " + tipoIzquierdo);
+
     while (tokenActual.getClase() == ClaseLexica.AND) {
+        System.out.println("Operador '&&' encontrado");
         eat(ClaseLexica.AND);
         int tipoDerecho = exp_eq();
+        System.out.println("Tipo derecho de exp_and: " + tipoDerecho);
         tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, ClaseLexica.AND);
     }
+
+    System.out.println("Saliendo de exp_and con tipo: " + tipoIzquierdo);
     return tipoIzquierdo;
 }
 
 // Producción exp_eq → exp_rel { ('==' | '!=') exp_rel }
 private int exp_eq() {
+    System.out.println("Entrando en exp_eq");
     int tipoIzquierdo = exp_rel();
+    System.out.println("Tipo izquierdo de exp_eq: " + tipoIzquierdo);
+
     while (tokenActual.getClase() == ClaseLexica.IGUAL || tokenActual.getClase() == ClaseLexica.DIFERENTE) {
-        eat(tokenActual.getClase());
+        ClaseLexica operador = tokenActual.getClase();
+        System.out.println("Operador " + operador + " encontrado");
+        eat(operador);
         int tipoDerecho = exp_rel();
-        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, ClaseLexica.IGUAL);
+        System.out.println("Tipo derecho de exp_eq: " + tipoDerecho);
+        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, operador);
     }
+
+    System.out.println("Saliendo de exp_eq con tipo: " + tipoIzquierdo);
     return tipoIzquierdo;
 }
 
 // Producción exp_rel → exp_add { ('<' | '>' | '<=' | '>=') exp_add }
 private int exp_rel() {
+    System.out.println("Entrando en exp_rel");
     int tipoIzquierdo = exp_add();
+    System.out.println("Tipo izquierdo de exp_rel: " + tipoIzquierdo);
+
     while (esOperadorRelacional(tokenActual.getClase())) {
-        eat(tokenActual.getClase());
+        ClaseLexica operador = tokenActual.getClase();
+        System.out.println("Operador relacional " + operador + " encontrado");
+        eat(operador);
         int tipoDerecho = exp_add();
-        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, tokenActual.getClase());
+        System.out.println("Tipo derecho de exp_rel: " + tipoDerecho);
+        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, operador);
     }
+
+    System.out.println("Saliendo de exp_rel con tipo: " + tipoIzquierdo);
     return tipoIzquierdo;
 }
 
 // Producción exp_add → exp_mul { ('+' | '-') exp_mul }
 private int exp_add() {
+    System.out.println("Entrando en exp_add");
     int tipoIzquierdo = exp_mul();
+    System.out.println("Tipo izquierdo de exp_add: " + tipoIzquierdo);
+
     while (tokenActual.getClase() == ClaseLexica.MAS || tokenActual.getClase() == ClaseLexica.MENOS) {
+        System.out.println("Operador encontrado: " + tokenActual.getClase());
         eat(tokenActual.getClase());
         int tipoDerecho = exp_mul();
+        System.out.println("Tipo derecho de exp_add: " + tipoDerecho);
         tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, ClaseLexica.MAS);
     }
+
+    System.out.println("Saliendo de exp_add con tipo: " + tipoIzquierdo);
     return tipoIzquierdo;
 }
 
-// Producción exp_mul → exp_unary { ('*' | '/') exp_unary }
+// Producción exp_mul → exp_unary { ('*' | '/' | '%' | '//') exp_unary }
 private int exp_mul() {
+    System.out.println("Entrando en exp_mul");
     int tipoIzquierdo = exp_unary();
+    System.out.println("Tipo izquierdo de exp_mul: " + tipoIzquierdo);
+
     while (tokenActual.getClase() == ClaseLexica.MULTIPLICACION || tokenActual.getClase() == ClaseLexica.DIVISION) {
+        System.out.println("Operador encontrado: " + tokenActual.getClase());
         eat(tokenActual.getClase());
         int tipoDerecho = exp_unary();
+        System.out.println("Tipo derecho de exp_mul: " + tipoDerecho);
         tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, ClaseLexica.MULTIPLICACION);
     }
+
+    System.out.println("Saliendo de exp_mul con tipo: " + tipoIzquierdo);
     return tipoIzquierdo;
 }
 
 // Producción exp_unary → ('-' | '!') exp_unary | primary
 private int exp_unary() {
+    System.out.println("Entrando en exp_unary");
+
     if (tokenActual.getClase() == ClaseLexica.MENOS || tokenActual.getClase() == ClaseLexica.NOT) {
+        System.out.println("Operador unario encontrado: " + tokenActual.getClase());
         eat(tokenActual.getClase());
         return exp_unary();
     } else {
@@ -498,32 +563,38 @@ private int exp_unary() {
     }
 }
 
-// Producción primary → '(' exp ')' | ID | LITERAL
 private int primary() {
+    System.out.println("Entrando en primary");
     if (tokenActual.getClase() == ClaseLexica.PARENTESIS_ABRE) {
         eat(ClaseLexica.PARENTESIS_ABRE);
-        int tipo = exp();
+        int tipo = exp(); // Evaluar la subexpresión
         eat(ClaseLexica.PARENTESIS_CIERRA);
+        System.out.println("Saliendo de primary con tipo (expresion entre paréntesis): " + tipo);
         return tipo;
     } else if (tokenActual.getClase() == ClaseLexica.ID) {
         String id = tokenActual.getLexema();
         eat(ClaseLexica.ID);
 
-        // Buscar en la tabla de símbolos
+        // Recuperar el tipo del identificador desde la tabla de símbolos
         Symbol simbolo = lookupSimbolo(id);
         if (simbolo == null) {
             error("Identificador no declarado: " + id);
         }
+        System.out.println("El simbolo hallado es:"+ simbolo);
+        System.out.println("Saliendo de primary con tipo de identificador: " + simbolo.getType());
         return simbolo.getType();
     } else if (esLiteral(tokenActual.getClase())) {
-        int tipo = getTipoLiteral(tokenActual.getClase());
+        int tipo = getTipoLiteral(tokenActual.getClase()); // Obtener el tipo del literal
         eat(tokenActual.getClase());
+        System.out.println("Saliendo de primary con tipo de literal: " + tipo);
         return tipo;
     } else {
         error("Expresión no válida.");
-        return -1; // Inaccesible
+        return -1; // Código inaccesible
     }
 }
+
+
 
 // Métodos auxiliares para validación y compatibilidad de tipos
 
@@ -646,4 +717,7 @@ private Symbol obtenerFuncionActual(SymbolTable tabla) {
     }
     return null;
 }
+
+
+
 }

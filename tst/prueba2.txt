@@ -5,7 +5,7 @@ int a;
 string r, texto;
 
 func int main() {
-   switch (a) {
+   switch (x) {
     case 1:
         print "Saludo reconocido";
         break;
@@ -20,11 +20,7 @@ func int main() {
    
 }
 
-func int suma(int a, int b) {
-    return a + b;
-}
 
-func void imprimir(string mensaje) {
-    if ( a != 0){ return 1;} else { return 9;}
-}
+
+
 

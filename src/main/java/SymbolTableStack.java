@@ -20,16 +20,25 @@ public class SymbolTableStack {
         return stack.isEmpty() ? null : stack.peek();
     }
 
-    // Buscar un símbolo en toda la pila
     public Symbol lookup(String id) {
-        for (int i = stack.size() - 1; i >= 0; i--) {
-            SymbolTable table = stack.get(i);
-            Optional<Symbol> symbol = table.getSymbol(id);
-            if (symbol.isPresent()) {
-                return symbol.get();
-            }
+    // Buscar en el tope de la pila (alcance local actual)
+    SymbolTable tablaLocal = stack.peek(); // Obtener la tabla de símbolos en el tope de la pila
+    if (tablaLocal != null) {
+        Optional<Symbol> simboloLocal = tablaLocal.getSymbol(id);
+        if (simboloLocal.isPresent()) {
+            return simboloLocal.get(); // Si lo encuentra, lo retorna (variable local)
         }
-        return null; // No encontrado
     }
+
+    // Buscar en el fondo de la pila (tabla de símbolos global)
+    if (!stack.isEmpty()) {
+        SymbolTable tablaGlobal = stack.firstElement(); // Acceder a la tabla de símbolos global (fondo de la pila)
+        Optional<Symbol> simboloGlobal = tablaGlobal.getSymbol(id);
+        return simboloGlobal.orElse(null); // Si lo encuentra en el fondo, lo retorna (variable global)
+    }
+
+    return null; // Si no se encuentra en ningún ámbito
+}
+
 }
 
