@@ -30,14 +30,23 @@ public class NodoArbol {
         return hijos;
     }
 
-    @Override
-    public String toString() {
+   // Método toString para mostrar el árbol de manera más visual
+    public String toString(String indentacion) {
         StringBuilder sb = new StringBuilder();
-        sb.append(tipo).append(" -> ").append(valor).append("\n");
+        sb.append(indentacion).append(tipo);
+        if (valor != null && !valor.isEmpty()) {
+            sb.append(" -> ").append(valor); // Mostrar el valor si existe
+        }
+        sb.append("\n");
         for (NodoArbol hijo : hijos) {
-            sb.append("  ").append(hijo.toString());
+            sb.append(hijo.toString(indentacion + "  ")); // Recursión para los hijos con mayor indentación
         }
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return toString(""); // Llamar al método recursivo con indentación inicial vacía
     }
 }
 

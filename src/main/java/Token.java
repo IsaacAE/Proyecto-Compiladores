@@ -14,6 +14,10 @@ public class Token {
 public ClaseLexica getClase(){
 	return this.clase;
 }
+
+public String getLexema(){
+	return this.lexema;
+}
     //Modificamos toString() para que nos de la presentación requerida para los tokens en el formato <clase, lexema>
     @Override
     public String toString() {

@@ -21,7 +21,7 @@ public class ArbolSemantico {
         if (raiz == null) {
             return "Árbol vacío";
         }
-        return raiz.toString();
+        return raiz.toString(); // Llamar al método toString de NodoArbol
     }
 }
 
