@@ -268,32 +268,43 @@ private void lista_var_prima(List<String> variables) {
     }
 }
 
-    // Manejo de argumentos
+
+
 private List<String> argumentos() {
     List<String> listaArgumentos = new ArrayList<>();
+
     if (esTipo(tokenActual.getClase())) {
-        int tipo = tipo();
+        int tipo = tipo(); // Obtener el tipo del argumento
         String idArgumento = tokenActual.getLexema();
         eat(ClaseLexica.ID);
 
-        // Agregar el argumento a la lista y a la tabla de la función
-        listaArgumentos.add(idArgumento);
+        // Crear y registrar el símbolo del argumento en la tabla de símbolos
         Symbol argumento = new Symbol(-1, tipo, "argumento", null);
         stackSymbolTable.peek().addSymbol(idArgumento, argumento);
 
+        // Agregar el argumento en formato "tipo nombre" a la lista
+        listaArgumentos.add(getTipoFromInt(tipo) + " " + idArgumento);
+
+        // Procesar argumentos adicionales separados por comas
         while (tokenActual.getClase() == ClaseLexica.COMA) {
             eat(ClaseLexica.COMA);
+
             tipo = tipo();
             idArgumento = tokenActual.getLexema();
             eat(ClaseLexica.ID);
 
-            listaArgumentos.add(idArgumento);
+            // Crear y registrar el símbolo del argumento
             argumento = new Symbol(-1, tipo, "argumento", null);
             stackSymbolTable.peek().addSymbol(idArgumento, argumento);
+
+            // Agregar a la lista
+            listaArgumentos.add(getTipoFromInt(tipo) + " " + idArgumento);
         }
     }
+
     return listaArgumentos;
 }
+
 
     private void bloque() {
         eat(ClaseLexica.LLAVE_ABRE);
@@ -807,7 +818,9 @@ private boolean esLiteral(ClaseLexica clase) {
 private Symbol obtenerFuncionActual(SymbolTable tabla) {
     // Busca una función en la tabla actual; asume que es la última declarada
     System.out.println("###BUSCANDO FUNCION ACTUAL###");
+    
     tabla = stackSymbolTable.base();
+    imprimirTablaDeSimbolos(tabla);
     for (Symbol symbol : tabla.getAllSymbols()) {
         if ("funcion".equals(symbol.getCat())) {
             return symbol;
@@ -826,6 +839,19 @@ private int getTipoFromString(String tipo) {
         case "boolean": return 5;
         case "void": return 0;
         default: error("Tipo desconocido: " + tipo); return -1;
+    }
+}
+
+
+private String getTipoFromInt(int tipo) {
+    switch (tipo) {
+        case 1: return "int";
+        case 2: return "float";
+        case 3: return "double";
+        case 4: return "string";
+        case 5: return "boolean";
+        case 0: return "void";
+        default: error("Tipo desconocido: " + tipo); return "desconocido";
     }
 }
 
