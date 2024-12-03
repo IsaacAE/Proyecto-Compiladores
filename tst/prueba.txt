@@ -1,5 +1,13 @@
-proto int suma(int a, int b);
-proto void imprimir(string mensaje);
+//proto int suma(int a, int b);
+//proto void imprimir(string mensaje);
+
+func int suma(int a, int b) {
+    return a + b;
+}
+
+func void imprimir(string mensaje) {
+    print mensaje;
+}
 
 func int main() {
     int x, y, resultado;
@@ -15,11 +23,5 @@ func int main() {
     return 0;
 }
 
-func int suma(int a, int b) {
-    return a + b;
-}
 
-func void imprimir(string mensaje) {
-    print mensaje;
-}
 

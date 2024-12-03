@@ -69,7 +69,7 @@ public class Parser {
             String id = tokenActual.getLexema();
             eat(ClaseLexica.ID);
             eat(ClaseLexica.PARENTESIS_ABRE);
-            List<Symbol> args = argumentos();
+            List<String> args = argumentos();
             eat(ClaseLexica.PARENTESIS_CIERRA);
             eat(ClaseLexica.PUNTO_Y_COMA);
 
@@ -95,31 +95,54 @@ public class Parser {
         }
     }
 
-    // Producción decl_func
     private void decl_func() {
-        while (tokenActual.getClase() == ClaseLexica.FUNC) {
+        if (tokenActual.getClase() == ClaseLexica.FUNC) {
             eat(ClaseLexica.FUNC);
-            int tipo = tipo();
-            String id = tokenActual.getLexema();
+    
+            // Obtener el tipo de retorno de la función
+            int tipoRetorno = tipo();
+    
+            // Obtener el nombre de la función
+            String idFuncion = tokenActual.getLexema();
             eat(ClaseLexica.ID);
-            eat(ClaseLexica.PARENTESIS_ABRE);
-            List<Symbol> args = argumentos();
-            eat(ClaseLexica.PARENTESIS_CIERRA);
-
-            // Registrar la función como símbolo
-            Symbol funcSymbol = new Symbol(-1, tipo, "funcion", null);
-            agregarSimbolo(id, funcSymbol);
-
-            // Crear un nuevo scope
-            stackSymbolTable.push(new SymbolTable());
-            for (Symbol arg : args) {
-                agregarSimbolo(arg.getCat(), arg);
+    
+            // Registrar la función en la tabla de símbolos global
+            SymbolTable tablaGlobal = stackSymbolTable.base();
+            if (tablaGlobal.containsSymbol(idFuncion)) {
+                error("La función '" + idFuncion + "' ya está declarada en el ámbito global.");
             }
-
+            eat(ClaseLexica.PARENTESIS_ABRE);
+            // Crear el símbolo de la función
+            List<String> argumentos = argumentos();
+            Symbol simboloFuncion = new Symbol(-1, tipoRetorno, "funcion", argumentos);
+            tablaGlobal.addSymbol(idFuncion, simboloFuncion);
+    
+            System.out.println("Función '" + idFuncion + "' agregada a la tabla de símbolos global.");
+    
+            // Crear una nueva tabla de símbolos para el ámbito de la función
+            SymbolTable tablaFuncion = new SymbolTable();
+            stackSymbolTable.push(tablaFuncion);
+    
+            // Procesar el bloque de la función
+            eat(ClaseLexica.PARENTESIS_CIERRA);
             bloque();
-            stackSymbolTable.pop(); // Cerrar scope
+    
+            // Mantener la tabla de la función en la pila (no se elimina)
+            System.out.println("Tabla de símbolos para la función '" + idFuncion + "':");
+            //imprimirTablaDeSimbolos(stackSymbolTable.peek());
+        }
+    
+        // Procesar funciones adicionales
+        decl_func_prima();
+    }
+    
+    private void decl_func_prima() {
+        if (tokenActual.getClase() == ClaseLexica.FUNC) {
+            decl_func();
         }
     }
+    
+    
 
     private int tipo() {
         int tipoBase;
@@ -137,7 +160,7 @@ public class Parser {
             tipoBase = typeTable.addType((short) 0, (short) 0, null); // Registrar un nuevo tipo struct
         } else if (tokenActual.getClase() == ClaseLexica.PTR) {
             // Manejar punteros
-            eat(ClaseLexica.PTR);
+            puntero();
             tipoBase = -1; // Representar un puntero
         } else {
             error("Se esperaba un tipo válido.");
@@ -241,23 +264,32 @@ private void lista_var_prima(List<String> variables) {
     }
 }
 
-    private List<Symbol> argumentos() {
-        List<Symbol> args = new ArrayList<>();
-        if (esTipo(tokenActual.getClase())) {
-            do {
-                int tipo = tipo();
-                String id = tokenActual.getLexema();
-                eat(ClaseLexica.ID);
-                args.add(new Symbol(-1, tipo, id, null));
-                if (tokenActual.getClase() == ClaseLexica.COMA) {
-                    eat(ClaseLexica.COMA);
-                } else {
-                    break;
-                }
-            } while (true);
+    // Manejo de argumentos
+private List<String> argumentos() {
+    List<String> listaArgumentos = new ArrayList<>();
+    if (esTipo(tokenActual.getClase())) {
+        int tipo = tipo();
+        String idArgumento = tokenActual.getLexema();
+        eat(ClaseLexica.ID);
+
+        // Agregar el argumento a la lista y a la tabla de la función
+        listaArgumentos.add(idArgumento);
+        Symbol argumento = new Symbol(-1, tipo, "argumento", null);
+        stackSymbolTable.peek().addSymbol(idArgumento, argumento);
+
+        while (tokenActual.getClase() == ClaseLexica.COMA) {
+            eat(ClaseLexica.COMA);
+            tipo = tipo();
+            idArgumento = tokenActual.getLexema();
+            eat(ClaseLexica.ID);
+
+            listaArgumentos.add(idArgumento);
+            argumento = new Symbol(-1, tipo, "argumento", null);
+            stackSymbolTable.peek().addSymbol(idArgumento, argumento);
         }
-        return args;
     }
+    return listaArgumentos;
+}
 
     private void bloque() {
         eat(ClaseLexica.LLAVE_ABRE);
@@ -571,28 +603,85 @@ private int primary() {
         eat(ClaseLexica.PARENTESIS_CIERRA);
         System.out.println("Saliendo de primary con tipo (expresion entre paréntesis): " + tipo);
         return tipo;
+
     } else if (tokenActual.getClase() == ClaseLexica.ID) {
         String id = tokenActual.getLexema();
         eat(ClaseLexica.ID);
+
+        // Verificar si es una llamada a función
+        if (tokenActual.getClase() == ClaseLexica.PARENTESIS_ABRE) {
+            System.out.println("Identificador '" + id + "' detectado como una posible llamada a función.");
+            return llamada(id); // Procesar la llamada a la función
+        }
 
         // Recuperar el tipo del identificador desde la tabla de símbolos
         Symbol simbolo = lookupSimbolo(id);
         if (simbolo == null) {
             error("Identificador no declarado: " + id);
         }
-        System.out.println("El simbolo hallado es:"+ simbolo);
+        System.out.println("El simbolo hallado es: " + simbolo);
         System.out.println("Saliendo de primary con tipo de identificador: " + simbolo.getType());
         return simbolo.getType();
+
     } else if (esLiteral(tokenActual.getClase())) {
         int tipo = getTipoLiteral(tokenActual.getClase()); // Obtener el tipo del literal
         eat(tokenActual.getClase());
         System.out.println("Saliendo de primary con tipo de literal: " + tipo);
         return tipo;
+
     } else {
         error("Expresión no válida.");
         return -1; // Código inaccesible
     }
 }
+
+private int llamada(String idFuncion) {
+    eat(ClaseLexica.PARENTESIS_ABRE);
+
+    // Recuperar la función de la tabla de símbolos global
+    Symbol simboloFuncion = lookupSimbolo(idFuncion);
+    if (simboloFuncion == null || !"funcion".equals(simboloFuncion.getCat())) {
+        error("La función '" + idFuncion + "' no está declarada.");
+    }
+
+    // Obtener la lista de argumentos declarados en la función
+    List<String> argumentosDeclarados = simboloFuncion.getArgs();
+    if (argumentosDeclarados == null) {
+        argumentosDeclarados = new ArrayList<>();
+    }
+
+    // Validar argumentos pasados en la llamada
+    List<Integer> tiposArgumentosLlamada = new ArrayList<>();
+    if (esInicioExpresion()) {
+        tiposArgumentosLlamada.add(exp());
+        while (tokenActual.getClase() == ClaseLexica.COMA) {
+            eat(ClaseLexica.COMA);
+            tiposArgumentosLlamada.add(exp());
+        }
+    }
+    eat(ClaseLexica.PARENTESIS_CIERRA);
+
+    // Verificar número de argumentos
+    if (tiposArgumentosLlamada.size() != argumentosDeclarados.size()) {
+        error("La función '" + idFuncion + "' espera " + argumentosDeclarados.size() +
+              " argumentos, pero se pasaron " + tiposArgumentosLlamada.size() + ".");
+    }
+
+    // Verificar tipos de argumentos
+    for (int i = 0; i < tiposArgumentosLlamada.size(); i++) {
+        int tipoArgumentoLlamada = tiposArgumentosLlamada.get(i);
+        int tipoArgumentoDeclarado = getTipoFromString(argumentosDeclarados.get(i));
+        if (tipoArgumentoLlamada != tipoArgumentoDeclarado) {
+            error("El argumento " + (i + 1) + " de la llamada a la función '" + idFuncion +
+                  "' no coincide en tipo. Esperado: " + tipoArgumentoDeclarado +
+                  ", encontrado: " + tipoArgumentoLlamada + ".");
+        }
+    }
+
+    System.out.println("Llamada a función '" + idFuncion + "' validada correctamente.");
+    return simboloFuncion.getType(); // Retornar el tipo de retorno de la función
+}
+
 
 
 
@@ -719,5 +808,16 @@ private Symbol obtenerFuncionActual(SymbolTable tabla) {
 }
 
 
+private int getTipoFromString(String tipo) {
+    switch (tipo) {
+        case "int": return 1;
+        case "float": return 2;
+        case "double": return 3;
+        case "string": return 4;
+        case "boolean": return 5;
+        case "void": return 0;
+        default: error("Tipo desconocido: " + tipo); return -1;
+    }
+}
 
 }

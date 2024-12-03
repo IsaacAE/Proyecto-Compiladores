@@ -40,5 +40,9 @@ public class SymbolTableStack {
     return null; // Si no se encuentra en ningún ámbito
 }
 
+
+public SymbolTable base(){
+	return stack.firstElement();
+}
 }
 
