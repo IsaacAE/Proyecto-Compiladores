@@ -58,7 +58,10 @@ public class Parser {
     // Producción principal
     private void programa() {
         decl_proto();
+        
         decl_var();
+        System.out.println("TABLA DE SIMBOLOS");
+        imprimirTablaDeSimbolos(stackSymbolTable.peek());
         decl_func();
     }
 
@@ -313,7 +316,7 @@ private List<String> argumentos() {
             String id = tokenActual.getLexema();
             eat(ClaseLexica.ID);
     
-            Symbol simbolo = lookupSimbolo(id);
+            Symbol simbolo = stackSymbolTable.lookup(id);
             if (simbolo == null) {
                 error("Identificador no declarado: " + id);
             }
@@ -454,7 +457,7 @@ private List<String> argumentos() {
         if (tokenActual.getClase() == ClaseLexica.ID) {
             String id = tokenActual.getLexema();
             eat(ClaseLexica.ID);
-            Symbol simbolo = lookupSimbolo(id);
+            Symbol simbolo = stackSymbolTable.lookup(id);;
             if (simbolo == null) {
                 error("Identificador no declarado: " + id);
             }
@@ -616,7 +619,7 @@ private int primary() {
         }
 
         // Recuperar el tipo del identificador desde la tabla de símbolos
-        Symbol simbolo = lookupSimbolo(id);
+        Symbol simbolo = stackSymbolTable.lookup(id);;
         if (simbolo == null) {
             error("Identificador no declarado: " + id);
         }
@@ -640,7 +643,7 @@ private int llamada(String idFuncion) {
     eat(ClaseLexica.PARENTESIS_ABRE);
 
     // Recuperar la función de la tabla de símbolos global
-    Symbol simboloFuncion = lookupSimbolo(idFuncion);
+    Symbol simboloFuncion = stackSymbolTable.lookup(idFuncion);
     if (simboloFuncion == null || !"funcion".equals(simboloFuncion.getCat())) {
         error("La función '" + idFuncion + "' no está declarada.");
     }
@@ -837,6 +840,17 @@ private void inicializarTypeTable() {
     typeTable.addType(0, 0, 0); // void
 
    
+}
+
+private void imprimirTablaDeSimbolos(SymbolTable tabla) {
+    if (tabla != null) {
+        System.out.println("Tabla de símbolos:");
+        tabla.getAllSymbols().forEach((symbol) -> {
+            System.out.println("Simbolo:" + symbol);
+        });
+    } else {
+        System.out.println("La tabla de símbolos está vacía o no existe.");
+    }
 }
 
 
