@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Optional;
 
 import main.jflex.Lexer;
@@ -116,17 +117,19 @@ public class Parser {
                 error("La función '" + idFuncion + "' ya está declarada en el ámbito global.");
             }
             eat(ClaseLexica.PARENTESIS_ABRE);
-            // Crear el símbolo de la función
-            List<String> argumentos = argumentos();
-            Symbol simboloFuncion = new Symbol(-1, tipoRetorno, "funcion", argumentos);
-            tablaGlobal.addSymbol(idFuncion, simboloFuncion);
-    
-            System.out.println("Función '" + idFuncion + "' agregada a la tabla de símbolos global.");
+            
     
             // Crear una nueva tabla de símbolos para el ámbito de la función
             SymbolTable tablaFuncion = new SymbolTable();
             stackSymbolTable.push(tablaFuncion);
+            List<String> argumentos = argumentos();
+           
+            // Crear el símbolo de la función
+            Symbol simboloFuncion = new Symbol(-1, tipoRetorno, "funcion", argumentos);
+            tablaGlobal.addSymbol(idFuncion, simboloFuncion);
     
+            System.out.println("Función '" + idFuncion + "' agregada a la tabla de símbolos global.");
+
             // Procesar el bloque de la función
             eat(ClaseLexica.PARENTESIS_CIERRA);
             bloque();
@@ -329,6 +332,7 @@ private List<String> argumentos() {
     
             Symbol simbolo = stackSymbolTable.lookup(id);
             if (simbolo == null) {
+                imprimirTablaDeSimbolos(stackSymbolTable.peek());
                 error("Identificador no declarado: " + id);
             }
     
@@ -632,6 +636,7 @@ private int primary() {
         // Recuperar el tipo del identificador desde la tabla de símbolos
         Symbol simbolo = stackSymbolTable.lookup(id);;
         if (simbolo == null) {
+            imprimirTablaDeSimbolos(stackSymbolTable.peek());
             error("Identificador no declarado: " + id);
         }
         System.out.println("El simbolo hallado es: " + simbolo);
@@ -801,19 +806,7 @@ private boolean esLiteral(ClaseLexica clase) {
            clase == ClaseLexica.TRUE ||
            clase == ClaseLexica.FALSE;
 }
-    private Symbol lookupSimbolo(String id) {
-        SymbolTable tablaActual = stackSymbolTable.peek();
-        while (tablaActual != null) {
-            Optional<Symbol> simbolo = tablaActual.getSymbol(id);
-            if (simbolo.isPresent()) {
-                return simbolo.get();
-            }
-            // Moverse a la tabla de símbolos del scope anterior
-            stackSymbolTable.pop();
-            tablaActual = stackSymbolTable.peek();
-        }
-        return null; // No encontrado
-}
+    
 
 private Symbol obtenerFuncionActual(SymbolTable tabla) {
     // Busca una función en la tabla actual; asume que es la última declarada
@@ -831,6 +824,7 @@ private Symbol obtenerFuncionActual(SymbolTable tabla) {
 
 
 private int getTipoFromString(String tipo) {
+     tipo = tipo.split(" ")[0];
     switch (tipo) {
         case "int": return 1;
         case "float": return 2;
@@ -873,13 +867,23 @@ private void inicializarTypeTable() {
 private void imprimirTablaDeSimbolos(SymbolTable tabla) {
     if (tabla != null) {
         System.out.println("Tabla de símbolos:");
-        tabla.getAllSymbols().forEach((symbol) -> {
-            System.out.println("Simbolo:" + symbol);
-        });
+        
+        // Obtener todos los IDs
+        Set<String> ids = tabla.getAllIds();
+        
+        // Imprimir cada ID junto con su símbolo correspondiente
+        for (String id : ids) {
+            Symbol symbol = tabla.getSymbolSecure(id);  // Obtener el símbolo por el id
+            if (symbol != null) {
+                System.out.println("ID: " + id + ", " + symbol);
+            }
+        }
     } else {
         System.out.println("La tabla de símbolos está vacía o no existe.");
     }
 }
+
+
 
 
 }

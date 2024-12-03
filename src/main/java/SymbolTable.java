@@ -3,6 +3,7 @@ package main.java;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 import java.util.Optional;
 
 public class SymbolTable {
@@ -15,6 +16,10 @@ public class SymbolTable {
     public Optional<Symbol> getSymbol(String id) {
         return Optional.ofNullable(symbols.get(id));
     }
+    
+     public Symbol getSymbolSecure(String id) {
+        return symbols.get(id);
+    }
 
     public boolean containsSymbol(String id) {
         return symbols.containsKey(id);
@@ -24,5 +29,9 @@ public class SymbolTable {
     public ArrayList<Symbol> getAllSymbols() {
         return new ArrayList<>(symbols.values());
     }
+    
+    public Set<String> getAllIds() {
+    return symbols.keySet();  // Devuelve el conjunto de claves (ids)
+}
 }
 

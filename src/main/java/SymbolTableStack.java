@@ -5,7 +5,7 @@ import java.util.Stack;
 public class SymbolTableStack {
     private Stack<SymbolTable> stack = new Stack<>();
 
-    // Añadir una nueva tabla de símbolos
+    //Añadir una nueva tabla de símbolos
     public void push(SymbolTable table) {
         stack.push(table);
     }
@@ -17,7 +17,7 @@ public class SymbolTableStack {
 
     // Ver la tabla de la cima
     public SymbolTable peek() {
-        return stack.isEmpty() ? null : stack.peek();
+        return stack.peek();
     }
 
     public Symbol lookup(String id) {

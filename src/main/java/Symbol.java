@@ -10,19 +10,12 @@ public class Symbol {
     private List<String> args;  // Lista de argumentos (como nombres o tipos)
 
     // Constructor
-    public Symbol(String id, int dir, int type, String cat, List<String> args) {
-    	this.id = id;
+    public Symbol(int dir, int type, String cat, List<String> args) {
         this.dir = dir;
         this.type = type;
         this.cat = cat;
         this.args = args;
     }
-
-	// Métodos getter
-    public int getId() {
-        return id;
-    }
-
 
     // Métodos getter
     public int getDir() {
@@ -48,8 +41,7 @@ public class Symbol {
         String argsString = args != null ? String.join(", ", args) : "N/A"; // Unir los argumentos si existen
         
         return "Symbol{" +
-        	"cat='" + cat + '\'' +
-               "id='" + id + '\'' +
+               "cat='" + cat + '\'' +
                ", tipo=" + tipoString +
                ", direccion=" + dir +
                ", argumentos=" + argsString +
