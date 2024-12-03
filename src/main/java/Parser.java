@@ -806,6 +806,8 @@ private boolean esLiteral(ClaseLexica clase) {
 
 private Symbol obtenerFuncionActual(SymbolTable tabla) {
     // Busca una función en la tabla actual; asume que es la última declarada
+    System.out.println("###BUSCANDO FUNCION ACTUAL###");
+    tabla = stackSymbolTable.base();
     for (Symbol symbol : tabla.getAllSymbols()) {
         if ("funcion".equals(symbol.getCat())) {
             return symbol;
