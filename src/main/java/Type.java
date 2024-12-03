@@ -2,12 +2,12 @@ package main.java;
 
 public class Type {
     private final int id;       // ID del tipo
-    private final short items;  // Número de elementos
-    private final short tam;    // Tamaño en bytes
+    private final int items;  // Número de elementos
+    private final int tam;    // Tamaño en bytes
     private final Integer parent; // ID del tipo padre (nullable)
 
     // Constructor
-    public Type(int id, short items, short tam, Integer parent) {
+    public Type(int id, int items, int tam, Integer parent) {
         this.id = id;
         this.items = items;
         this.tam = tam;
@@ -19,11 +19,11 @@ public class Type {
         return id;
     }
 
-    public short getItems() {
+    public int getItems() {
         return items;
     }
 
-    public short getTam() {
+    public int getTam() {
         return tam;
     }
 

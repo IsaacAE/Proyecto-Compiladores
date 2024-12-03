@@ -13,7 +13,7 @@ public class TypeTable {
     }
 
     // Agregar un nuevo tipo
-    public int addType(short items, short tam, Integer parent) {
+    public int addType(int items, int tam, Integer parent) {
         Type newType = new Type(currentId, items, tam, parent);
         types.put(currentId, newType);
         return currentId++;

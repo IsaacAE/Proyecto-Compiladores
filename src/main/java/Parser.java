@@ -45,6 +45,7 @@ public class Parser {
 
         // Inicializar la tabla global de símbolos
         stackSymbolTable.push(new SymbolTable());
+        inicializarTypeTable();
         programa();
 
         if (this.tokenActual.getClase() == ClaseLexica.EOF) {
@@ -689,6 +690,9 @@ private int llamada(String idFuncion) {
 
 private int validarCompatibilidadTipos(int tipoIzquierdo, int tipoDerecho, ClaseLexica operacion) {
     // Usar la lógica de promoción y compatibilidad de tipos
+    System.out.println("tipoIzquierdo:"+ tipoIzquierdo + " tipoDerecho:"+tipoDerecho);
+
+
     Type tipoPromocionado = Type.getPromotedType(
         typeTable.getType(tipoIzquierdo),
         typeTable.getType(tipoDerecho)
@@ -819,5 +823,21 @@ private int getTipoFromString(String tipo) {
         default: error("Tipo desconocido: " + tipo); return -1;
     }
 }
+
+// Inicializar la tabla de tipos
+private void inicializarTypeTable() {
+    typeTable = new TypeTable();
+    
+    // Registrar tipos básicos
+    typeTable.addType(1, 0, 0); // int
+    typeTable.addType(2, 0, 0); // float
+    typeTable.addType(3, 0, 0); // double
+    typeTable.addType(4, 0, 0); // string
+    typeTable.addType(5, 0, 0); // boolean
+    typeTable.addType(0, 0, 0); // void
+
+   
+}
+
 
 }
