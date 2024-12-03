@@ -66,23 +66,45 @@ public class Parser {
         decl_func();
     }
 
-    // Producción decl_proto
     private void decl_proto() {
         while (tokenActual.getClase() == ClaseLexica.PROTO) {
             eat(ClaseLexica.PROTO);
-            int tipo = tipo();
-            String id = tokenActual.getLexema();
+            int tipoRetorno = tipo(); // Tipo de retorno del prototipo
+            String idPrototipo = tokenActual.getLexema(); // Nombre del prototipo
             eat(ClaseLexica.ID);
+    
+            SymbolTable tablaGlobal = stackSymbolTable.base(); // Obtener la tabla global
+    
+            // Verificar si ya existe un prototipo con el mismo ID en la tabla global
+            Optional<Symbol> simboloExistenteOpt = tablaGlobal.getSymbol(idPrototipo);
+            if (simboloExistenteOpt.isPresent() && "prototipo".equals(simboloExistenteOpt.get().getCat())) {
+                error("El prototipo '" + idPrototipo + "' ya está declarado en la tabla global.");
+            }
+    
             eat(ClaseLexica.PARENTESIS_ABRE);
-            List<String> args = argumentos();
+    
+            // Crear una nueva tabla de símbolos para los argumentos del prototipo
+            SymbolTable tablaPrototipo = new SymbolTable();
+            stackSymbolTable.push(tablaPrototipo); // Empujar la tabla a la pila
+    
+            // Procesar los argumentos del prototipo y registrar en la tabla
+            List<String> argumentos = argumentos();
+    
+            // Registrar el prototipo en la tabla global con la lista de tipos de argumentos
+            Symbol simboloPrototipo = new Symbol(-1, tipoRetorno, "prototipo", argumentos);
+            tablaGlobal.addSymbol(idPrototipo, simboloPrototipo);
+    
             eat(ClaseLexica.PARENTESIS_CIERRA);
             eat(ClaseLexica.PUNTO_Y_COMA);
-
-            // Registrar el prototipo como símbolo
-            Symbol protoSymbol = new Symbol(-1, tipo, "prototipo", null);
-            agregarSimbolo(id, protoSymbol);
+    
+            System.out.println("Prototipo '" + idPrototipo + "' registrado en la tabla global.");
+            System.out.println("Tabla de símbolos para el prototipo '" + idPrototipo + "':");
+            imprimirTablaDeSimbolos(tablaPrototipo);
+    
+            stackSymbolTable.pop(); // Retirar la tabla de argumentos del prototipo
         }
     }
+    
 
     // Producción decl_var
     private void decl_var() {
@@ -136,7 +158,7 @@ public class Parser {
     
             // Mantener la tabla de la función en la pila (no se elimina)
             System.out.println("Tabla de símbolos para la función '" + idFuncion + "':");
-            //imprimirTablaDeSimbolos(stackSymbolTable.peek());
+            imprimirTablaDeSimbolos(stackSymbolTable.peek());
         }
     
         // Procesar funciones adicionales
