@@ -34,11 +34,11 @@ func float calculate(float x, float y) {
 func void main() {
     int i;
     int result;
-   // rune r;
+    rune r;
     
     i=0;
     result=0;
-   // r= 'r';
+    r= 'r';
 
     // Bucle while con operador lógico
     while (i < 10.5555555555 && i != 3) {
@@ -68,6 +68,6 @@ func void main() {
     }
 
     // Retorno
-    return 5;
+    return;
 }
 

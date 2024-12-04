@@ -790,6 +790,7 @@ private int validarCompatibilidadTipos(int tipoIzquierdo, int tipoDerecho, Clase
                clase == ClaseLexica.FLOAT ||
                clase == ClaseLexica.DOUBLE ||
                clase == ClaseLexica.STRING ||
+               clase == ClaseLexica.RUNE ||
                clase == ClaseLexica.VOID;
     }
 
@@ -815,10 +816,14 @@ private int getTipoLiteral(ClaseLexica clase) {
         case LITERAL_DOUBLE: return 3;
         
         case LITERAL_CADENA: return 4;
+
+        case LITERAL_RUNA: return 5;
       
-        case TRUE: return 5;
+        case TRUE: return 6;
        
-        case FALSE: return 5; // Booleanos
+        case FALSE: return 6; // Booleanos
+
+        case COMPLEX: return 7; // Booleanos
        
         default: return -1;
     }
@@ -829,6 +834,8 @@ private boolean esLiteral(ClaseLexica clase) {
            clase == ClaseLexica.LITERAL_FLOTANTE ||
            clase == ClaseLexica.LITERAL_DOUBLE ||
            clase == ClaseLexica.LITERAL_CADENA ||
+           clase == ClaseLexica.LITERAL_RUNA ||
+           clase == ClaseLexica.LITERAL_COMPLEJA ||
            clase == ClaseLexica.TRUE ||
            clase == ClaseLexica.FALSE;
 }
@@ -856,7 +863,8 @@ private int getTipoFromString(String tipo) {
         case "float": return 2;
         case "double": return 3;
         case "string": return 4;
-        case "boolean": return 5;
+        case "runa": return 5;
+        case "boolean": return 6;
         case "void": return 0;
         default: error("Tipo desconocido: " + tipo); return -1;
     }
@@ -869,7 +877,9 @@ private String getTipoFromInt(int tipo) {
         case 2: return "float";
         case 3: return "double";
         case 4: return "string";
-        case 5: return "boolean";
+        case 5: return "runa";
+        case 6: return "boolean";
+        case 7: return "complex";
         case 0: return "void";
         default: error("Tipo desconocido: " + tipo); return "desconocido";
     }
@@ -884,7 +894,9 @@ private void inicializarTypeTable() {
     typeTable.addType(2, 0, 3); // float
     typeTable.addType(3, 0, 3); // double
     typeTable.addType(4, 0, 4); // string
-    typeTable.addType(5, 0, 5); // boolean
+    typeTable.addType(5, 0, 5); // runa
+    typeTable.addType(6, 0, 6); // boolean
+    typeTable.addType(7, 0, 7); // complex
     typeTable.addType(0, 0, 0); // void
 
    

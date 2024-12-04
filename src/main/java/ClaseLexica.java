@@ -63,6 +63,7 @@ public enum ClaseLexica {
     LITERAL_DOUBLE,   // Números double
     LITERAL_CADENA,   // Cadenas de texto
     LITERAL_RUNA,     // Literales tipo "rune"
+    LITERAL_COMPLEJA, // Literales tipo "complex"
 
     // Identificadores
     ID,                // Identificadores
