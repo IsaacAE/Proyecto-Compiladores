@@ -5,7 +5,7 @@ int a;
 string r, texto;
 
 func int main() {
-   switch (b) {
+   switch (a) {
     case 1:
         print "Saludo reconocido";
         break;

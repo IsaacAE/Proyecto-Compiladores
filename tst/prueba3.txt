@@ -37,14 +37,14 @@ func void main() {
    // rune r;
     
     i=0;
-    resulto=0;
+    result=0;
    // r= 'r';
 
     // Bucle while con operador lógico
-    while (i < 10.5555555555 && r != 3) {
+    while (i < 10.5555555555 && i != 3) {
         result = result + i;
         print result;
-        r = r + 1;
+       
         i = i + 1;
     }
 
@@ -60,7 +60,7 @@ func void main() {
         case 0:
             print "Zero result.";
             break;
-        case '@':
+        case 3:
             print "Result is one.";
             break;
         default:

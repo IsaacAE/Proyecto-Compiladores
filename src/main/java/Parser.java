@@ -135,8 +135,10 @@ public class Parser {
     
             // Registrar la función en la tabla de símbolos global
             SymbolTable tablaGlobal = stackSymbolTable.base();
-            if (tablaGlobal.containsSymbol(idFuncion)) {
-                error("La función '" + idFuncion + "' ya está declarada en el ámbito global.");
+            // Verificar si ya existe un prototipo con el mismo ID en la tabla global
+            Optional<Symbol> simboloExistenteOpt = tablaGlobal.getSymbol(idFuncion);
+            if (simboloExistenteOpt.isPresent() && "funcion".equals(simboloExistenteOpt.get().getCat())) {
+                error("El prototipo '" + idFuncion + "' ya está declarado en la tabla global.");
             }
             eat(ClaseLexica.PARENTESIS_ABRE);
             
@@ -376,9 +378,9 @@ private List<String> argumentos() {
             eat(ClaseLexica.IF);
             eat(ClaseLexica.PARENTESIS_ABRE);
             int tipoCondicion = exp();
-            if (tipoCondicion != 5) { // 5 representa boolean
-                error("La condición del 'if' debe ser de tipo boolean.");
-            }
+            //if (tipoCondicion != 5) { // 5 representa boolean
+               // error("La condición del 'if' debe ser de tipo boolean.");
+           // }
             eat(ClaseLexica.PARENTESIS_CIERRA);
             sentencia();
             if (tokenActual.getClase() == ClaseLexica.ELSE) {
@@ -391,7 +393,7 @@ private List<String> argumentos() {
             eat(ClaseLexica.WHILE);
             eat(ClaseLexica.PARENTESIS_ABRE);
             int tipoCondicion = exp();
-            if (tipoCondicion != 5) {
+            if (tipoCondicion == 4 ) {
                 error("La condición del 'while' debe ser de tipo boolean.");
             }
             eat(ClaseLexica.PARENTESIS_CIERRA);
@@ -404,7 +406,7 @@ private List<String> argumentos() {
             eat(ClaseLexica.WHILE);
             eat(ClaseLexica.PARENTESIS_ABRE);
             int tipoCondicion = exp();
-            if (tipoCondicion != 5) {
+            if (tipoCondicion == 4) {
                 error("La condición del 'do-while' debe ser de tipo boolean.");
             }
             eat(ClaseLexica.PARENTESIS_CIERRA);
@@ -419,19 +421,19 @@ private List<String> argumentos() {
         } else if (tokenActual.getClase() == ClaseLexica.RETURN) {
             // Sentencia return
             eat(ClaseLexica.RETURN);
-            int tipoReturn = -1; // Asumimos que void es por defecto
+            int tipoReturn = 0; // Asumimos que void es por defecto
             if (esInicioExpresion()) {
                 tipoReturn = exp();
             }
             eat(ClaseLexica.PUNTO_Y_COMA);
     
             // Validar el tipo de retorno con el tipo de la función actual
-            SymbolTable tablaActual = stackSymbolTable.peek();
+            SymbolTable tablaActual = stackSymbolTable.base();
             Symbol funcionActual = obtenerFuncionActual(tablaActual);
             if (funcionActual == null) {
                 error("No se encontró la función actual para validar el retorno.");
             }
-            if (tipoReturn != funcionActual.getType() && funcionActual.getType() != 0) { // 0 es void
+            if (tipoReturn != funcionActual.getType() ) { // 0 es void
                 error("El tipo de retorno no coincide con el tipo de la función: esperado "
                         + funcionActual.getType() + ", encontrado " + tipoReturn);
             }
@@ -876,11 +878,11 @@ private void inicializarTypeTable() {
     typeTable = new TypeTable();
     
     // Registrar tipos básicos
-    typeTable.addType(1, 0, 0); // int
-    typeTable.addType(2, 0, 0); // float
-    typeTable.addType(3, 0, 0); // double
-    typeTable.addType(4, 0, 0); // string
-    typeTable.addType(5, 0, 0); // boolean
+    typeTable.addType(1, 0, 3); // int
+    typeTable.addType(2, 0, 3); // float
+    typeTable.addType(3, 0, 3); // double
+    typeTable.addType(4, 0, 4); // string
+    typeTable.addType(5, 0, 5); // boolean
     typeTable.addType(0, 0, 0); // void
 
    
