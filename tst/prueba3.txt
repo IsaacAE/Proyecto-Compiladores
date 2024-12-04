@@ -68,6 +68,6 @@ func void main() {
     }
 
     // Retorno
-    return;
+    return 5;
 }
 

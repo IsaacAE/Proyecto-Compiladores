@@ -151,6 +151,8 @@ public class Parser {
             // Crear el símbolo de la función
             Symbol simboloFuncion = new Symbol(-1, tipoRetorno, "funcion", argumentos);
             tablaGlobal.addSymbol(idFuncion, simboloFuncion);
+            SymbolTable tablaLocal = stackSymbolTable.peek();
+            tablaLocal.addSymbol(idFuncion, simboloFuncion);
     
             System.out.println("Función '" + idFuncion + "' agregada a la tabla de símbolos global.");
 
@@ -836,7 +838,7 @@ private Symbol obtenerFuncionActual(SymbolTable tabla) {
     // Busca una función en la tabla actual; asume que es la última declarada
     System.out.println("###BUSCANDO FUNCION ACTUAL###");
     
-    tabla = stackSymbolTable.base();
+    tabla = stackSymbolTable.peek();
     imprimirTablaDeSimbolos(tabla);
     for (Symbol symbol : tabla.getAllSymbols()) {
         if ("funcion".equals(symbol.getCat())) {
