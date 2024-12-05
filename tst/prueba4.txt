@@ -1,0 +1,54 @@
+// Prototipos
+proto complex suma_complex(complex a, complex b);
+proto void imprimir(string mensaje);
+
+// Función que suma números complejos
+func complex suma_complex(complex a, complex b) {
+    return a + b;
+}
+
+// Función que imprime un mensaje
+func void imprimir(string mensaje) {
+    print mensaje;
+}
+
+// Función principal
+func int main() {
+    int x, y, resultado;
+    string mensaje;
+    complex z1, z2, z3;
+    rune r1, r2;
+
+    // Inicialización de variables
+    x = 10;
+    y = 20;
+    z1 = 1.0+2.3i;
+    z2 = 3.1-4.5i;
+    r1 = 'a';
+    r2 = 'b';
+
+    // Suma de enteros
+    resultado = x + y;
+
+    // Suma de números complejos
+    z3 = suma_complex(z1, z2);
+
+    // Comparación de runas
+    if (r1 == r2) {
+        print("Las runas son iguales");
+    } else {
+        print("Las runas son diferentes");
+    }
+
+    // Operación relacional con enteros
+    if (x > y) {
+        print("x es mayor que y");
+    } else {
+        print("x no es mayor que y");
+    }
+
+    
+
+    return 0;
+}
+
