@@ -83,8 +83,7 @@ public Token actual;
 "["                     { System.out.println("Token encontrado: CORCHETE_ABRE (" + yytext() + ")"); return new Token(ClaseLexica.CORCHETE_ABRE, yytext()); }
 "]"                     { System.out.println("Token encontrado: CORCHETE_CIERRA (" + yytext() + ")"); return new Token(ClaseLexica.CORCHETE_CIERRA, yytext()); }
 
-// Identificadores y literales
-%%
+
 // Literales y otros patrones
 
 // Identificadores (incluyendo caracteres especiales de idiomas como español)
@@ -99,35 +98,32 @@ public Token actual;
     return new Token(ClaseLexica.LITERAL_ENTERA, yytext());
 }
 
-// Literales flotantes (con o sin notación exponencial)
-[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?[fF] {
+// Literales flotantes (1-7 decimales, con o sin notación exponencial)
+[0-9]+(\.[0-9]{1,7})?([eE][+-]?[0-9]+)?([fF])? {
     System.out.println("Token encontrado: LITERAL_FLOTANTE (" + yytext() + ")");
     return new Token(ClaseLexica.LITERAL_FLOTANTE, yytext());
 }
 
-// Literales dobles (con o sin notación exponencial)
-[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?([dD])? {
+// Literales dobles (1-16 decimales, con o sin notación exponencial)
+[0-9]+(\.[0-9]{1,16})?([eE][+-]?[0-9]+)?([dD])? {
     System.out.println("Token encontrado: LITERAL_DOUBLE (" + yytext() + ")");
     return new Token(ClaseLexica.LITERAL_DOUBLE, yytext());
 }
 
-// Literales complejos (parte real y parte imaginaria)
-([0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?[fFdD]?)?[+-]([0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?[fFdD]?)i {
-    System.out.println("Token encontrado: LITERAL_COMPLEJO (" + yytext() + ")");
+([0-9]+(\.[0-9]{1,7})([eE][+-]?[0-9]+)?[fF]|[0-9]+(\.[0-9]{1,16})([eE][+-]?[0-9]+)?[dD]?) 
+[+-] 
+([0-9]+(\.[0-9]{1,7})([eE][+-]?[0-9]+)?[fF]|[0-9]+(\.[0-9]{1,16})([eE][+-]?[0-9]+)?[dD]?)i {
+    System.out.println("Token encontrado: LITERAL_COMPLEJA (" + yytext() + ")");
     return new Token(ClaseLexica.LITERAL_COMPLEJA, yytext());
 }
 
-// Literales runas (caracteres únicos incluyendo escapes y símbolos especiales)
-'([^'\\]|\\[btnrf\"'\\@#%&(){}[\]<>|])' {
+'([a-zA-ZñÑáéíóúÁÉÍÓÚüÜöÖ@$!?&#%\\|]|[\b\t])' {
     System.out.println("Token encontrado: LITERAL_RUNA (" + yytext() + ")");
     return new Token(ClaseLexica.LITERAL_RUNA, yytext());
 }
 
 // Literales cadenas
-\"([^\"\\]|\\.)*\" {
-    System.out.println("Token encontrado: LITERAL_CADENA (" + yytext() + ")");
-    return new Token(ClaseLexica.LITERAL_CADENA, yytext());
-}
+\"([^\"\\]|\\.)*\"          { System.out.println("Token encontrado: LITERAL_CADENA (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_CADENA, yytext()); }
 
 // Comentarios
 "//" [^\n]*             { /* ignorar comentarios de una línea */ }
