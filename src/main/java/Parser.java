@@ -259,13 +259,17 @@ private int compuesto_prima(int tipoBase) {
             break;
             case STRING: tipo = 4;
             break;
-            case TRUE: tipo = 5;
+            case RUNE: tipo = 5;
             break;
-            case FALSE: tipo = 5;
+            case TRUE: tipo = 6;
+            break;
+            case FALSE: tipo = 6;
+            break;
+            case COMPLEX: tipo = 7;
             break;
             case VOID: tipo = 0;
             break;
-            default: tipo = 8;
+            default: tipo = -1;
         }
         eat(tokenActual.getClase());
         
@@ -734,21 +738,47 @@ private int llamada(String idFuncion) {
 // Métodos auxiliares para validación y compatibilidad de tipos
 
 private int validarCompatibilidadTipos(int tipoIzquierdo, int tipoDerecho, ClaseLexica operacion) {
-    // Usar la lógica de promoción y compatibilidad de tipos
-    System.out.println("tipoIzquierdo:"+ tipoIzquierdo + " tipoDerecho:"+tipoDerecho);
+    System.out.println("tipoIzquierdo:" + tipoIzquierdo + " tipoDerecho:" + tipoDerecho);
 
-
-    Type tipoPromocionado = Type.getPromotedType(
-        typeTable.getType(tipoIzquierdo),
-        typeTable.getType(tipoDerecho)
-    );
-
-    if (tipoPromocionado == null) {
-        error("Tipos incompatibles en operación: " + operacion);
+    // Operadores relacionales (==, !=, <, >, <=, >=)
+    if (operacion == ClaseLexica.IGUAL || operacion == ClaseLexica.DIFERENTE ||
+        operacion == ClaseLexica.MENOR || operacion == ClaseLexica.MENOR_IGUAL ||
+        operacion == ClaseLexica.MAYOR || operacion == ClaseLexica.MAYOR_IGUAL) {
+        if (tipoIzquierdo == tipoDerecho ) {
+            return 6; // boolean
+        } else {
+            System.out.println("Error: Tipos incompatibles para el operador relacional.");
+            return -1; // Error
+        }
     }
 
-    return tipoPromocionado.getId();
+    // Operadores condicionales (&&, ||)
+    if (operacion == ClaseLexica.AND || operacion == ClaseLexica.OR) {
+        if (tipoIzquierdo == 6 && tipoDerecho == 6) { // Ambos son boolean
+            return 6; // boolean
+        } else {
+            System.out.println("Error: Tipos incompatibles para operadores condicionales.");
+            return -1; // Error
+        }
+    }
+
+    // Operadores aritméticos (+, -, *, /)
+    if (operacion == ClaseLexica.MAS || operacion == ClaseLexica.MENOS ||
+        operacion == ClaseLexica.MULTIPLICACION || operacion == ClaseLexica.DIVISION) {
+        if (tipoIzquierdo == tipoDerecho) {
+            return Type.getPromotedType(typeTable.getType(tipoIzquierdo), typeTable.getType(tipoDerecho)).getId();
+        } else {
+            System.out.println("Error: Tipos incompatibles para operadores aritméticos.");
+            return -1; // Error
+        }
+    }
+
+    // Caso predeterminado (error)
+    System.out.println("Error: Operación no válida o tipos incompatibles.");
+    return -1;
 }
+
+
 
     private void agregarSimbolo(String id, Symbol symbol) {
         Optional<SymbolTable> tablaActual = Optional.ofNullable(stackSymbolTable.peek());
@@ -790,9 +820,11 @@ private int validarCompatibilidadTipos(int tipoIzquierdo, int tipoDerecho, Clase
                clase == ClaseLexica.FLOAT ||
                clase == ClaseLexica.DOUBLE ||
                clase == ClaseLexica.STRING ||
-               clase == ClaseLexica.RUNE ||
+               clase == ClaseLexica.RUNE || // runa
+               clase == ClaseLexica.COMPLEX || // complex
                clase == ClaseLexica.VOID;
     }
+    
 
     private boolean esInicioSentencia() {
         return tokenActual.getClase() == ClaseLexica.ID || 
@@ -807,27 +839,20 @@ private int validarCompatibilidadTipos(int tipoIzquierdo, int tipoDerecho, Clase
     }
 
 
-private int getTipoLiteral(ClaseLexica clase) {
-    switch (clase) {
-        case LITERAL_ENTERA: return 1;
-        
-        case LITERAL_FLOTANTE: return 2;
-        
-        case LITERAL_DOUBLE: return 3;
-        
-        case LITERAL_CADENA: return 4;
-
-        case LITERAL_RUNA: return 5;
-      
-        case TRUE: return 6;
-       
-        case FALSE: return 6; // Booleanos
-
-        case COMPLEX: return 7; // Booleanos
-       
-        default: return -1;
+    private int getTipoLiteral(ClaseLexica clase) {
+        switch (clase) {
+            case LITERAL_ENTERA: return 1;
+            case LITERAL_FLOTANTE: return 2;
+            case LITERAL_DOUBLE: return 3;
+            case LITERAL_CADENA: return 4;
+            case LITERAL_RUNA: return 5;
+            case LITERAL_COMPLEJA: return 7; // complex
+            case TRUE:
+            case FALSE: return 6; // boolean
+            default: return -1;
+        }
     }
-}
+    
 
 private boolean esLiteral(ClaseLexica clase) {
     return clase == ClaseLexica.LITERAL_ENTERA ||
@@ -863,8 +888,9 @@ private int getTipoFromString(String tipo) {
         case "float": return 2;
         case "double": return 3;
         case "string": return 4;
-        case "runa": return 5;
+        case "rune": return 5;
         case "boolean": return 6;
+        case "complex": return 7;
         case "void": return 0;
         default: error("Tipo desconocido: " + tipo); return -1;
     }
@@ -877,7 +903,7 @@ private String getTipoFromInt(int tipo) {
         case 2: return "float";
         case 3: return "double";
         case 4: return "string";
-        case 5: return "runa";
+        case 5: return "rune";
         case 6: return "boolean";
         case 7: return "complex";
         case 0: return "void";
