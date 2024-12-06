@@ -51,13 +51,16 @@ public class Symbol {
     // Método auxiliar para obtener el nombre del tipo basado en su ID
     private String getTipoString(int tipoId) {
         switch (tipoId) {
-            case 1: return "int";
-            case 2: return "float";
-            case 3: return "double";
-            case 4: return "string";
-            case 5: return "boolean";
-            case 0: return "void";
-            default: return "desconocido";
+           	case 1: return "int";
+		case 2: return "float";
+		case 3: return "double";
+		case 4: return "string";
+		case 5: return "rune";
+		case 6: return "boolean";
+		case 7: return "complex";
+		case 9: return "struct";
+		case 0: return "void";
+           	default: return "desconocido";
         }
     }
 }

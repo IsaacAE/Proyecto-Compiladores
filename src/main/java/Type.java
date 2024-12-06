@@ -1,11 +1,13 @@
 package main.java;
 
+import java.util.Map;
+
 public class Type {
     private final int id;       // ID del tipo
     private final int items;  // Número de elementos
     private final int tam;    // Tamaño en bytes
     private final Integer parent; // ID del tipo padre (nullable)
-
+    private Map<String, Integer> members; // Miembros del struct
     // Constructor
     public Type(int id, int items, int tam, Integer parent) {
         this.id = id;
@@ -48,5 +50,13 @@ public class Type {
     }
     
     
+    // Métodos para manejar miembros de struct
+    public void setMembers(Map<String, Integer> members) {
+        this.members = members;
+    }
+
+    public Map<String, Integer> getMembers() {
+        return members;
+    }
 }
 

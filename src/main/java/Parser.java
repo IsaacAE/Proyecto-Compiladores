@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.Optional;
 
@@ -15,6 +16,8 @@ public class Parser {
 
     private SymbolTableStack stackSymbolTable = new SymbolTableStack();
     private TypeTable typeTable = new TypeTable();
+    private Map<String, SymbolTable> structTables = new HashMap<>();
+
 
     public Parser(Lexer lexer) {
         this.lexer = lexer;
@@ -33,7 +36,9 @@ public class Parser {
     }
 
     private void error(String mensaje) {
-        throw new RuntimeException("Error de sintaxis: " + mensaje);
+        imprimirTablaDeSimbolos(stackSymbolTable.base());
+        throw new RuntimeException("Error: " + mensaje);
+        
     }
 
     public void parse() {
@@ -110,6 +115,12 @@ public class Parser {
     private void decl_var() {
         while (esTipo(tokenActual.getClase())) {
             int tipo = tipo();
+            
+            // Manejo de struct anónimo (token actual es '}')
+        if (tokenActual.getClase() == ClaseLexica.LLAVE_CIERRA) {
+            eat(ClaseLexica.LLAVE_CIERRA); // Consumimos la llave de cierre
+            tipo = 9; // El último tipo registrado corresponde al struct
+        } 
             System.out.println("El tipo de las siguientes variables es:"+ tipo);
             List<String> variables = lista_var();
             eat(ClaseLexica.PUNTO_Y_COMA);
@@ -178,19 +189,27 @@ public class Parser {
     
 
     private int tipo() {
-        int tipoBase;
+        int tipoBase=-1;
     
         if (esTipoBasico(tokenActual.getClase())) {
             System.out.println("Entrando a tipo basico");
             tipoBase = basico(); // Identificar el tipo básico
             tipoBase = tipo_prima(tipoBase); // Manejar tipos compuestos, si los hay
         } else if (tokenActual.getClase() == ClaseLexica.STRUCT) {
-            // Procesar estructuras (structs)
             eat(ClaseLexica.STRUCT);
+            String structName = "struct" + typeTable.size(); // Generar un nombre único
+            SymbolTable structTable = new SymbolTable();
+        
+            stackSymbolTable.push(structTable); // Crear un nuevo ámbito para el struct
             eat(ClaseLexica.LLAVE_ABRE);
-            decl_var(); // Manejar declaraciones dentro del struct
-            eat(ClaseLexica.LLAVE_CIERRA);
-            tipoBase = typeTable.addType((short) 0, (short) 0, null); // Registrar un nuevo tipo struct
+            decl_var(); // Procesar las variables internas del struct
+           // eat(ClaseLexica.LLAVE_CIERRA);
+        
+            // Guardar la tabla del struct en el mapa
+            structTables.put(structName, stackSymbolTable.pop());
+            tipoBase = 9;
+            System.out.println("Tabla de símbolos del struct '" + structName + "':");
+            imprimirTablaDeSimbolos(structTables.get(structName));
         } else if (tokenActual.getClase() == ClaseLexica.PTR) {
             // Manejar punteros
             puntero();
@@ -354,29 +373,17 @@ private List<String> argumentos() {
 
     private void sentencia() {
         System.out.println("Entrando a sentencia");
-    
         if (tokenActual.getClase() == ClaseLexica.ID) {
-            // Asignación
-            String id = tokenActual.getLexema();
-            eat(ClaseLexica.ID);
-    
-            Symbol simbolo = stackSymbolTable.lookup(id);
-            if (simbolo == null) {
-                imprimirTablaDeSimbolos(stackSymbolTable.peek());
-                error("Identificador no declarado: " + id);
-            }
+            // Manejar parte izquierda
+            parteIzquierda();
     
             if (tokenActual.getClase() == ClaseLexica.ASIGNACION) {
-                System.out.println("Entrando a sentencia-igual");
                 eat(ClaseLexica.ASIGNACION);
                 int tipoExpresion = exp();
-                if (simbolo.getType() != tipoExpresion) {
-                    error("Incompatibilidad de tipos en asignación: esperado "
-                            + simbolo.getType() + ", encontrado " + tipoExpresion);
-                }
                 eat(ClaseLexica.PUNTO_Y_COMA);
+                System.out.println("Asignación procesada correctamente.");
             } else {
-                error("Se esperaba '=' después del identificador.");
+                error("Se esperaba '=' después de la parte izquierda.");
             }
     
         } else if (tokenActual.getClase() == ClaseLexica.IF) {
@@ -502,15 +509,22 @@ private List<String> argumentos() {
         if (tokenActual.getClase() == ClaseLexica.ID) {
             String id = tokenActual.getLexema();
             eat(ClaseLexica.ID);
-            Symbol simbolo = stackSymbolTable.lookup(id);;
+    
+            Symbol simbolo = stackSymbolTable.lookup(id);
             if (simbolo == null) {
                 error("Identificador no declarado: " + id);
             }
-            // Manejo adicional si es necesario (arrays, structs, etc.)
+    
+            // Verificar si la parte izquierda es un arreglo o estructura
+            if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE || tokenActual.getClase() == ClaseLexica.PUNTO) {
+                localizacion(id); // Procesar localización
+            }
+    
         } else {
             error("Se esperaba una parte izquierda válida.");
         }
     }
+    
     
     
 // Evaluación de Expresiones
@@ -703,11 +717,16 @@ private int primary() {
             List<Integer> parametrosLlamada = parametros(); // Procesar los parámetros
             eat(ClaseLexica.PARENTESIS_CIERRA); // Comer el paréntesis de cierre
             return llamada(id, parametrosLlamada); // Procesar la llamada a la función
+        } else if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE || tokenActual.getClase() == ClaseLexica.PUNTO) {
+            // Localización
+            return localizacion(id);
+
+
+        } else {
+            // Identificador simple
+            return getTipoVariable(id);
         }
-
-        // Si no es una llamada a función, se trata de un identificador simple
-        return getTipoVariable(id); // Obtener el tipo de la variable
-
+        
     // Caso 3: Literales
     } else if (esLiteral(tokenActual.getClase())) {
         int tipo = getTipoLiteral(tokenActual.getClase()); // Obtener el tipo del literal
@@ -723,6 +742,67 @@ private int primary() {
 }
 
 
+private int localizacion(String id) {
+    System.out.println("Entrando en localizacion con id: " + id);
+
+    if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
+        return arreglo(id);
+    } else if (tokenActual.getClase() == ClaseLexica.PUNTO) {
+        return estructurado(id);
+    } else {
+        error("Se esperaba '[' o '.', pero se encontró: " + tokenActual.getClase());
+        return -1;
+    }
+}
+
+
+private int arreglo(String id) {
+    eat(ClaseLexica.CORCHETE_ABRE);
+    exp(); // Procesar la expresión dentro del corchete
+    eat(ClaseLexica.CORCHETE_CIERRA);
+
+    // Procesar dimensiones adicionales
+    return arreglo_prima(id);
+}
+
+private int arreglo_prima(String id) {
+    if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
+        eat(ClaseLexica.CORCHETE_ABRE);
+        exp(); // Procesar la expresión dentro del corchete
+        eat(ClaseLexica.CORCHETE_CIERRA);
+        return arreglo_prima(id); // Recursión
+    }
+    return 0; // Finaliza el procesamiento del arreglo
+}
+
+
+
+
+private int estructurado(String id) {
+    eat(ClaseLexica.PUNTO);
+    String campo = tokenActual.getLexema();
+    eat(ClaseLexica.ID);
+
+    // Verificar que el identificador es una estructura
+    Symbol simbolo = stackSymbolTable.lookup(id);
+    if (simbolo == null || simbolo.getType() != 9) {
+        error("El identificador '" + id + "' no es una estructura o no está declarado.");
+        
+    }
+
+    // Procesar accesos adicionales
+    return estructurado_prima(campo);
+}
+
+private int estructurado_prima(String id) {
+    if (tokenActual.getClase() == ClaseLexica.PUNTO) {
+        eat(ClaseLexica.PUNTO);
+        String campo = tokenActual.getLexema();
+        eat(ClaseLexica.ID);
+        return estructurado_prima(campo); // Recursión
+    }
+    return 0; // Finaliza el procesamiento de la estructura
+}
 
 // Función para obtener los parámetros de una llamada
 private List<Integer> parametros() {
@@ -939,6 +1019,7 @@ private int getTipoFromString(String tipo) {
         case "rune": return 5;
         case "boolean": return 6;
         case "complex": return 7;
+        case "struct": return 9;
         case "void": return 0;
         default: error("Tipo desconocido: " + tipo); return -1;
     }
@@ -954,6 +1035,7 @@ private String getTipoFromInt(int tipo) {
         case 5: return "rune";
         case 6: return "boolean";
         case 7: return "complex";
+        case 9: return "struct";
         case 0: return "void";
         default: error("Tipo desconocido: " + tipo); return "desconocido";
     }
@@ -1006,6 +1088,10 @@ private void imprimirTablaDeSimbolos(SymbolTable tabla) {
 }
 
 
+public Map<String, Integer> getStructMembers(int structId) {
+    Type structType = typeTable.getType(structId);
+    return structType != null ? structType.getMembers() : null;
+}
 
 
 }
