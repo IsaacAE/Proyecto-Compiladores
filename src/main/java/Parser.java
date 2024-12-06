@@ -784,26 +784,49 @@ private int arreglo_prima(String id) {
 
 private int estructurado(String id) {
     eat(ClaseLexica.PUNTO);
+
+    // Obtener el primer campo después del punto
     String campo = tokenActual.getLexema();
     eat(ClaseLexica.ID);
+    System.out.println("EL PRIMER CAMPO ES: " + campo);
 
-    // Verificar que el identificador es una estructura
+    // Verificar que el identificador inicial (`id`) es una estructura
     Symbol simbolo = stackSymbolTable.lookup(id);
-    if (simbolo == null || simbolo.getType() < 7) {
-        error("El identificador '" + id + "' no es una estructura o no está declarado.");
-        
+    if (simbolo == null) {
+        error("El identificador '" + id + "' no está declarado.");
     }
 
-    // Procesar accesos adicionales
+    int tipoCampo = simbolo.getType();
+    String structName = "struct_" + tipoCampo;
+
+    // Verificar si el tipo corresponde a un struct registrado
+    SymbolTable structTable = structTables.get(structName);
+    if (structTable == null) {
+        error("El tipo '" + structName + "' no está registrado como struct.");
+    }else{
+        System.out.println("Tabla de simbolos para "+ structName);
+        imprimirTablaDeSimbolos(structTable);
+    }
+
+
+    // Verificar si el primer campo existe en la tabla de símbolos del struct
+    Optional<Symbol> campoSimbolo = structTable.getSymbol(campo);
+    if (campoSimbolo.isEmpty()) { // Validar si el campo no existe
+        error("El campo '" + campo + "' no está definido en el struct '" + structName + "'.");
+    }
+
+    // Continuar con accesos adicionales si los hay
     return estructurado_prima(campo);
 }
+
 
 private int estructurado_prima(String id) {
     if (tokenActual.getClase() == ClaseLexica.PUNTO) {
         eat(ClaseLexica.PUNTO);
-
+        System.out.println("EL ID ES: "+id);
         // Obtener el campo que sigue al punto
         String campo = tokenActual.getLexema();
+        System.out.println("EL PRIMER CAMPO ES: "+campo);
         eat(ClaseLexica.ID);
 
         // Buscar el tipo de `id` en la tabla de símbolos actual
@@ -822,7 +845,7 @@ private int estructurado_prima(String id) {
 
         // Verificar si el campo existe en la tabla de símbolos del struct
         Optional<Symbol> campoSimbolo = structTable.getSymbol(campo);
-        if (campoSimbolo == null) {
+        if (campoSimbolo.isEmpty()) { // Validar si el campo no existe
             error("El campo '" + campo + "' no está definido en el struct '" + structName + "'.");
         }
 

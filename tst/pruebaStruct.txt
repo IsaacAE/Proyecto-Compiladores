@@ -14,7 +14,7 @@ func int main() {
    
 
     // Inicialización de miEstructura
-    miEstructura.r = 10;
+    miEstructura.a = 10;
     miEstructura.b = 3.14;
     miEstructura.c = "Hola Mundo";
 
