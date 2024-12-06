@@ -192,7 +192,7 @@ public class Parser {
         int tipoBase=-1;
     
         if (esTipoBasico(tokenActual.getClase())) {
-            System.out.println("Entrando a tipo basico");
+           // System.out.println("Entrando a tipo basico");
             tipoBase = basico(); // Identificar el tipo básico
             tipoBase = tipo_prima(tipoBase); // Manejar tipos compuestos, si los hay
         } else if (tokenActual.getClase() == ClaseLexica.STRUCT) {
@@ -376,7 +376,7 @@ private List<String> argumentos() {
     }
 
     private void sentencia() {
-        System.out.println("Entrando a sentencia");
+        //System.out.println("Entrando a sentencia");
         if (tokenActual.getClase() == ClaseLexica.ID) {
             // Manejar parte izquierda
             parteIzquierda();
@@ -486,7 +486,7 @@ private List<String> argumentos() {
         } else {
             error("Inicio no válido de una sentencia.");
         }
-        System.out.println("Saliendo de sentencia");
+       // System.out.println("Saliendo de sentencia");
     }
     
     
@@ -533,29 +533,29 @@ private List<String> argumentos() {
     
 // Evaluación de Expresiones
 private int exp() {
-    System.out.println("Entrando en exp");
+   // System.out.println("Entrando en exp");
     int tipo = exp_or();  // Expresión OR
-    System.out.println("Saliendo de exp con tipo: " + tipo);
+   // System.out.println("Saliendo de exp con tipo: " + tipo);
     return tipo;
 }
 
 // Producción exp_or → exp_and exp_or'
 private int exp_or() {
-    System.out.println("Entrando en exp_or");
+   // System.out.println("Entrando en exp_or");
     int tipoIzquierdo = exp_and(); // Expresión AND
-    System.out.println("Tipo izquierdo de exp_or: " + tipoIzquierdo);
+   // System.out.println("Tipo izquierdo de exp_or: " + tipoIzquierdo);
     tipoIzquierdo = exp_or_prima(tipoIzquierdo); // Llamada a la producción exp_or'
-    System.out.println("Saliendo de exp_or con tipo: " + tipoIzquierdo);
+   // System.out.println("Saliendo de exp_or con tipo: " + tipoIzquierdo);
     return tipoIzquierdo;
 }
 
 // Producción exp_or' → || exp_and exp_or' | epsilon
 private int exp_or_prima(int tipoIzquierdo) {
     if (tokenActual.getClase() == ClaseLexica.OR) {
-        System.out.println("Operador '||' encontrado");
+       // System.out.println("Operador '||' encontrado");
         eat(ClaseLexica.OR);
         int tipoDerecho = exp_and(); // Expresión AND
-        System.out.println("Tipo derecho de exp_or': " + tipoDerecho);
+       // System.out.println("Tipo derecho de exp_or': " + tipoDerecho);
         tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, ClaseLexica.OR);
         tipoIzquierdo = exp_or_prima(tipoIzquierdo); // Recursión para manejar más operadores OR
     }
@@ -564,21 +564,21 @@ private int exp_or_prima(int tipoIzquierdo) {
 
 // Producción exp_and → exp_eq exp_and'
 private int exp_and() {
-    System.out.println("Entrando en exp_and");
+   // System.out.println("Entrando en exp_and");
     int tipoIzquierdo = exp_eq(); // Expresión de igualdad
-    System.out.println("Tipo izquierdo de exp_and: " + tipoIzquierdo);
+   // System.out.println("Tipo izquierdo de exp_and: " + tipoIzquierdo);
     tipoIzquierdo = exp_and_prima(tipoIzquierdo); // Llamada a la producción exp_and'
-    System.out.println("Saliendo de exp_and con tipo: " + tipoIzquierdo);
+   // System.out.println("Saliendo de exp_and con tipo: " + tipoIzquierdo);
     return tipoIzquierdo;
 }
 
 // Producción exp_and' → && exp_eq exp_and' | epsilon
 private int exp_and_prima(int tipoIzquierdo) {
     if (tokenActual.getClase() == ClaseLexica.AND) {
-        System.out.println("Operador '&&' encontrado");
+        //System.out.println("Operador '&&' encontrado");
         eat(ClaseLexica.AND);
         int tipoDerecho = exp_eq(); // Expresión de igualdad
-        System.out.println("Tipo derecho de exp_and': " + tipoDerecho);
+      //  System.out.println("Tipo derecho de exp_and': " + tipoDerecho);
         tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, ClaseLexica.AND);
         tipoIzquierdo = exp_and_prima(tipoIzquierdo); // Recursión para manejar más operadores AND
     }
@@ -587,11 +587,11 @@ private int exp_and_prima(int tipoIzquierdo) {
 
 // Producción exp_eq → exp_rel exp_eq'
 private int exp_eq() {
-    System.out.println("Entrando en exp_eq");
+   // System.out.println("Entrando en exp_eq");
     int tipoIzquierdo = exp_rel(); // Expresión relacional
-    System.out.println("Tipo izquierdo de exp_eq: " + tipoIzquierdo);
+   // System.out.println("Tipo izquierdo de exp_eq: " + tipoIzquierdo);
     tipoIzquierdo = exp_eq_prima(tipoIzquierdo); // Llamada a la producción exp_eq'
-    System.out.println("Saliendo de exp_eq con tipo: " + tipoIzquierdo);
+   // System.out.println("Saliendo de exp_eq con tipo: " + tipoIzquierdo);
     return tipoIzquierdo;
 }
 
@@ -599,10 +599,10 @@ private int exp_eq() {
 private int exp_eq_prima(int tipoIzquierdo) {
     if (tokenActual.getClase() == ClaseLexica.IGUAL || tokenActual.getClase() == ClaseLexica.DIFERENTE) {
         ClaseLexica operador = tokenActual.getClase();
-        System.out.println("Operador " + operador + " encontrado");
+       // System.out.println("Operador " + operador + " encontrado");
         eat(operador);
         int tipoDerecho = exp_rel(); // Expresión relacional
-        System.out.println("Tipo derecho de exp_eq': " + tipoDerecho);
+       // System.out.println("Tipo derecho de exp_eq': " + tipoDerecho);
         tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, operador);
         tipoIzquierdo = exp_eq_prima(tipoIzquierdo); // Recursión para manejar más operadores de igualdad
     }
@@ -611,11 +611,11 @@ private int exp_eq_prima(int tipoIzquierdo) {
 
 // Producción exp_rel → exp_add exp_rel'
 private int exp_rel() {
-    System.out.println("Entrando en exp_rel");
+   // System.out.println("Entrando en exp_rel");
     int tipoIzquierdo = exp_add(); // Expresión aritmética
-    System.out.println("Tipo izquierdo de exp_rel: " + tipoIzquierdo);
+   // System.out.println("Tipo izquierdo de exp_rel: " + tipoIzquierdo);
     tipoIzquierdo = exp_rel_prima(tipoIzquierdo); // Llamada a la producción exp_rel'
-    System.out.println("Saliendo de exp_rel con tipo: " + tipoIzquierdo);
+   // System.out.println("Saliendo de exp_rel con tipo: " + tipoIzquierdo);
     return tipoIzquierdo;
 }
 
@@ -623,10 +623,10 @@ private int exp_rel() {
 private int exp_rel_prima(int tipoIzquierdo) {
     if (esOperadorRelacional(tokenActual.getClase())) {
         ClaseLexica operador = tokenActual.getClase();
-        System.out.println("Operador relacional " + operador + " encontrado");
+      //  System.out.println("Operador relacional " + operador + " encontrado");
         eat(operador);
         int tipoDerecho = exp_add(); // Expresión aritmética
-        System.out.println("Tipo derecho de exp_rel': " + tipoDerecho);
+       // System.out.println("Tipo derecho de exp_rel': " + tipoDerecho);
         tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, operador);
         tipoIzquierdo = exp_rel_prima(tipoIzquierdo); // Recursión para manejar más operadores relacionales
     }
@@ -635,11 +635,11 @@ private int exp_rel_prima(int tipoIzquierdo) {
 
 // Producción exp_add → exp_mul exp_add'
 private int exp_add() {
-    System.out.println("Entrando en exp_add");
+   // System.out.println("Entrando en exp_add");
     int tipoIzquierdo = exp_mul(); // Expresión de multiplicación
-    System.out.println("Tipo izquierdo de exp_add: " + tipoIzquierdo);
+   // System.out.println("Tipo izquierdo de exp_add: " + tipoIzquierdo);
     tipoIzquierdo = exp_add_prima(tipoIzquierdo); // Llamada a la producción exp_add'
-    System.out.println("Saliendo de exp_add con tipo: " + tipoIzquierdo);
+   // System.out.println("Saliendo de exp_add con tipo: " + tipoIzquierdo);
     return tipoIzquierdo;
 }
 
@@ -647,10 +647,10 @@ private int exp_add() {
 private int exp_add_prima(int tipoIzquierdo) {
     if (tokenActual.getClase() == ClaseLexica.MAS || tokenActual.getClase() == ClaseLexica.MENOS) {
         ClaseLexica operador = tokenActual.getClase();
-        System.out.println("Operador " + operador + " encontrado");
+       // System.out.println("Operador " + operador + " encontrado");
         eat(operador);
         int tipoDerecho = exp_mul(); // Expresión de multiplicación
-        System.out.println("Tipo derecho de exp_add': " + tipoDerecho);
+       // System.out.println("Tipo derecho de exp_add': " + tipoDerecho);
         tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, operador);
         tipoIzquierdo = exp_add_prima(tipoIzquierdo); // Recursión para manejar más operadores de suma
     }
@@ -659,11 +659,11 @@ private int exp_add_prima(int tipoIzquierdo) {
 
 // Producción exp_mul → exp_unary exp_mul'
 private int exp_mul() {
-    System.out.println("Entrando en exp_mul");
+   // System.out.println("Entrando en exp_mul");
     int tipoIzquierdo = exp_unary(); // Expresión unaria
-    System.out.println("Tipo izquierdo de exp_mul: " + tipoIzquierdo);
+   // System.out.println("Tipo izquierdo de exp_mul: " + tipoIzquierdo);
     tipoIzquierdo = exp_mul_prima(tipoIzquierdo); // Llamada a la producción exp_mul'
-    System.out.println("Saliendo de exp_mul con tipo: " + tipoIzquierdo);
+   // System.out.println("Saliendo de exp_mul con tipo: " + tipoIzquierdo);
     return tipoIzquierdo;
 }
 
@@ -672,10 +672,10 @@ private int exp_mul_prima(int tipoIzquierdo) {
     if (tokenActual.getClase() == ClaseLexica.MULTIPLICACION || tokenActual.getClase() == ClaseLexica.DIVISION ||
         tokenActual.getClase() == ClaseLexica.MODULO || tokenActual.getClase() == ClaseLexica.DIVISION_ENTERA) {
         ClaseLexica operador = tokenActual.getClase();
-        System.out.println("Operador " + operador + " encontrado");
+       // System.out.println("Operador " + operador + " encontrado");
         eat(operador);
         int tipoDerecho = exp_unary(); // Expresión unaria
-        System.out.println("Tipo derecho de exp_mul': " + tipoDerecho);
+        //System.out.println("Tipo derecho de exp_mul': " + tipoDerecho);
         tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, operador);
         tipoIzquierdo = exp_mul_prima(tipoIzquierdo); // Recursión para manejar más operadores de multiplicación
     }
@@ -684,7 +684,7 @@ private int exp_mul_prima(int tipoIzquierdo) {
 
 // Producción exp_unary → ! exp_unary | - exp_unary | primary
 private int exp_unary() {
-    System.out.println("Entrando en exp_unary");
+   // System.out.println("Entrando en exp_unary");
 
     if (tokenActual.getClase() == ClaseLexica.MENOS || tokenActual.getClase() == ClaseLexica.NOT) {
         System.out.println("Operador unario encontrado: " + tokenActual.getClase());
@@ -699,14 +699,14 @@ private int exp_unary() {
 
 // Producción primary → ( exp ) | id localizacion | false | literal_cadena | true | literal_runa | literal_entera | literal_flotante | literal_doble | literal_compleja | id ( parametros ) | id
 private int primary() {
-    System.out.println("Entrando en primary");
+   // System.out.println("Entrando en primary");
 
     // Caso 1: Expresión entre paréntesis
     if (tokenActual.getClase() == ClaseLexica.PARENTESIS_ABRE) {
         eat(ClaseLexica.PARENTESIS_ABRE);
         int tipo = exp(); // Evaluar la subexpresión
         eat(ClaseLexica.PARENTESIS_CIERRA);
-        System.out.println("Saliendo de primary con tipo (expresión entre paréntesis): " + tipo);
+       // System.out.println("Saliendo de primary con tipo (expresión entre paréntesis): " + tipo);
         return tipo;
 
     // Caso 2: Identificador con posible llamada a función
@@ -717,7 +717,7 @@ private int primary() {
         // Verificar si es una llamada a función (siguiente token es un paréntesis de apertura)
         if (tokenActual.getClase() == ClaseLexica.PARENTESIS_ABRE) {
             eat(ClaseLexica.PARENTESIS_ABRE); // Comer el paréntesis de cierre
-            System.out.println("Identificador '" + id + "' detectado como una llamada a función.");
+         //   System.out.println("Identificador '" + id + "' detectado como una llamada a función.");
             List<Integer> parametrosLlamada = parametros(); // Procesar los parámetros
             eat(ClaseLexica.PARENTESIS_CIERRA); // Comer el paréntesis de cierre
             return llamada(id, parametrosLlamada); // Procesar la llamada a la función
@@ -735,7 +735,7 @@ private int primary() {
     } else if (esLiteral(tokenActual.getClase())) {
         int tipo = getTipoLiteral(tokenActual.getClase()); // Obtener el tipo del literal
         eat(tokenActual.getClase());
-        System.out.println("Saliendo de primary con tipo de literal: " + tipo);
+       // System.out.println("Saliendo de primary con tipo de literal: " + tipo);
         return tipo;
 
     // Caso 4: Error si no es ninguno de los anteriores
@@ -801,12 +801,38 @@ private int estructurado(String id) {
 private int estructurado_prima(String id) {
     if (tokenActual.getClase() == ClaseLexica.PUNTO) {
         eat(ClaseLexica.PUNTO);
+
+        // Obtener el campo que sigue al punto
         String campo = tokenActual.getLexema();
         eat(ClaseLexica.ID);
-        return estructurado_prima(campo); // Recursión
+
+        // Buscar el tipo de `id` en la tabla de símbolos actual
+        Symbol simbolo = stackSymbolTable.lookup(id);
+        if (simbolo == null) {
+            error("El identificador '" + id + "' no está declarado.");
+        }
+        int tipoCampo = simbolo.getType();
+
+        // Verificar si `struct x` existe en el HashMap de tablas de símbolos
+        String structName = "struct_" + tipoCampo;
+        SymbolTable structTable = structTables.get(structName);
+        if (structTable == null) {
+            error("El tipo '" + structName + "' no está registrado como struct.");
+        }
+
+        // Verificar si el campo existe en la tabla de símbolos del struct
+        Optional<Symbol> campoSimbolo = structTable.getSymbol(campo);
+        if (campoSimbolo == null) {
+            error("El campo '" + campo + "' no está definido en el struct '" + structName + "'.");
+        }
+
+        // Recursión con el siguiente campo
+        return estructurado_prima(campo);
     }
+
     return 0; // Finaliza el procesamiento de la estructura
 }
+
 
 // Función para obtener los parámetros de una llamada
 private List<Integer> parametros() {
