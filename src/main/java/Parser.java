@@ -197,18 +197,22 @@ public class Parser {
             tipoBase = tipo_prima(tipoBase); // Manejar tipos compuestos, si los hay
         } else if (tokenActual.getClase() == ClaseLexica.STRUCT) {
             eat(ClaseLexica.STRUCT);
-            String structName = "struct" + typeTable.size(); // Generar un nombre único
+            int structId = typeTable.size(); // Usar el tamaño actual de TypeTable como ID único
+            String structName = "struct_" + structId; // Generar el nombre único
+
             SymbolTable structTable = new SymbolTable();
-        
             stackSymbolTable.push(structTable); // Crear un nuevo ámbito para el struct
             eat(ClaseLexica.LLAVE_ABRE);
             decl_var(); // Procesar las variables internas del struct
-           // eat(ClaseLexica.LLAVE_CIERRA);
-        
-            // Guardar la tabla del struct en el mapa
+            eat(ClaseLexica.LLAVE_CIERRA);
+
+            // Registrar la tabla de símbolos del struct en el HashMap
             structTables.put(structName, stackSymbolTable.pop());
-            tipoBase = 9;
-            System.out.println("Tabla de símbolos del struct '" + structName + "':");
+
+            // Registrar el tipo en TypeTable
+            typeTable.addType(0, 0, null);
+            System.out.println("Struct '" + structName + "' registrado con ID: " + structId);
+            tipoBase = structId;
             imprimirTablaDeSimbolos(structTables.get(structName));
         } else if (tokenActual.getClase() == ClaseLexica.PTR) {
             // Manejar punteros
@@ -785,7 +789,7 @@ private int estructurado(String id) {
 
     // Verificar que el identificador es una estructura
     Symbol simbolo = stackSymbolTable.lookup(id);
-    if (simbolo == null || simbolo.getType() != 9) {
+    if (simbolo == null || simbolo.getType() < 7) {
         error("El identificador '" + id + "' no es una estructura o no está declarado.");
         
     }
@@ -1011,6 +1015,9 @@ private Symbol obtenerFuncionActual(SymbolTable tabla) {
 
 private int getTipoFromString(String tipo) {
      tipo = tipo.split(" ")[0];
+     if ("struct".equals(tipo)) {
+        return 9;
+    }
     switch (tipo) {
         case "int": return 1;
         case "float": return 2;
@@ -1027,6 +1034,9 @@ private int getTipoFromString(String tipo) {
 
 
 private String getTipoFromInt(int tipo) {
+    if (tipo > 7 && tipo <= typeTable.size()) {
+        return "struct";
+    }
     switch (tipo) {
         case 1: return "int";
         case 2: return "float";
@@ -1035,11 +1045,11 @@ private String getTipoFromInt(int tipo) {
         case 5: return "rune";
         case 6: return "boolean";
         case 7: return "complex";
-        case 9: return "struct";
         case 0: return "void";
         default: error("Tipo desconocido: " + tipo); return "desconocido";
     }
 }
+
 
 // Función para obtener el tipo de una variable (cuando no es una llamada a función)
 private int getTipoVariable(String id) {
@@ -1056,6 +1066,7 @@ private void inicializarTypeTable() {
     typeTable = new TypeTable();
     
     // Registrar tipos básicos
+    typeTable.addType(0, 0, 0); // void
     typeTable.addType(1, 0, 3); // int
     typeTable.addType(2, 0, 3); // float
     typeTable.addType(3, 0, 3); // double
@@ -1063,7 +1074,7 @@ private void inicializarTypeTable() {
     typeTable.addType(5, 0, 5); // runa
     typeTable.addType(6, 0, 6); // boolean
     typeTable.addType(7, 0, 7); // complex
-    typeTable.addType(0, 0, 0); // void
+    
 
    
 }

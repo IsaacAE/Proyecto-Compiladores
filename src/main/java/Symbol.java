@@ -50,6 +50,10 @@ public class Symbol {
 
     // Método auxiliar para obtener el nombre del tipo basado en su ID
     private String getTipoString(int tipoId) {
+    
+    if(tipoId > 7){
+    
+    return "struct";}
         switch (tipoId) {
            	case 1: return "int";
 		case 2: return "float";

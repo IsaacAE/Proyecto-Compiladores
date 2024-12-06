@@ -1,27 +1,29 @@
 struct {
+
     int a;
     float b;
     string c;
+     struct {
+        int p;
+        float q;
+    } nestedStruct;
 } miEstructura;
 
 func int main() {
     int x, resultado;
-    struct {
-        int p;
-        float q;
-    } nestedStruct;
+   
 
     // Inicialización de miEstructura
-    miEstructura.a = 10;
+    miEstructura.r = 10;
     miEstructura.b = 3.14;
     miEstructura.c = "Hola Mundo";
 
     // Inicialización de nestedStruct
-    nestedStruct.p = 5;
-    nestedStruct.q = 1.23;
+    miEstructura.nestedStruct = 5;
+    
 
     // Operación usando un campo de miEstructura
-    x = miEstructura.a + nestedStruct.p;
+    x = miEstructura.a;
 
     print("Valor de x:");
     print(x);
@@ -29,8 +31,6 @@ func int main() {
     print("Valor de miEstructura.b:");
     print(miEstructura.b);
 
-    print("Valor de nestedStruct.q:");
-    print(nestedStruct.q);
 
     return 0;
 }
