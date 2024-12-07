@@ -7,7 +7,7 @@ struct {
 
 // Declaración de arreglos
 int [5]arr;
-float [3][2]arr2;
+int [3][2]arr2;
 
 func void main(){
 

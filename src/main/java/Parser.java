@@ -823,7 +823,18 @@ private int arreglo_prima(String id) {
         eat(ClaseLexica.CORCHETE_CIERRA);
         return arreglo_prima(id); // Recursión
     }
-    return 0; // Finaliza el procesamiento del arreglo
+
+    int tipo = -1;
+    tipo = getTipoVariable(id);
+    // Convertir el número a cadena
+    String tipoIdStr = Integer.toString(tipo);
+
+    // Obtener el segundo carácter (el primer dígito después del signo '-')
+    char segundoCaracter = tipoIdStr.charAt(1);
+
+    // Convertir el carácter a entero
+    int primerDigito = Character.getNumericValue(segundoCaracter);
+    return primerDigito; // Finaliza el procesamiento del arreglo
 }
 
 
