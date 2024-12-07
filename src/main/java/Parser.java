@@ -377,13 +377,22 @@ private List<String> argumentos() {
 
     private void sentencia() {
         //System.out.println("Entrando a sentencia");
+        int compatibilidad;
         if (tokenActual.getClase() == ClaseLexica.ID) {
-            // Manejar parte izquierda
-            parteIzquierda();
-    
+                // Manejar parte izquierda
+                int tipoIzquierdo = parteIzquierda(); // Obtener el tipo de la parte izquierda
+        
+                 
+        
+                   
             if (tokenActual.getClase() == ClaseLexica.ASIGNACION) {
                 eat(ClaseLexica.ASIGNACION);
                 int tipoExpresion = exp();
+                 // Validar compatibilidad entre la parte izquierda y la expresión
+                 compatibilidad= validarCompatibilidadTipos(tipoIzquierdo, tipoExpresion, ClaseLexica.ASIGNACION );
+                 if(compatibilidad== -1){
+                    error("Incompatibilidad para asignación ");
+                 }
                 eat(ClaseLexica.PUNTO_Y_COMA);
                 System.out.println("Asignación procesada correctamente.");
             } else {
@@ -509,7 +518,7 @@ private List<String> argumentos() {
     }
     
 
-    private void parteIzquierda() {
+    private int parteIzquierda() {
         if (tokenActual.getClase() == ClaseLexica.ID) {
             String id = tokenActual.getLexema();
             eat(ClaseLexica.ID);
@@ -519,15 +528,20 @@ private List<String> argumentos() {
                 error("Identificador no declarado: " + id);
             }
     
+            int tipo = simbolo.getType();
+    
             // Verificar si la parte izquierda es un arreglo o estructura
             if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE || tokenActual.getClase() == ClaseLexica.PUNTO) {
-                localizacion(id); // Procesar localización
+                tipo = localizacion(id); // Procesar localización
             }
     
+            return tipo; // Retornar el tipo final
         } else {
             error("Se esperaba una parte izquierda válida.");
+            return -1; // Código inaccesible
         }
     }
+    
     
     
     
@@ -864,7 +878,7 @@ private int estructurado_prima(Symbol simboloActual) {
         return estructurado_prima(siguienteCampo);
     }
 
-    return 0; // Finaliza el procesamiento de accesos estructurados
+    return simboloActual.getType(); // Finaliza el procesamiento de accesos estructurados
 }
 
 
@@ -982,21 +996,33 @@ private int validarCompatibilidadTipos(int tipoIzquierdo, int tipoDerecho, Clase
             return -1; // Error
         }
     }
+// Operadores aritméticos (+, -, *, /)
+if (operacion == ClaseLexica.MAS || operacion == ClaseLexica.MENOS ||
+operacion == ClaseLexica.MULTIPLICACION || operacion == ClaseLexica.DIVISION) {
+Type tipoPromovido = Type.getPromotedType(typeTable.getType(tipoIzquierdo), typeTable.getType(tipoDerecho));
+if (tipoPromovido != null) {
+    return tipoPromovido.getId(); // Retorna el tipo promovido
+} else {
+    error("Error: Tipos incompatibles para operadores aritméticos: " + 
+          getTipoFromInt(tipoIzquierdo) + " y " + getTipoFromInt(tipoDerecho));
+}
+}
 
-    // Operadores aritméticos (+, -, *, /)
-    if (operacion == ClaseLexica.MAS || operacion == ClaseLexica.MENOS ||
-        operacion == ClaseLexica.MULTIPLICACION || operacion == ClaseLexica.DIVISION) {
-        if (tipoIzquierdo == tipoDerecho) {
-            return Type.getPromotedType(typeTable.getType(tipoIzquierdo), typeTable.getType(tipoDerecho)).getId();
-        } else {
-            System.out.println("Error: Tipos incompatibles para operadores aritméticos.");
-            return -1; // Error
-        }
-    }
+// Operador de asignación (=)
+if (operacion == ClaseLexica.ASIGNACION) {
+// Verificar si el tipo derecho puede ser promovido al tipo izquierdo
+if (Type.canPromote(typeTable.getType(tipoDerecho), typeTable.getType(tipoIzquierdo))) {
+    return tipoIzquierdo; // La asignación es válida y retorna el tipo del lado izquierdo
+} else {
+    error("Error: El tipo del lado derecho (" + getTipoFromInt(tipoDerecho) + 
+          ") no puede ser promovido al tipo del lado izquierdo (" + getTipoFromInt(tipoIzquierdo) + ").");
+}
+}
 
-    // Caso predeterminado (error)
-    System.out.println("Error: Operación no válida o tipos incompatibles.");
-    return -1;
+// Caso predeterminado para otras operaciones
+error("Operación no válida o tipos incompatibles: " + operacion);
+return -1; // Código inaccesible
+    
 }
 
 

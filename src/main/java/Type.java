@@ -49,6 +49,25 @@ public class Type {
         return this.id == other.id || (this.parent != null && this.parent.equals(other.id));
     }
     
+    // Verifica si un tipo puede ser promovido a otro
+    public static boolean canPromote(Type source, Type target) {
+        if (source == null || target == null) return false;
+
+        // Ejemplo de reglas de promoción:
+        if (source.getId() == 1 && (target.getId() == 2 || target.getId() == 3)) { // int -> float/double
+            return true;
+        }
+        if (source.getId() == 2 && target.getId() == 3) { // float -> double
+            return true;
+        }
+        if (source.getId() == target.getId()) { // Igualdad de tipos
+            return true;
+        }
+
+        // No se puede promover
+        return false;
+    }
+    
     
     // Métodos para manejar miembros de struct
     public void setMembers(Map<String, Integer> members) {
