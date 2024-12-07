@@ -50,7 +50,20 @@ public class Symbol {
 
     // Método auxiliar para obtener el nombre del tipo basado en su ID
     private String getTipoString(int tipoId) {
-    
+    if (tipoId < -1) {
+     String tipoIdStr = Integer.toString(tipoId); // Convertir a cadena
+    char primerDigitoChar;
+
+    // Si el número es negativo, tomar el segundo carácter (después del signo '-')
+    if (tipoIdStr.charAt(0) == '-') {
+        primerDigitoChar = tipoIdStr.charAt(1);
+    } else {
+        primerDigitoChar = tipoIdStr.charAt(0);
+    }
+
+    // Convertir el carácter de vuelta a entero
+    tipoId = Character.getNumericValue(primerDigitoChar);
+	}
     if(tipoId > 7){
     
     return "struct";}

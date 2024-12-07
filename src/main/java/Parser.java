@@ -36,7 +36,7 @@ public class Parser {
     }
 
     private void error(String mensaje) {
-        //imprimirTablaDeSimbolos(stackSymbolTable.base());
+        imprimirTablaDeSimbolos(stackSymbolTable.base());
         imprimirTablaDeTipos();
         throw new RuntimeException("Error: " + mensaje);
         
@@ -126,11 +126,20 @@ public class Parser {
             List<String> variables = lista_var();
             eat(ClaseLexica.PUNTO_Y_COMA);
 
+            if(tipo < -1){
+
+                // Registrar cada variable en la tabla de símbolos actual
+            for (String var : variables) {
+                Symbol varSymbol = new Symbol(-1, tipo, "arreglo", null);
+                agregarSimbolo(var, varSymbol);
+            }
+            }else{
             // Registrar cada variable en la tabla de símbolos actual
             for (String var : variables) {
                 Symbol varSymbol = new Symbol(-1, tipo, "variable", null);
                 agregarSimbolo(var, varSymbol);
             }
+        }
         }
     }
 
