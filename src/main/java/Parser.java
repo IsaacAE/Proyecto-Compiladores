@@ -36,7 +36,8 @@ public class Parser {
     }
 
     private void error(String mensaje) {
-        imprimirTablaDeSimbolos(stackSymbolTable.base());
+        //imprimirTablaDeSimbolos(stackSymbolTable.base());
+        imprimirTablaDeTipos();
         throw new RuntimeException("Error: " + mensaje);
         
     }
@@ -234,41 +235,64 @@ public class Parser {
     }
     
 
-private int compuesto(int tipoBase) {
-    eat(ClaseLexica.CORCHETE_ABRE);
-
-    if (tokenActual.getClase() == ClaseLexica.LITERAL_ENTERA) {
-        int dimension = Integer.parseInt(tokenActual.getLexema());
-        eat(ClaseLexica.LITERAL_ENTERA);
-
-        // Registrar la primera dimensión en la tabla de tipos
-        tipoBase = typeTable.addType((short) dimension, (short) 0, tipoBase);
-    } else {
-        error("Se esperaba un literal entero como tamaño del arreglo.");
-    }
-
-    eat(ClaseLexica.CORCHETE_CIERRA);
-    return compuesto_prima(tipoBase); // Manejar dimensiones adicionales
-}
-
-private int compuesto_prima(int tipoBase) {
-    while (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
+    private int compuesto(int tipoBase) {
         eat(ClaseLexica.CORCHETE_ABRE);
-
+    
+        // Inicializar la cadena que representará las dimensiones
+        String dimensiones = "";
+    
         if (tokenActual.getClase() == ClaseLexica.LITERAL_ENTERA) {
             int dimension = Integer.parseInt(tokenActual.getLexema());
             eat(ClaseLexica.LITERAL_ENTERA);
-
-            // Registrar dimensiones adicionales en la tabla de tipos
-            tipoBase = typeTable.addType((short) dimension, (short) 0, tipoBase);
+    
+            dimensiones += dimension; // Agregar la dimensión inicial
         } else {
             error("Se esperaba un literal entero como tamaño del arreglo.");
         }
-
+    
         eat(ClaseLexica.CORCHETE_CIERRA);
+    
+        // Pasar el tipo base y las dimensiones acumuladas a compuesto_prima
+        return compuesto_prima(tipoBase, dimensiones);
     }
-    return tipoBase; // Retorna el tipo compuesto final
-}
+    
+    
+
+    private int compuesto_prima(int tipoBase, String dimensiones) {
+        if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
+            eat(ClaseLexica.CORCHETE_ABRE);
+    
+            if (tokenActual.getClase() == ClaseLexica.LITERAL_ENTERA) {
+                int dimension = Integer.parseInt(tokenActual.getLexema());
+                eat(ClaseLexica.LITERAL_ENTERA);
+    
+                dimensiones += dimension; // Concatenar la nueva dimensión
+            } else {
+                error("Se esperaba un literal entero como tamaño del arreglo.");
+            }
+    
+            eat(ClaseLexica.CORCHETE_CIERRA);
+    
+            // Recursión para manejar más dimensiones
+            return compuesto_prima(tipoBase, dimensiones);
+        }
+    
+        // Construir el identificador único del tipo compuesto
+        String tipoCompuestoId = "-" + tipoBase + dimensiones;
+    
+        // Registrar en la tabla de tipos y retornar el ID único
+         // Calcular el número total de ítems multiplicando los dígitos de las dimensiones
+        int totalItems = calcularTotalItems(dimensiones);
+        int idCompuesto = Integer.parseInt(tipoCompuestoId);
+        Integer tipoPadre = typeTable.getType(tipoBase).getParent();
+        if (!typeTable.contains(idCompuesto)) {
+            typeTable.addTypeArray(idCompuesto, totalItems, 0, tipoPadre); // Añadir el tipo compuesto
+        }
+    
+        return idCompuesto;
+    }
+    
+    
 
 
     private int basico() {
@@ -1093,9 +1117,9 @@ return -1; // Código inaccesible
             case LITERAL_DOUBLE: return 3;
             case LITERAL_CADENA: return 4;
             case LITERAL_RUNA: return 5;
-            case LITERAL_COMPLEJA: return 7; // complex
             case TRUE:
             case FALSE: return 6; // boolean
+            case LITERAL_COMPLEJA: return 7; // complex
             default: return -1;
         }
     }
@@ -1222,13 +1246,15 @@ public Map<String, Integer> getStructMembers(int structId) {
 
 private void imprimirTablaDeTipos() {
     System.out.println("Tabla de Tipos:");
-    
-    for (int i = 0; i < typeTable.size(); i++) {
-        Type tipo = typeTable.getType(i);
+
+    // Iterar sobre todos los IDs en la tabla de tipos
+    for (int id : typeTable.getAllIds()) {
+        Type tipo = typeTable.getType(id);
+
         if (tipo != null) {
-            System.out.println("ID: " + i );
+            System.out.println("ID: " + id + ", " + tipo);
         } else {
-            System.out.println("ID: " + i + " está vacío o no es válido.");
+            System.out.println("ID: " + id + " está vacío o no es válido.");
         }
     }
 }
@@ -1252,6 +1278,14 @@ private void imprimirTablasDeStructs() {
 
         System.out.println("-------------------------------");
     }
+}
+
+private int calcularTotalItems(String dimensiones) {
+    int total = 1;
+    for (char c : dimensiones.toCharArray()) {
+        total *= Character.getNumericValue(c); // Multiplica el valor numérico de cada dígito
+    }
+    return total;
 }
 
 

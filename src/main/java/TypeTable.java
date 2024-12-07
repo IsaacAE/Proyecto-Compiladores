@@ -2,6 +2,7 @@ package main.java;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class TypeTable {
     private final Map<Integer, Type> types = new HashMap<>();
@@ -17,6 +18,14 @@ public class TypeTable {
         Type newType = new Type(currentId, items, tam, parent);
         types.put(currentId, newType);
         return currentId++;
+    }
+    
+    
+    // Agregar un nuevo tipo
+    public int addTypeArray(int id, int items, int tam, Integer parent) {
+        Type newType = new Type(id, items, tam, parent);
+        types.put(id, newType);
+        return id;
     }
 
     // Obtener el tamaño de un tipo
@@ -51,6 +60,16 @@ private int calculateSize(Map<String, Integer> members) {
     }
     return size;
 }
+
+public boolean contains(int id) {
+    return types.containsKey(id);
+}
+
+
+public Set<Integer> getAllIds() {
+    return types.keySet();
+}
+
 
 public int size() {
     return types.size();
