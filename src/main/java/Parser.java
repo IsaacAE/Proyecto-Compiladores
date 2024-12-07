@@ -199,7 +199,10 @@ public class Parser {
             eat(ClaseLexica.STRUCT);
             int structId = typeTable.size(); // Usar el tamaño actual de TypeTable como ID único
             String structName = "struct_" + structId; // Generar el nombre único
-
+            // Registrar el tipo en TypeTable
+            typeTable.addType(0, 0, null);
+            System.out.println("Struct '" + structName + "' registrado con ID: " + structId);
+            tipoBase = structId;
             SymbolTable structTable = new SymbolTable();
             stackSymbolTable.push(structTable); // Crear un nuevo ámbito para el struct
             eat(ClaseLexica.LLAVE_ABRE);
@@ -209,10 +212,7 @@ public class Parser {
             // Registrar la tabla de símbolos del struct en el HashMap
             structTables.put(structName, stackSymbolTable.pop());
 
-            // Registrar el tipo en TypeTable
-            typeTable.addType(0, 0, null);
-            System.out.println("Struct '" + structName + "' registrado con ID: " + structId);
-            tipoBase = structId;
+            
             imprimirTablaDeSimbolos(structTables.get(structName));
         } else if (tokenActual.getClase() == ClaseLexica.PTR) {
             // Manejar punteros
@@ -377,13 +377,22 @@ private List<String> argumentos() {
 
     private void sentencia() {
         //System.out.println("Entrando a sentencia");
+        int compatibilidad;
         if (tokenActual.getClase() == ClaseLexica.ID) {
-            // Manejar parte izquierda
-            parteIzquierda();
-    
+                // Manejar parte izquierda
+                int tipoIzquierdo = parteIzquierda(); // Obtener el tipo de la parte izquierda
+        
+                 
+        
+                   
             if (tokenActual.getClase() == ClaseLexica.ASIGNACION) {
                 eat(ClaseLexica.ASIGNACION);
                 int tipoExpresion = exp();
+                 // Validar compatibilidad entre la parte izquierda y la expresión
+                 compatibilidad= validarCompatibilidadTipos(tipoIzquierdo, tipoExpresion, ClaseLexica.ASIGNACION );
+                 if(compatibilidad== -1){
+                    error("Incompatibilidad para asignación ");
+                 }
                 eat(ClaseLexica.PUNTO_Y_COMA);
                 System.out.println("Asignación procesada correctamente.");
             } else {
@@ -509,7 +518,7 @@ private List<String> argumentos() {
     }
     
 
-    private void parteIzquierda() {
+    private int parteIzquierda() {
         if (tokenActual.getClase() == ClaseLexica.ID) {
             String id = tokenActual.getLexema();
             eat(ClaseLexica.ID);
@@ -519,15 +528,20 @@ private List<String> argumentos() {
                 error("Identificador no declarado: " + id);
             }
     
+            int tipo = simbolo.getType();
+    
             // Verificar si la parte izquierda es un arreglo o estructura
             if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE || tokenActual.getClase() == ClaseLexica.PUNTO) {
-                localizacion(id); // Procesar localización
+                tipo = localizacion(id); // Procesar localización
             }
     
+            return tipo; // Retornar el tipo final
         } else {
             error("Se esperaba una parte izquierda válida.");
+            return -1; // Código inaccesible
         }
     }
+    
     
     
     
@@ -781,7 +795,6 @@ private int arreglo_prima(String id) {
 
 
 
-
 private int estructurado(String id) {
     eat(ClaseLexica.PUNTO);
 
@@ -803,58 +816,99 @@ private int estructurado(String id) {
     SymbolTable structTable = structTables.get(structName);
     if (structTable == null) {
         error("El tipo '" + structName + "' no está registrado como struct.");
-    }else{
-        System.out.println("Tabla de simbolos para "+ structName);
+    } else {
+        System.out.println("Tabla de símbolos para " + structName);
         imprimirTablaDeSimbolos(structTable);
     }
 
-
-    // Verificar si el primer campo existe en la tabla de símbolos del struct
-    Optional<Symbol> campoSimbolo = structTable.getSymbol(campo);
-    if (campoSimbolo.isEmpty()) { // Validar si el campo no existe
+    // Buscar el primer campo en el struct
+    Symbol siguienteCampo = structTable.getSymbolSecure(campo);
+    if (siguienteCampo == null) {
         error("El campo '" + campo + "' no está definido en el struct '" + structName + "'.");
     }
 
+    System.out.println("Siguiente campo es: "+ "struct_" + siguienteCampo.getType());
+
     // Continuar con accesos adicionales si los hay
-    return estructurado_prima(campo);
+    return estructurado_prima(siguienteCampo);
 }
 
-
-private int estructurado_prima(String id) {
+private int estructurado_prima(Symbol simboloActual) {
+    
     if (tokenActual.getClase() == ClaseLexica.PUNTO) {
+        System.out.println("Estructurado prima: " + "struct_" + simboloActual.getType());
         eat(ClaseLexica.PUNTO);
-        System.out.println("EL ID ES: "+id);
+
         // Obtener el campo que sigue al punto
         String campo = tokenActual.getLexema();
-        System.out.println("EL PRIMER CAMPO ES: "+campo);
+        System.out.println("Procesando campo: " + campo);
         eat(ClaseLexica.ID);
 
-        // Buscar el tipo de `id` en la tabla de símbolos actual
-        Symbol simbolo = stackSymbolTable.lookup(id);
-        if (simbolo == null) {
-            error("El identificador '" + id + "' no está declarado.");
-        }
-        int tipoCampo = simbolo.getType();
+        // Obtener el tipo del struct actual
+        int tipoActual = simboloActual.getType();
+        String structName = "struct_" + tipoActual;
 
-        // Verificar si `struct x` existe en el HashMap de tablas de símbolos
-        String structName = "struct_" + tipoCampo;
+        // Verificar si el tipo corresponde a un struct registrado
         SymbolTable structTable = structTables.get(structName);
         if (structTable == null) {
             error("El tipo '" + structName + "' no está registrado como struct.");
+        } else {
+            System.out.println("Tabla de símbolos para " + structName);
+            imprimirTablaDeSimbolos(structTable);
         }
 
-        // Verificar si el campo existe en la tabla de símbolos del struct
-        Optional<Symbol> campoSimbolo = structTable.getSymbol(campo);
-        if (campoSimbolo.isEmpty()) { // Validar si el campo no existe
+        // Buscar el campo actual en la tabla del struct correspondiente
+        Symbol siguienteCampo = structTable.getSymbolSecure(campo);
+        if (siguienteCampo == null) {
+            //structName= "struct_9";
+            // Verificar si el tipo corresponde a un struct registrado
+        SymbolTable structTableAux = structTables.get(structName);
+        if (structTableAux == null) {
+            imprimirTablasDeStructs();
+            error("El tipo '" + structName + "' no está registrado como struct.");
+        } else {
+            System.out.println("Tabla de símbolos para " + structName);
+            imprimirTablaDeSimbolos(structTableAux);
+        }
+            imprimirTablaDeTipos();
             error("El campo '" + campo + "' no está definido en el struct '" + structName + "'.");
         }
 
-        // Recursión con el siguiente campo
-        return estructurado_prima(campo);
+        // Continuar con accesos adicionales si los hay
+        return estructurado_prima(siguienteCampo);
     }
 
-    return 0; // Finaliza el procesamiento de la estructura
+    return simboloActual.getType(); // Finaliza el procesamiento de accesos estructurados
 }
+
+
+private Symbol buscarEnStructAnterior(String campo, int tipoAnterior) {
+    // Verificar si el tipo anterior corresponde a un struct
+    if (tipoAnterior != 9) {
+        error("El tipo anterior no corresponde a un struct. Tipo encontrado: " + tipoAnterior);
+        return null; // Error no recuperable
+    }
+
+    // Obtener el nombre del struct basado en su ID
+    String structName = "struct_" + tipoAnterior;
+    SymbolTable structTable = structTables.get(structName);
+
+    if (structTable == null) {
+        error("El struct '" + structName + "' no está registrado.");
+        return null;
+    }
+
+    // Buscar el campo en la tabla del struct
+    Optional<Symbol> simboloCampo = structTable.getSymbol(campo);
+    if (simboloCampo.isEmpty()) {
+        error("El campo '" + campo + "' no está definido en el struct '" + structName + "'.");
+        return null;
+    }
+
+    return simboloCampo.get(); // Retorna el símbolo encontrado
+}
+
+
 
 
 // Función para obtener los parámetros de una llamada
@@ -942,21 +996,33 @@ private int validarCompatibilidadTipos(int tipoIzquierdo, int tipoDerecho, Clase
             return -1; // Error
         }
     }
+// Operadores aritméticos (+, -, *, /)
+if (operacion == ClaseLexica.MAS || operacion == ClaseLexica.MENOS ||
+operacion == ClaseLexica.MULTIPLICACION || operacion == ClaseLexica.DIVISION) {
+Type tipoPromovido = Type.getPromotedType(typeTable.getType(tipoIzquierdo), typeTable.getType(tipoDerecho));
+if (tipoPromovido != null) {
+    return tipoPromovido.getId(); // Retorna el tipo promovido
+} else {
+    error("Error: Tipos incompatibles para operadores aritméticos: " + 
+          getTipoFromInt(tipoIzquierdo) + " y " + getTipoFromInt(tipoDerecho));
+}
+}
 
-    // Operadores aritméticos (+, -, *, /)
-    if (operacion == ClaseLexica.MAS || operacion == ClaseLexica.MENOS ||
-        operacion == ClaseLexica.MULTIPLICACION || operacion == ClaseLexica.DIVISION) {
-        if (tipoIzquierdo == tipoDerecho) {
-            return Type.getPromotedType(typeTable.getType(tipoIzquierdo), typeTable.getType(tipoDerecho)).getId();
-        } else {
-            System.out.println("Error: Tipos incompatibles para operadores aritméticos.");
-            return -1; // Error
-        }
-    }
+// Operador de asignación (=)
+if (operacion == ClaseLexica.ASIGNACION) {
+// Verificar si el tipo derecho puede ser promovido al tipo izquierdo
+if (Type.canPromote(typeTable.getType(tipoDerecho), typeTable.getType(tipoIzquierdo))) {
+    return tipoIzquierdo; // La asignación es válida y retorna el tipo del lado izquierdo
+} else {
+    error("Error: El tipo del lado derecho (" + getTipoFromInt(tipoDerecho) + 
+          ") no puede ser promovido al tipo del lado izquierdo (" + getTipoFromInt(tipoIzquierdo) + ").");
+}
+}
 
-    // Caso predeterminado (error)
-    System.out.println("Error: Operación no válida o tipos incompatibles.");
-    return -1;
+// Caso predeterminado para otras operaciones
+error("Operación no válida o tipos incompatibles: " + operacion);
+return -1; // Código inaccesible
+    
 }
 
 
@@ -1151,6 +1217,41 @@ private void imprimirTablaDeSimbolos(SymbolTable tabla) {
 public Map<String, Integer> getStructMembers(int structId) {
     Type structType = typeTable.getType(structId);
     return structType != null ? structType.getMembers() : null;
+}
+
+
+private void imprimirTablaDeTipos() {
+    System.out.println("Tabla de Tipos:");
+    
+    for (int i = 0; i < typeTable.size(); i++) {
+        Type tipo = typeTable.getType(i);
+        if (tipo != null) {
+            System.out.println("ID: " + i );
+        } else {
+            System.out.println("ID: " + i + " está vacío o no es válido.");
+        }
+    }
+}
+
+private void imprimirTablasDeStructs() {
+    System.out.println("Tablas de Structs:");
+
+    // Iterar sobre las claves (nombres de los structs) en el mapa
+    for (String structName : structTables.keySet()) {
+        System.out.println("Struct: " + structName);
+
+        // Obtener la tabla de símbolos asociada a la clave
+        SymbolTable structTable = structTables.get(structName);
+
+        // Imprimir la tabla de símbolos del struct
+        if (structTable != null) {
+            imprimirTablaDeSimbolos(structTable);
+        } else {
+            System.out.println("Tabla vacía o no registrada para " + structName);
+        }
+
+        System.out.println("-------------------------------");
+    }
 }
 
 

@@ -1,7 +1,7 @@
-//proto int suma(int a, int b);
+//proto float suma(int a, int b);
 //proto void imprimir(string mensaje);
 
-func int suma(int a, int b) {
+func float suma(float a, float b) {
     return a + b;
 }
 
@@ -10,13 +10,14 @@ func void imprimir(string mensaje) {
 }
 
 func int main() {
-    int x, y, resultado;
+    float x, y, resultado;
+    float a, b;
     string mensaje;
 
     x = 10;
     y = 20;
 
-    resultado = suma(x, y);
+    resultado = suma(a, b);
     print("El resultado es:");
     print(resultado);
 
