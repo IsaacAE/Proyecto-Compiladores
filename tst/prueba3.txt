@@ -1,5 +1,5 @@
 // Prototipos
-proto int ans(int a, int b);
+proto float add(int a, int b, int c);
 proto void printResult(string msg);
 proto float calculate(float x, float y);
 

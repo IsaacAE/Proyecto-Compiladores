@@ -17,6 +17,8 @@ public class Parser {
     private SymbolTableStack stackSymbolTable = new SymbolTableStack();
     private TypeTable typeTable = new TypeTable();
     private Map<String, SymbolTable> structTables = new HashMap<>();
+    private List<Map.Entry<String, Symbol>> prototiposGlobales = new ArrayList<>();
+
 
 
     public Parser(Lexer lexer) {
@@ -56,6 +58,7 @@ public class Parser {
         programa();
 
         if (this.tokenActual.getClase() == ClaseLexica.EOF) {
+            validarPrototiposConFunciones(stackSymbolTable.base());
             System.out.println("La cadena es aceptada");
         } else {
             error("Se esperaba el final del archivo");
@@ -99,7 +102,7 @@ public class Parser {
             // Registrar el prototipo en la tabla global con la lista de tipos de argumentos
             Symbol simboloPrototipo = new Symbol(-1, tipoRetorno, "prototipo", argumentos);
             tablaGlobal.addSymbol(idPrototipo, simboloPrototipo);
-    
+            prototiposGlobales.add(Map.entry(idPrototipo, simboloPrototipo));  // Guardar en la lista global
             eat(ClaseLexica.PARENTESIS_CIERRA);
             eat(ClaseLexica.PUNTO_Y_COMA);
     
@@ -1004,7 +1007,7 @@ private void lista_param_prima(List<Integer> tiposParametros) {
 private int llamada(String idFuncion, List<Integer> parametrosLlamada) {
     // Recuperar la función de la tabla de símbolos global
     Symbol simboloFuncion = stackSymbolTable.lookup(idFuncion);
-    if (simboloFuncion == null || !"funcion".equals(simboloFuncion.getCat())) {
+    if (simboloFuncion == null || ( !"funcion".equals(simboloFuncion.getCat()) && !"prototipo".equals(simboloFuncion.getCat())) ) {
         error("La función '" + idFuncion + "' no está declarada.");
     }
 
@@ -1329,6 +1332,69 @@ private int calcularTotalItems(String dimensiones) {
     }
     return total;
 }
+
+public void validarPrototiposConFunciones(SymbolTable tablaGlobal) {
+    // Obtener funciones directamente desde la tabla de símbolos
+    List<Map.Entry<String, Symbol>> funciones = tablaGlobal.getSymbolsByCategory("funcion");
+
+    // Verificar que haya al menos tantas funciones como prototipos
+    if (funciones.size() < prototiposGlobales.size()) {
+        error("El número de funciones implementadas (" + funciones.size() + 
+              ") es menor que el número de prototipos declarados (" + prototiposGlobales.size() + ").");
+    }
+
+    // Verificar que cada prototipo tenga una función correspondiente
+    for (Map.Entry<String, Symbol> prototipoEntry : prototiposGlobales) {
+        String idPrototipo = prototipoEntry.getKey();
+        Symbol prototipo = prototipoEntry.getValue();
+
+        // Buscar una función con el mismo ID en la tabla de símbolos
+        Optional<Map.Entry<String, Symbol>> funcionOpt = funciones.stream()
+            .filter(funcionEntry -> idPrototipo.equals(funcionEntry.getKey()))
+            .findFirst();
+
+        if (funcionOpt.isEmpty()) {
+            error("El prototipo '" + idPrototipo + "' no tiene una función implementada.");
+        } else {
+            Symbol funcion = funcionOpt.get().getValue();
+
+            // Verificar que los argumentos coincidan
+            List<String> argsPrototipo = prototipo.getArgs();
+            List<String> argsFuncion = funcion.getArgs();
+
+            if (!argsPrototipo.equals(argsFuncion)) {
+                error("Los argumentos de la función '" + idPrototipo + 
+                      "' no coinciden con los del prototipo. " +
+                      "Esperados: " + argsPrototipo + ", Encontrados: " + argsFuncion);
+            }
+
+            // Verificar que los tipos coincidan
+            int tipoPrototipo = prototipo.getType();
+            int tipoFuncion = funcion.getType();
+
+            if (tipoPrototipo != tipoFuncion) {
+                error("El tipo de retorno de la función '" + idPrototipo + 
+                      "' no coincide con el del prototipo. " +
+                      "Esperado: " + getTipoFromInt(tipoPrototipo) + 
+                      ", Encontrado: " + getTipoFromInt(tipoFuncion));
+            }
+        }
+    }
+
+    // Imprimir las listas de prototipos y funciones
+    System.out.println("\nPrototipos:");
+    for (Map.Entry<String, Symbol> entry : prototiposGlobales) {
+        System.out.println(entry.getKey() + " -> " + entry.getValue());
+    }
+
+    System.out.println("\nFunciones:");
+    for (Map.Entry<String, Symbol> entry : funciones) {
+        System.out.println(entry.getKey() + " -> " + entry.getValue());
+    }
+
+    System.out.println("Validación de prototipos y funciones completada con éxito.");
+}
+
 
 
 }

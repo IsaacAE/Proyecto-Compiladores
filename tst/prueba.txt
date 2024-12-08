@@ -1,17 +1,10 @@
-//proto float suma(int a, int b);
-//proto void imprimir(string mensaje);
+proto float suma(float a, float b);
+proto void imprimir(string mensaje);
 
-func float suma(float a, float b) {
-    return a + b;
-}
-
-func void imprimir(string mensaje) {
-    print mensaje;
-}
 
 func int main() {
-    float x, y, resultado;
-    float a, b;
+    int x, y;
+    float a, b, resultado;
     string mensaje;
 
     x = 10;
@@ -24,5 +17,12 @@ func int main() {
     return 0;
 }
 
+func float suma(float a, float b) {
+    return a + b;
+}
+
+func void imprimir(string mensaje) {
+    print mensaje;
+}
 
 
