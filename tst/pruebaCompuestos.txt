@@ -25,8 +25,8 @@ struct {
 árbol.diámetro = 3.14f;       // Asignación válida
 árbol.altura = 2.718123D;      // Asignación válida
 
-arr[8] = 42;             // Asignación válida
-arr2[1][1] = 1.23;       // Asignación válida
+arr[0] = 42;             // Asignación válida
+arr2[1][1] = 1;       // Asignación válida
 
 
 complexStruct.x = 100;          // Asignación válida

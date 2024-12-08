@@ -809,25 +809,45 @@ private int localizacion(String id) {
 
 private int arreglo(String id) {
     eat(ClaseLexica.CORCHETE_ABRE);
-    exp(); // Procesar la expresión dentro del corchete
+    int tipoLiteral= exp(); // Procesar la expresión dentro del corchete
+    if(tipoLiteral != 1){
+        error("El valor dado para la posición del arreglo no es un entero");
+    }
     eat(ClaseLexica.CORCHETE_CIERRA);
 
-    // Procesar dimensiones adicionales
-    return arreglo_prima(id);
+    // Procesar dimensiones adicionales y contar dimensiones
+    int dimensiones = 1; // Inicializamos el contador en 1 para la primera dimensión
+    return arreglo_prima(id, dimensiones);
 }
 
-private int arreglo_prima(String id) {
+
+
+private int arreglo_prima(String id, int dimensiones) {
     if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
         eat(ClaseLexica.CORCHETE_ABRE);
-        exp(); // Procesar la expresión dentro del corchete
+        int tipoLiteral = exp(); // Procesar la expresión dentro del corchete
+        if (tipoLiteral != 1) {
+            error("El valor dado para la posición del arreglo no es un entero");
+        }
         eat(ClaseLexica.CORCHETE_CIERRA);
-        return arreglo_prima(id); // Recursión
+
+        // Incrementar el contador de dimensiones y continuar recursivamente
+        return arreglo_prima(id, dimensiones + 1);
     }
 
     int tipo = -1;
     tipo = getTipoVariable(id);
     // Convertir el número a cadena
     String tipoIdStr = Integer.toString(tipo);
+
+    // Asegurarnos de que el tipo tiene al menos el número correcto de caracteres
+    if (tipoIdStr.length() < dimensiones + 2) { // +2 para incluir el signo negativo y el primer dígito
+        error("El arreglo no tiene tantas dimensiones");
+    }
+
+    
+
+    
 
     // Obtener el segundo carácter (el primer dígito después del signo '-')
     char segundoCaracter = tipoIdStr.charAt(1);
@@ -836,6 +856,8 @@ private int arreglo_prima(String id) {
     int primerDigito = Character.getNumericValue(segundoCaracter);
     return primerDigito; // Finaliza el procesamiento del arreglo
 }
+
+
 
 
 
