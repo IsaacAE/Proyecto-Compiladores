@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
 import java.util.Optional;
 
 public class SymbolTable {
@@ -33,5 +34,18 @@ public class SymbolTable {
     public Set<String> getAllIds() {
     return symbols.keySet();  // Devuelve el conjunto de claves (ids)
 }
+
+public List<Map.Entry<String, Symbol>> getSymbolsByCategory(String category) {
+    List<Map.Entry<String, Symbol>> result = new ArrayList<>();
+
+    for (Map.Entry<String, Symbol> entry : symbols.entrySet()) {
+        if (category.equals(entry.getValue().getCat())) {
+            result.add(entry);
+        }
+    }
+
+    return result;
+}
+
 }
 

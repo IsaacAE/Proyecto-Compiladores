@@ -1,5 +1,5 @@
-proto int suma(int a, int b);
-proto void imprimir(string mensaje);
+//proto int suma(int a, int b);
+//proto void imprimir(string mensaje);
 
 int a;
 string r, texto;
