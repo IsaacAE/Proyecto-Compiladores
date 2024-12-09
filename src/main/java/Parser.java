@@ -838,38 +838,63 @@ private TipoValor localizacion(String id) {
 private TipoValor arreglo(String id) {
     eat(ClaseLexica.CORCHETE_ABRE);
     TipoValor tipoIndice = exp(true); // Procesar la expresión dentro del corchete
-    if (tipoIndice.getTipo() != 1) { // 1 representa 'int'
-        error("El valor dado para la posición del arreglo no es un entero");
-    }
+
+    // Convertir el valor a un entero válido
+    int indiceActual = convertirAEntero(tipoIndice.getValor());
+
     eat(ClaseLexica.CORCHETE_CIERRA);
 
     int dimensiones = 1;
-    return arreglo_prima(id, dimensiones);
+    // Obtener el valor en la posición igual a dimensiones + 2
+    int tipo = getTipoVariable(id);
+    String tipoIdStr = Integer.toString(tipo);
+    char limiteCaracter = tipoIdStr.charAt(dimensiones + 1); // dimensiones + 2 en índice 0-based
+    int limiteDimension = Character.getNumericValue(limiteCaracter);
+    // Verificar si el índice actual excede el límite permitido
+    if ( (indiceActual > limiteDimension - 1) || (indiceActual < 0)) {
+        error("El índice " + indiceActual + " excede el límite permitido para la dimensión " + dimensiones + ": " + (limiteDimension - 1));
+    }
+    return arreglo_prima(id, dimensiones, indiceActual);
 }
 
-private TipoValor arreglo_prima(String id, int dimensiones) {
+private TipoValor arreglo_prima(String id, int dimensiones, int indiceActual) {
     if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
         eat(ClaseLexica.CORCHETE_ABRE);
         TipoValor tipoIndice = exp(true);
-        if (tipoIndice.getTipo() != 1) {
-            error("El valor dado para la posición del arreglo no es un entero");
-        }
+
+        int nuevoIndice = convertirAEntero(tipoIndice.getValor());
+
         eat(ClaseLexica.CORCHETE_CIERRA);
 
-        return arreglo_prima(id, dimensiones + 1);
+        return arreglo_prima(id, dimensiones + 1, nuevoIndice);
     }
 
     int tipo = getTipoVariable(id);
     String tipoIdStr = Integer.toString(tipo);
 
     if (tipoIdStr.length() < dimensiones + 2) {
-        error("El arreglo no tiene tantas dimensiones");
+        error("El arreglo no tiene tantas dimensiones.");
     }
 
+    // Obtener el valor en la posición igual a dimensiones + 2
+    char limiteCaracter = tipoIdStr.charAt(dimensiones + 1); // dimensiones + 2 en índice 0-based
+    int limiteDimension = Character.getNumericValue(limiteCaracter);
+
+    // Verificar si el índice actual excede el límite permitido
+    if ((indiceActual > limiteDimension - 1) || (indiceActual < 0)) {
+        error("El índice " + indiceActual + " excede el límite permitido para la dimensión " + dimensiones + ": " + (limiteDimension - 1));
+    }
+
+       // Obtener el segundo carácter y convertirlo a un número
     char segundoCaracter = tipoIdStr.charAt(1);
-    int primerDigito = Character.getNumericValue(segundoCaracter);
-    return new TipoValor(primerDigito, id);
+    int tipoDesdeSegundoCaracter = Character.getNumericValue(segundoCaracter);
+
+    // Devolver un TipoValor con el tipo obtenido y el id como valor
+    return new TipoValor(tipoDesdeSegundoCaracter, id);
 }
+
+
+
 
 
 private TipoValor estructurado(String id) {
@@ -1510,6 +1535,22 @@ private boolean evaluarOperacionRelacional(String valorIzquierdo, String valorDe
     }
 }
 
+// Función auxiliar para convertir un String a un entero válido
+private int convertirAEntero(String valor) {
+    try {
+        double valorDouble = Double.parseDouble(valor);
+
+        // Verificar si el valorDouble es un número entero
+        if (valorDouble % 1 != 0) {
+            error("El valor del índice no es un número entero válido: " + valor);
+        }
+
+        return (int) valorDouble;
+    } catch (NumberFormatException e) {
+        error("No se pudo convertir el valor a un número entero: " + valor);
+        return -1; // Este return nunca se alcanzará debido al error
+    }
+}
 
 
 }
