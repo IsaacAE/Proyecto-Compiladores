@@ -1,5 +1,5 @@
 // Prototipos
-proto float add(int a, int b, int c);
+//proto float add(int a, int b, int c);
 proto void printResult(string msg);
 proto float calculate(float x, float y);
 
@@ -52,8 +52,8 @@ func void main() {
     do {
         result = result - i * 2;
         print result;
-        i = i - 1;
-    } while (i > 0 || result < -10);
+        i = -1;
+    } while (i > 0 || result < 10);
 
     // Operadores de comparación en switch
     switch (result) {

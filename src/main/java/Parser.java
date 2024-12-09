@@ -14,6 +14,8 @@ public class Parser {
     private Lexer lexer;
     private Token tokenActual;
 
+    private Symbol simboloEstructurado = null; // Variable global para almacenar el último símbolo estructurado
+
     private SymbolTableStack stackSymbolTable = new SymbolTableStack();
     private TypeTable typeTable = new TypeTable();
     private Map<String, SymbolTable> structTables = new HashMap<>();
@@ -415,20 +417,43 @@ private List<String> argumentos() {
         //System.out.println("Entrando a sentencia");
         int compatibilidad;
         if (tokenActual.getClase() == ClaseLexica.ID) {
+            // Guardar el lexema del identificador para buscarlo en la tabla de símbolos
+                 String lexemaId = tokenActual.getLexema();
                 // Manejar parte izquierda
                 int tipoIzquierdo = parteIzquierda(); // Obtener el tipo de la parte izquierda
+
         
                  
         
                    
             if (tokenActual.getClase() == ClaseLexica.ASIGNACION) {
                 eat(ClaseLexica.ASIGNACION);
-                int tipoExpresion = exp();
+                TipoValor t = exp(true);
+                int tipoExpresion = t.getTipo();
+                String valorExpresion = t.getValor();
+
                  // Validar compatibilidad entre la parte izquierda y la expresión
                  compatibilidad= validarCompatibilidadTipos(tipoIzquierdo, tipoExpresion, ClaseLexica.ASIGNACION );
                  if(compatibilidad== -1){
                     error("Incompatibilidad para asignación ");
                  }
+                    // Buscar el símbolo en la pila de tablas de símbolos y actualizar su valor
+                Symbol simbolo = stackSymbolTable.lookup(lexemaId);
+                if (simbolo != null) {
+                    
+                    System.out.println(valorExpresion);
+                    if(simboloEstructurado== null){
+                    simbolo.setValue(valorExpresion);
+                    }else{  
+                        if (simboloEstructurado.getType() >8){
+                            error("No se puede asignar un valor a un elemento de tipo struct");
+                        }
+                        simboloEstructurado.setValue(valorExpresion);
+                    }
+                    System.out.println("El valor de '" + lexemaId + "' ha sido actualizado a: " + valorExpresion);
+                } else {
+                    error("El identificador '" + lexemaId + "' no está declarado.");
+                }
                 eat(ClaseLexica.PUNTO_Y_COMA);
                 System.out.println("Asignación procesada correctamente.");
             } else {
@@ -439,7 +464,9 @@ private List<String> argumentos() {
             // Sentencia if
             eat(ClaseLexica.IF);
             eat(ClaseLexica.PARENTESIS_ABRE);
-            int tipoCondicion = exp();
+            TipoValor t = exp(false);
+            int tipoCondicion = t.getTipo();
+             
             //if (tipoCondicion != 5) { // 5 representa boolean
                // error("La condición del 'if' debe ser de tipo boolean.");
            // }
@@ -454,7 +481,9 @@ private List<String> argumentos() {
             // Sentencia while
             eat(ClaseLexica.WHILE);
             eat(ClaseLexica.PARENTESIS_ABRE);
-            int tipoCondicion = exp();
+            TipoValor t = exp(false);
+            int tipoCondicion = t.getTipo();
+           
             if (tipoCondicion == 4 ) {
                 error("La condición del 'while' debe ser de tipo boolean.");
             }
@@ -467,7 +496,8 @@ private List<String> argumentos() {
             sentencia();
             eat(ClaseLexica.WHILE);
             eat(ClaseLexica.PARENTESIS_ABRE);
-            int tipoCondicion = exp();
+            TipoValor t = exp(false);
+            int tipoCondicion = t.getTipo();
             if (tipoCondicion == 4) {
                 error("La condición del 'do-while' debe ser de tipo boolean.");
             }
@@ -485,7 +515,9 @@ private List<String> argumentos() {
             eat(ClaseLexica.RETURN);
             int tipoReturn = 0; // Asumimos que void es por defecto
             if (esInicioExpresion()) {
-                tipoReturn = exp();
+                TipoValor t = exp(false);
+                tipoReturn = t.getTipo();
+                
             }
             eat(ClaseLexica.PUNTO_Y_COMA);
     
@@ -504,7 +536,9 @@ private List<String> argumentos() {
             // Sentencia switch
             eat(ClaseLexica.SWITCH);
             eat(ClaseLexica.PARENTESIS_ABRE);
-            int tipoExpresion = exp();
+            TipoValor t = exp(false);
+            int tipoExpresion = t.getTipo();
+            
             System.out.println(tipoExpresion);
             eat(ClaseLexica.PARENTESIS_CIERRA);
             eat(ClaseLexica.LLAVE_ABRE);
@@ -514,7 +548,9 @@ private List<String> argumentos() {
         } else if (tokenActual.getClase() == ClaseLexica.PRINT) {
             // Sentencia print
             eat(ClaseLexica.PRINT);
-            int tipo = exp();
+            TipoValor t = exp(false);
+            int tipo = t.getTipo();
+            
             // Aquí puedes validar que `tipo` sea imprimible si tienes reglas adicionales
             eat(ClaseLexica.PUNTO_Y_COMA);
     
@@ -538,7 +574,9 @@ private List<String> argumentos() {
     private void casos(int tipoSwitch) {
         while (tokenActual.getClase() == ClaseLexica.CASE) {
             eat(ClaseLexica.CASE);
-            int tipoCaso = exp(); // Evaluar el tipo del caso
+            TipoValor t = exp(false);
+            int tipoCaso = t.getTipo();
+            
             if (tipoCaso != tipoSwitch) {
                 error("El tipo del caso no coincide con el tipo de la expresión del switch. "
                         + "Esperado: " + tipoSwitch + ", encontrado: " + tipoCaso);
@@ -555,6 +593,7 @@ private List<String> argumentos() {
     
 
     private int parteIzquierda() {
+        simboloEstructurado= null;
         if (tokenActual.getClase() == ClaseLexica.ID) {
             String id = tokenActual.getLexema();
             eat(ClaseLexica.ID);
@@ -568,7 +607,9 @@ private List<String> argumentos() {
     
             // Verificar si la parte izquierda es un arreglo o estructura
             if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE || tokenActual.getClase() == ClaseLexica.PUNTO) {
-                tipo = localizacion(id); // Procesar localización
+                
+                TipoValor t = localizacion(id); // Procesar localización
+                tipo = t.getTipo();
             }
     
             return tipo; // Retornar el tipo final
@@ -581,290 +622,282 @@ private List<String> argumentos() {
     
     
     
-// Evaluación de Expresiones
-private int exp() {
-   // System.out.println("Entrando en exp");
-    int tipo = exp_or();  // Expresión OR
-   // System.out.println("Saliendo de exp con tipo: " + tipo);
-    return tipo;
-}
-
-// Producción exp_or → exp_and exp_or'
-private int exp_or() {
-   // System.out.println("Entrando en exp_or");
-    int tipoIzquierdo = exp_and(); // Expresión AND
-   // System.out.println("Tipo izquierdo de exp_or: " + tipoIzquierdo);
-    tipoIzquierdo = exp_or_prima(tipoIzquierdo); // Llamada a la producción exp_or'
-   // System.out.println("Saliendo de exp_or con tipo: " + tipoIzquierdo);
-    return tipoIzquierdo;
-}
-
-// Producción exp_or' → || exp_and exp_or' | epsilon
-private int exp_or_prima(int tipoIzquierdo) {
-    if (tokenActual.getClase() == ClaseLexica.OR) {
-       // System.out.println("Operador '||' encontrado");
-        eat(ClaseLexica.OR);
-        int tipoDerecho = exp_and(); // Expresión AND
-       // System.out.println("Tipo derecho de exp_or': " + tipoDerecho);
-        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, ClaseLexica.OR);
-        tipoIzquierdo = exp_or_prima(tipoIzquierdo); // Recursión para manejar más operadores OR
+    private TipoValor exp(boolean evaluar) {
+        return exp_or(evaluar);
     }
-    return tipoIzquierdo;
-}
-
-// Producción exp_and → exp_eq exp_and'
-private int exp_and() {
-   // System.out.println("Entrando en exp_and");
-    int tipoIzquierdo = exp_eq(); // Expresión de igualdad
-   // System.out.println("Tipo izquierdo de exp_and: " + tipoIzquierdo);
-    tipoIzquierdo = exp_and_prima(tipoIzquierdo); // Llamada a la producción exp_and'
-   // System.out.println("Saliendo de exp_and con tipo: " + tipoIzquierdo);
-    return tipoIzquierdo;
-}
-
-// Producción exp_and' → && exp_eq exp_and' | epsilon
-private int exp_and_prima(int tipoIzquierdo) {
-    if (tokenActual.getClase() == ClaseLexica.AND) {
-        //System.out.println("Operador '&&' encontrado");
-        eat(ClaseLexica.AND);
-        int tipoDerecho = exp_eq(); // Expresión de igualdad
-      //  System.out.println("Tipo derecho de exp_and': " + tipoDerecho);
-        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, ClaseLexica.AND);
-        tipoIzquierdo = exp_and_prima(tipoIzquierdo); // Recursión para manejar más operadores AND
+    
+    private TipoValor exp_or(boolean evaluar) {
+        TipoValor tipoIzquierdo = exp_and(evaluar);
+        return exp_or_prima(evaluar, tipoIzquierdo);
     }
-    return tipoIzquierdo;
-}
-
-// Producción exp_eq → exp_rel exp_eq'
-private int exp_eq() {
-   // System.out.println("Entrando en exp_eq");
-    int tipoIzquierdo = exp_rel(); // Expresión relacional
-   // System.out.println("Tipo izquierdo de exp_eq: " + tipoIzquierdo);
-    tipoIzquierdo = exp_eq_prima(tipoIzquierdo); // Llamada a la producción exp_eq'
-   // System.out.println("Saliendo de exp_eq con tipo: " + tipoIzquierdo);
-    return tipoIzquierdo;
-}
-
-// Producción exp_eq' → == exp_rel exp_eq' | != exp_rel exp_eq' | epsilon
-private int exp_eq_prima(int tipoIzquierdo) {
-    if (tokenActual.getClase() == ClaseLexica.IGUAL || tokenActual.getClase() == ClaseLexica.DIFERENTE) {
-        ClaseLexica operador = tokenActual.getClase();
-       // System.out.println("Operador " + operador + " encontrado");
-        eat(operador);
-        int tipoDerecho = exp_rel(); // Expresión relacional
-       // System.out.println("Tipo derecho de exp_eq': " + tipoDerecho);
-        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, operador);
-        tipoIzquierdo = exp_eq_prima(tipoIzquierdo); // Recursión para manejar más operadores de igualdad
+    
+    private TipoValor exp_or_prima(boolean evaluar, TipoValor tipoIzquierdo) {
+        while (tokenActual.getClase() == ClaseLexica.OR) {
+            eat(ClaseLexica.OR);
+            TipoValor tipoDerecho = exp_and(evaluar);
+    
+            
+                int tipoResultado = validarCompatibilidadTipos(tipoIzquierdo.getTipo(), tipoDerecho.getTipo(), ClaseLexica.OR);
+                if(evaluar){
+                boolean resultado = Boolean.parseBoolean(tipoIzquierdo.getValor()) || Boolean.parseBoolean(tipoDerecho.getValor());
+                tipoIzquierdo = new TipoValor(tipoResultado, String.valueOf(resultado));
+            }
+            tipoIzquierdo = new TipoValor(tipoResultado, "");
+            
+        }
+        return tipoIzquierdo;
     }
-    return tipoIzquierdo;
-}
-
-// Producción exp_rel → exp_add exp_rel'
-private int exp_rel() {
-   // System.out.println("Entrando en exp_rel");
-    int tipoIzquierdo = exp_add(); // Expresión aritmética
-   // System.out.println("Tipo izquierdo de exp_rel: " + tipoIzquierdo);
-    tipoIzquierdo = exp_rel_prima(tipoIzquierdo); // Llamada a la producción exp_rel'
-   // System.out.println("Saliendo de exp_rel con tipo: " + tipoIzquierdo);
-    return tipoIzquierdo;
-}
-
-// Producción exp_rel' → < exp_add exp_rel' | <= exp_add exp_rel' | >= exp_add exp_rel' | > exp_add exp_rel' | epsilon
-private int exp_rel_prima(int tipoIzquierdo) {
-    if (esOperadorRelacional(tokenActual.getClase())) {
-        ClaseLexica operador = tokenActual.getClase();
-      //  System.out.println("Operador relacional " + operador + " encontrado");
-        eat(operador);
-        int tipoDerecho = exp_add(); // Expresión aritmética
-       // System.out.println("Tipo derecho de exp_rel': " + tipoDerecho);
-        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, operador);
-        tipoIzquierdo = exp_rel_prima(tipoIzquierdo); // Recursión para manejar más operadores relacionales
+    
+    private TipoValor exp_and(boolean evaluar) {
+        TipoValor tipoIzquierdo = exp_eq(evaluar);
+        return exp_and_prima(evaluar, tipoIzquierdo);
     }
-    return tipoIzquierdo;
-}
-
-// Producción exp_add → exp_mul exp_add'
-private int exp_add() {
-   // System.out.println("Entrando en exp_add");
-    int tipoIzquierdo = exp_mul(); // Expresión de multiplicación
-   // System.out.println("Tipo izquierdo de exp_add: " + tipoIzquierdo);
-    tipoIzquierdo = exp_add_prima(tipoIzquierdo); // Llamada a la producción exp_add'
-   // System.out.println("Saliendo de exp_add con tipo: " + tipoIzquierdo);
-    return tipoIzquierdo;
-}
-
-// Producción exp_add' → + exp_mul exp_add' | - exp_mul exp_add' | epsilon
-private int exp_add_prima(int tipoIzquierdo) {
-    if (tokenActual.getClase() == ClaseLexica.MAS || tokenActual.getClase() == ClaseLexica.MENOS) {
-        ClaseLexica operador = tokenActual.getClase();
-       // System.out.println("Operador " + operador + " encontrado");
-        eat(operador);
-        int tipoDerecho = exp_mul(); // Expresión de multiplicación
-       // System.out.println("Tipo derecho de exp_add': " + tipoDerecho);
-        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, operador);
-        tipoIzquierdo = exp_add_prima(tipoIzquierdo); // Recursión para manejar más operadores de suma
+    
+    private TipoValor exp_and_prima(boolean evaluar, TipoValor tipoIzquierdo) {
+        while (tokenActual.getClase() == ClaseLexica.AND) {
+            eat(ClaseLexica.AND);
+            TipoValor tipoDerecho = exp_eq(evaluar);
+    
+            
+                int tipoResultado = validarCompatibilidadTipos(tipoIzquierdo.getTipo(), tipoDerecho.getTipo(), ClaseLexica.AND);
+               
+               if(evaluar){
+                boolean resultado = Boolean.parseBoolean(tipoIzquierdo.getValor()) && Boolean.parseBoolean(tipoDerecho.getValor());
+                tipoIzquierdo = new TipoValor(tipoResultado, String.valueOf(resultado));
+            }
+            tipoIzquierdo = new TipoValor(tipoResultado, "");
+            
+        }
+        return tipoIzquierdo;
     }
-    return tipoIzquierdo;
-}
-
-// Producción exp_mul → exp_unary exp_mul'
-private int exp_mul() {
-   // System.out.println("Entrando en exp_mul");
-    int tipoIzquierdo = exp_unary(); // Expresión unaria
-   // System.out.println("Tipo izquierdo de exp_mul: " + tipoIzquierdo);
-    tipoIzquierdo = exp_mul_prima(tipoIzquierdo); // Llamada a la producción exp_mul'
-   // System.out.println("Saliendo de exp_mul con tipo: " + tipoIzquierdo);
-    return tipoIzquierdo;
-}
-
-// Producción exp_mul' → * exp_unary exp_mul' | / exp_unary exp_mul' | % exp_unary exp_mul' | // exp_unary exp_mul' | epsilon
-private int exp_mul_prima(int tipoIzquierdo) {
-    if (tokenActual.getClase() == ClaseLexica.MULTIPLICACION || tokenActual.getClase() == ClaseLexica.DIVISION ||
-        tokenActual.getClase() == ClaseLexica.MODULO || tokenActual.getClase() == ClaseLexica.DIVISION_ENTERA) {
-        ClaseLexica operador = tokenActual.getClase();
-       // System.out.println("Operador " + operador + " encontrado");
-        eat(operador);
-        int tipoDerecho = exp_unary(); // Expresión unaria
-        //System.out.println("Tipo derecho de exp_mul': " + tipoDerecho);
-        tipoIzquierdo = validarCompatibilidadTipos(tipoIzquierdo, tipoDerecho, operador);
-        tipoIzquierdo = exp_mul_prima(tipoIzquierdo); // Recursión para manejar más operadores de multiplicación
+    
+    private TipoValor exp_eq(boolean evaluar) {
+        TipoValor tipoIzquierdo = exp_rel(evaluar);
+        return exp_eq_prima(evaluar, tipoIzquierdo);
     }
-    return tipoIzquierdo;
-}
-
-// Producción exp_unary → ! exp_unary | - exp_unary | primary
-private int exp_unary() {
-   // System.out.println("Entrando en exp_unary");
-
-    if (tokenActual.getClase() == ClaseLexica.MENOS || tokenActual.getClase() == ClaseLexica.NOT) {
-        System.out.println("Operador unario encontrado: " + tokenActual.getClase());
-        eat(tokenActual.getClase());
-        return exp_unary(); // Recursión para manejar operadores unarios
-    } else {
-        return primary(); // Llamada a la producción primary
+    
+    private TipoValor exp_eq_prima(boolean evaluar, TipoValor tipoIzquierdo) {
+        while (tokenActual.getClase() == ClaseLexica.IGUAL || tokenActual.getClase() == ClaseLexica.DIFERENTE) {
+            ClaseLexica operador = tokenActual.getClase();
+            eat(operador);
+            TipoValor tipoDerecho = exp_rel(evaluar);
+    
+                
+                int tipoResultado = validarCompatibilidadTipos(tipoIzquierdo.getTipo(), tipoDerecho.getTipo(), operador);
+                if(evaluar){
+                    boolean resultado = evaluarOperacionRelacional(tipoIzquierdo.getValor(), tipoDerecho.getValor(), operador);
+                    tipoIzquierdo = new TipoValor(tipoResultado, String.valueOf(resultado));
+                }
+                tipoIzquierdo = new TipoValor(tipoResultado, "");
+            
+        }
+        return tipoIzquierdo;
     }
-}
+    
+    private TipoValor exp_rel(boolean evaluar) {
+        TipoValor tipoIzquierdo = exp_add(evaluar);
+        return exp_rel_prima(evaluar, tipoIzquierdo);
+    }
+    
+    private TipoValor exp_rel_prima(boolean evaluar, TipoValor tipoIzquierdo) {
+        while (esOperadorRelacional(tokenActual.getClase())) {
+            ClaseLexica operador = tokenActual.getClase();
+            eat(operador);
+            TipoValor tipoDerecho = exp_add(evaluar);
+    
+            
+                int tipoResultado = validarCompatibilidadTipos(tipoIzquierdo.getTipo(), tipoDerecho.getTipo(), operador);
+                if(evaluar){
+                    boolean resultado = evaluarOperacionRelacional(tipoIzquierdo.getValor(), tipoDerecho.getValor(), operador);
+                    tipoIzquierdo = new TipoValor(tipoResultado, String.valueOf(resultado));
+                }
 
+                tipoIzquierdo = new TipoValor(tipoResultado, "");
+                   
+            
+        }
 
+        return tipoIzquierdo;
+    }
+    
+    private TipoValor exp_add(boolean evaluar) {
+        TipoValor tipoIzquierdo = exp_mul(evaluar);
+        return exp_add_prima(evaluar, tipoIzquierdo);
+    }
+    
+    private TipoValor exp_add_prima(boolean evaluar, TipoValor tipoIzquierdo) {
+        while (tokenActual.getClase() == ClaseLexica.MAS || tokenActual.getClase() == ClaseLexica.MENOS) {
+            ClaseLexica operador = tokenActual.getClase();
+            eat(operador);
+            TipoValor tipoDerecho = exp_mul(evaluar);
+            int tipoResultado = validarCompatibilidadTipos(tipoIzquierdo.getTipo(), tipoDerecho.getTipo(), operador);
+            String valorResultado = "";
+            if (evaluar) {
+               
+                valorResultado = realizarOperacionAritmetica(tipoIzquierdo.getValor(), tipoDerecho.getValor(), operador);
+               
+            }
 
-// Producción primary → ( exp ) | id localizacion | false | literal_cadena | true | literal_runa | literal_entera | literal_flotante | literal_doble | literal_compleja | id ( parametros ) | id
-private int primary() {
-   // System.out.println("Entrando en primary");
+            tipoIzquierdo = new TipoValor(tipoResultado, valorResultado);
+        }
+        return tipoIzquierdo;
+    }
+    
+    private TipoValor exp_mul(boolean evaluar) {
+        TipoValor tipoIzquierdo = exp_unary(evaluar);
+        return exp_mul_prima(evaluar, tipoIzquierdo);
+    }
+    
+    private TipoValor exp_mul_prima(boolean evaluar, TipoValor tipoIzquierdo) {
+        while (tokenActual.getClase() == ClaseLexica.MULTIPLICACION ||
+               tokenActual.getClase() == ClaseLexica.DIVISION ||
+               tokenActual.getClase() == ClaseLexica.MODULO) {
+            ClaseLexica operador = tokenActual.getClase();
+            eat(operador);
+            TipoValor tipoDerecho = exp_unary(evaluar);
+    
+            int tipoResultado = validarCompatibilidadTipos(tipoIzquierdo.getTipo(), tipoDerecho.getTipo(), operador);
+            String valorResultado = "";
+            if (evaluar) {
+               
+                valorResultado = realizarOperacionAritmetica(tipoIzquierdo.getValor(), tipoDerecho.getValor(), operador);
+               
+            }
 
-    // Caso 1: Expresión entre paréntesis
+            tipoIzquierdo = new TipoValor(tipoResultado, valorResultado);
+        }
+        return tipoIzquierdo;
+    }
+    
+    private TipoValor exp_unary(boolean evaluar) {
+        if (tokenActual.getClase() == ClaseLexica.MENOS || tokenActual.getClase() == ClaseLexica.NOT) {
+            ClaseLexica operador = tokenActual.getClase();
+            eat(operador);
+            TipoValor tipoDerecho = exp_unary(evaluar);
+    
+            if (evaluar) {
+                if (operador == ClaseLexica.MENOS) {
+                    double valor = Double.parseDouble(tipoDerecho.getValor());
+                    return new TipoValor(tipoDerecho.getTipo(), String.valueOf(-valor));
+                } else if (operador == ClaseLexica.NOT) {
+                    boolean valor = Boolean.parseBoolean(tipoDerecho.getValor());
+                    return new TipoValor(tipoDerecho.getTipo(), String.valueOf(!valor));
+                }
+            }
+        }
+        return primary();
+    }
+    
+
+private TipoValor primary() {
     if (tokenActual.getClase() == ClaseLexica.PARENTESIS_ABRE) {
         eat(ClaseLexica.PARENTESIS_ABRE);
-        int tipo = exp(); // Evaluar la subexpresión
+        TipoValor tipoValor = exp(true); // Evaluar la subexpresión
         eat(ClaseLexica.PARENTESIS_CIERRA);
-       // System.out.println("Saliendo de primary con tipo (expresión entre paréntesis): " + tipo);
-        return tipo;
+        return tipoValor;
 
-    // Caso 2: Identificador con posible llamada a función
     } else if (tokenActual.getClase() == ClaseLexica.ID) {
         String id = tokenActual.getLexema();
-        eat(ClaseLexica.ID);  // Comer el identificador
+        eat(ClaseLexica.ID);
 
-        // Verificar si es una llamada a función (siguiente token es un paréntesis de apertura)
+        // Verificar si es una llamada a función
         if (tokenActual.getClase() == ClaseLexica.PARENTESIS_ABRE) {
-            eat(ClaseLexica.PARENTESIS_ABRE); // Comer el paréntesis de cierre
-         //   System.out.println("Identificador '" + id + "' detectado como una llamada a función.");
-            List<Integer> parametrosLlamada = parametros(); // Procesar los parámetros
-            eat(ClaseLexica.PARENTESIS_CIERRA); // Comer el paréntesis de cierre
-            return llamada(id, parametrosLlamada); // Procesar la llamada a la función
+            eat(ClaseLexica.PARENTESIS_ABRE);
+            List<Integer> parametrosLlamada = parametros();
+            eat(ClaseLexica.PARENTESIS_CIERRA);
+            return llamada(id, parametrosLlamada);
         } else if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE || tokenActual.getClase() == ClaseLexica.PUNTO) {
-            // Localización
             return localizacion(id);
-
-
         } else {
-            // Identificador simple
-            return getTipoVariable(id);
+            return new TipoValor(getTipoVariable(id), id);
         }
-        
-    // Caso 3: Literales
-    } else if (esLiteral(tokenActual.getClase())) {
-        int tipo = getTipoLiteral(tokenActual.getClase()); // Obtener el tipo del literal
-        eat(tokenActual.getClase());
-       // System.out.println("Saliendo de primary con tipo de literal: " + tipo);
-        return tipo;
 
-    // Caso 4: Error si no es ninguno de los anteriores
+    } else if (esLiteral(tokenActual.getClase())) {
+        int tipo = getTipoLiteral(tokenActual.getClase());
+        String valor = tokenActual.getLexema();
+        eat(tokenActual.getClase());
+        return new TipoValor(tipo, valor);
+
     } else {
         error("Expresión no válida.");
-        return -1; // Código inaccesible
+        return new TipoValor(-1, "");
     }
 }
 
-
-private int localizacion(String id) {
-    System.out.println("Entrando en localizacion con id: " + id);
-
+private TipoValor localizacion(String id) {
     if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
         return arreglo(id);
     } else if (tokenActual.getClase() == ClaseLexica.PUNTO) {
         return estructurado(id);
     } else {
         error("Se esperaba '[' o '.', pero se encontró: " + tokenActual.getClase());
-        return -1;
+        return new TipoValor(-1, null);
     }
 }
 
-
-private int arreglo(String id) {
+private TipoValor arreglo(String id) {
     eat(ClaseLexica.CORCHETE_ABRE);
-    int tipoLiteral= exp(); // Procesar la expresión dentro del corchete
-    if(tipoLiteral != 1){
-        error("El valor dado para la posición del arreglo no es un entero");
-    }
+    TipoValor tipoIndice = exp(true); // Procesar la expresión dentro del corchete
+
+    // Convertir el valor a un entero válido
+    int indiceActual = convertirAEntero(tipoIndice.getValor());
+
     eat(ClaseLexica.CORCHETE_CIERRA);
 
-    // Procesar dimensiones adicionales y contar dimensiones
-    int dimensiones = 1; // Inicializamos el contador en 1 para la primera dimensión
-    return arreglo_prima(id, dimensiones);
+    int dimensiones = 1;
+    // Obtener el valor en la posición igual a dimensiones + 2
+    int tipo = getTipoVariable(id);
+    String tipoIdStr = Integer.toString(tipo);
+    char limiteCaracter = tipoIdStr.charAt(dimensiones + 1); // dimensiones + 2 en índice 0-based
+    int limiteDimension = Character.getNumericValue(limiteCaracter);
+    // Verificar si el índice actual excede el límite permitido
+    if ( (indiceActual > limiteDimension - 1) || (indiceActual < 0)) {
+        error("El índice " + indiceActual + " excede el límite permitido para la dimensión " + dimensiones + ": " + (limiteDimension - 1));
+    }
+    return arreglo_prima(id, dimensiones, indiceActual);
 }
 
-
-
-private int arreglo_prima(String id, int dimensiones) {
+private TipoValor arreglo_prima(String id, int dimensiones, int indiceActual) {
     if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
         eat(ClaseLexica.CORCHETE_ABRE);
-        int tipoLiteral = exp(); // Procesar la expresión dentro del corchete
-        if (tipoLiteral != 1) {
-            error("El valor dado para la posición del arreglo no es un entero");
-        }
+        TipoValor tipoIndice = exp(true);
+
+        int nuevoIndice = convertirAEntero(tipoIndice.getValor());
+
         eat(ClaseLexica.CORCHETE_CIERRA);
 
-        // Incrementar el contador de dimensiones y continuar recursivamente
-        return arreglo_prima(id, dimensiones + 1);
+        return arreglo_prima(id, dimensiones + 1, nuevoIndice);
     }
 
-    int tipo = -1;
-    tipo = getTipoVariable(id);
-    // Convertir el número a cadena
+    int tipo = getTipoVariable(id);
     String tipoIdStr = Integer.toString(tipo);
 
-    // Asegurarnos de que el tipo tiene al menos el número correcto de caracteres
-    if (tipoIdStr.length() < dimensiones + 2) { // +2 para incluir el signo negativo y el primer dígito
-        error("El arreglo no tiene tantas dimensiones");
+    if (tipoIdStr.length() < dimensiones + 2) {
+        error("El arreglo no tiene tantas dimensiones.");
     }
 
-    
+    // Obtener el valor en la posición igual a dimensiones + 2
+    char limiteCaracter = tipoIdStr.charAt(dimensiones + 1); // dimensiones + 2 en índice 0-based
+    int limiteDimension = Character.getNumericValue(limiteCaracter);
 
-    
+    // Verificar si el índice actual excede el límite permitido
+    if ((indiceActual > limiteDimension - 1) || (indiceActual < 0)) {
+        error("El índice " + indiceActual + " excede el límite permitido para la dimensión " + dimensiones + ": " + (limiteDimension - 1));
+    }
 
-    // Obtener el segundo carácter (el primer dígito después del signo '-')
+       // Obtener el segundo carácter y convertirlo a un número
     char segundoCaracter = tipoIdStr.charAt(1);
+    int tipoDesdeSegundoCaracter = Character.getNumericValue(segundoCaracter);
 
-    // Convertir el carácter a entero
-    int primerDigito = Character.getNumericValue(segundoCaracter);
-    return primerDigito; // Finaliza el procesamiento del arreglo
+    // Devolver un TipoValor con el tipo obtenido y el id como valor
+    return new TipoValor(tipoDesdeSegundoCaracter, id);
 }
 
 
 
 
 
-private int estructurado(String id) {
+private TipoValor estructurado(String id) {
     eat(ClaseLexica.PUNTO);
 
     // Obtener el primer campo después del punto
@@ -896,14 +929,13 @@ private int estructurado(String id) {
         error("El campo '" + campo + "' no está definido en el struct '" + structName + "'.");
     }
 
-    System.out.println("Siguiente campo es: "+ "struct_" + siguienteCampo.getType());
+    System.out.println("Siguiente campo es: " + "struct_" + siguienteCampo.getType());
 
     // Continuar con accesos adicionales si los hay
     return estructurado_prima(siguienteCampo);
 }
 
-private int estructurado_prima(Symbol simboloActual) {
-    
+private TipoValor estructurado_prima(Symbol simboloActual) {
     if (tokenActual.getClase() == ClaseLexica.PUNTO) {
         System.out.println("Estructurado prima: " + "struct_" + simboloActual.getType());
         eat(ClaseLexica.PUNTO);
@@ -929,26 +961,16 @@ private int estructurado_prima(Symbol simboloActual) {
         // Buscar el campo actual en la tabla del struct correspondiente
         Symbol siguienteCampo = structTable.getSymbolSecure(campo);
         if (siguienteCampo == null) {
-            //structName= "struct_9";
-            // Verificar si el tipo corresponde a un struct registrado
-        SymbolTable structTableAux = structTables.get(structName);
-        if (structTableAux == null) {
-            imprimirTablasDeStructs();
-            error("El tipo '" + structName + "' no está registrado como struct.");
-        } else {
-            System.out.println("Tabla de símbolos para " + structName);
-            imprimirTablaDeSimbolos(structTableAux);
-        }
-            imprimirTablaDeTipos();
             error("El campo '" + campo + "' no está definido en el struct '" + structName + "'.");
         }
 
         // Continuar con accesos adicionales si los hay
         return estructurado_prima(siguienteCampo);
     }
-
-    return simboloActual.getType(); // Finaliza el procesamiento de accesos estructurados
+    simboloEstructurado = simboloActual;
+    return new TipoValor(simboloActual.getType(), simboloActual.getValue()); // Finaliza el procesamiento de accesos estructurados
 }
+
 
 
 private Symbol buscarEnStructAnterior(String campo, int tipoAnterior) {
@@ -986,7 +1008,9 @@ private List<Integer> parametros() {
 
     // Si hay expresiones (argumentos), procesarlas
     if (esInicioExpresion()) {
-        tiposParametros.add(exp()); // Primer parámetro
+        TipoValor t = exp(false);
+        
+        tiposParametros.add(t.getTipo()); // Primer parámetro
         lista_param_prima(tiposParametros); // Llamada a la producción lista_param'
     }
 
@@ -998,13 +1022,15 @@ private List<Integer> parametros() {
 private void lista_param_prima(List<Integer> tiposParametros) {
     if (tokenActual.getClase() == ClaseLexica.COMA) {
         eat(ClaseLexica.COMA);
-        tiposParametros.add(exp()); // Añadir el siguiente parámetro
+        TipoValor t = exp(false);
+        
+        tiposParametros.add(t.getTipo());// Añadir el siguiente parámetro
         lista_param_prima(tiposParametros); // Recursión para manejar más parámetros
     }
 }
 
 // Función para manejar llamadas a funciones
-private int llamada(String idFuncion, List<Integer> parametrosLlamada) {
+private TipoValor llamada(String idFuncion, List<Integer> parametrosLlamada) {
     // Recuperar la función de la tabla de símbolos global
     Symbol simboloFuncion = stackSymbolTable.lookup(idFuncion);
     if (simboloFuncion == null || ( !"funcion".equals(simboloFuncion.getCat()) && !"prototipo".equals(simboloFuncion.getCat())) ) {
@@ -1035,7 +1061,8 @@ private int llamada(String idFuncion, List<Integer> parametrosLlamada) {
     }
 
     System.out.println("Llamada a función '" + idFuncion + "' validada correctamente.");
-    return simboloFuncion.getType(); // Retornar el tipo de retorno de la función
+    int tipo= simboloFuncion.getType(); // Retornar el tipo de retorno de la función
+    return new TipoValor(tipo, "");
 }
 
 
@@ -1395,6 +1422,135 @@ public void validarPrototiposConFunciones(SymbolTable tablaGlobal) {
     System.out.println("Validación de prototipos y funciones completada con éxito.");
 }
 
+
+private String realizarOperacionAritmetica(String valorIzquierdo, String valorDerecho, ClaseLexica operador) {
+    try {
+        // Convertir valores a Double si tienen decimales o notación exponencial, o a Integer si son enteros
+        Number op1 = parseNumero(valorIzquierdo);
+        Number op2 = parseNumero(valorDerecho);
+        double resultado;
+
+        switch (operador) {
+            case MAS:
+                resultado = op1.doubleValue() + op2.doubleValue();
+                break;
+            case MENOS:
+                resultado = op1.doubleValue() - op2.doubleValue();
+                break;
+            case MULTIPLICACION:
+                resultado = op1.doubleValue() * op2.doubleValue();
+                break;
+            case DIVISION:
+                if (op2.doubleValue() == 0) {
+                    error("División por cero");
+                }
+                resultado = op1.doubleValue() / op2.doubleValue();
+                break;
+            case MODULO:
+                if (op2.doubleValue() == 0) {
+                    error("Módulo por cero");
+                }
+                resultado = op1.doubleValue() % op2.doubleValue();
+                break;
+            default:
+                error("Operador aritmético no válido: " + operador);
+                return null;
+        }
+
+        // Devolver el resultado como String
+        return String.valueOf(resultado);
+
+    } catch (NumberFormatException e) {
+        error("Error al convertir valores a número: " + e.getMessage());
+        return null;
+    }
+}
+
+private Number parseNumero(String valor) throws NumberFormatException {
+    // Eliminar sufijos 'f', 'F', 'd', 'D' si están presentes
+    String valorLimpio = valor.replaceAll("[fFdD]$", "");
+
+    // Verificar si es un número entero
+    if (valorLimpio.matches("^-?\\d+$")) {
+        return Integer.parseInt(valorLimpio);
+    }
+    // Verificar si es un número flotante o doble
+    else if (valorLimpio.matches("^-?\\d+(\\.\\d+)?([eE][+-]?\\d+)?$")) {
+        return Double.parseDouble(valorLimpio);
+    }
+    // Buscar el valor en la pila de tablas de símbolos si no coincide con los patrones
+    else {
+        Symbol simbolo = stackSymbolTable.lookup(valor);
+        if (simbolo != null) {
+            String valorSimbolo = simbolo.getValue();
+            if (valorSimbolo.matches("^-?\\d+$")) {
+                return Integer.parseInt(valorSimbolo);
+            } else if (valorSimbolo.matches("^-?\\d+(\\.\\d+)?([eE][+-]?\\d+)?$")) {
+                return Double.parseDouble(valorSimbolo);
+            } else {
+                throw new NumberFormatException("El valor del símbolo '" + valor + "' no es un número válido: " + valorSimbolo);
+            }
+        }
+        throw new NumberFormatException("Formato de número no reconocido y símbolo no encontrado: " + valor);
+    }
+}
+
+private boolean evaluarOperacionRelacional(String valorIzquierdo, String valorDerecho, ClaseLexica operador) {
+    try {
+        // Convertir ambos valores a double para comparaciones numéricas
+        double op1 = Double.parseDouble(valorIzquierdo);
+        double op2 = Double.parseDouble(valorDerecho);
+
+        switch (operador) {
+            case MENOR:
+                return op1 < op2;
+            case MENOR_IGUAL:
+                return op1 <= op2;
+            case MAYOR:
+                return op1 > op2;
+            case MAYOR_IGUAL:
+                return op1 >= op2;
+            case IGUAL:
+                return op1 == op2;
+            case DIFERENTE:
+                return op1 != op2;
+            default:
+                error("Operador relacional no válido para números: " + operador);
+                return false; // Este return nunca se alcanzará
+        }
+    } catch (NumberFormatException e) {
+        // Si la conversión a double falla, verificar si los valores son booleanos
+        boolean op1 = Boolean.parseBoolean(valorIzquierdo);
+        boolean op2 = Boolean.parseBoolean(valorDerecho);
+
+        switch (operador) {
+            case IGUAL:
+                return op1 == op2;
+            case DIFERENTE:
+                return op1 != op2;
+            default:
+                error("Operador relacional no válido para booleanos: " + operador);
+                return false; // Este return nunca se alcanzará
+        }
+    }
+}
+
+// Función auxiliar para convertir un String a un entero válido
+private int convertirAEntero(String valor) {
+    try {
+        double valorDouble = Double.parseDouble(valor);
+
+        // Verificar si el valorDouble es un número entero
+        if (valorDouble % 1 != 0) {
+            error("El valor del índice no es un número entero válido: " + valor);
+        }
+
+        return (int) valorDouble;
+    } catch (NumberFormatException e) {
+        error("No se pudo convertir el valor a un número entero: " + valor);
+        return -1; // Este return nunca se alcanzará debido al error
+    }
+}
 
 
 }
