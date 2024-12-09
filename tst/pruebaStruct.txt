@@ -19,6 +19,7 @@ func int main() {
 
     // Inicialización de miEstructura
     miEstructura.anidado.pascua.z = 1;
+     miEstructura.a = 10;
     miEstructura.b = 3.14;
     miEstructura.c = "Hola Mundo";
 

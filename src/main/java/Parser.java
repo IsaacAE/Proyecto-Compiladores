@@ -14,6 +14,8 @@ public class Parser {
     private Lexer lexer;
     private Token tokenActual;
 
+    private Symbol simboloEstructurado = null; // Variable global para almacenar el último símbolo estructurado
+
     private SymbolTableStack stackSymbolTable = new SymbolTableStack();
     private TypeTable typeTable = new TypeTable();
     private Map<String, SymbolTable> structTables = new HashMap<>();
@@ -439,7 +441,11 @@ private List<String> argumentos() {
                 Symbol simbolo = stackSymbolTable.lookup(lexemaId);
                 if (simbolo != null) {
                     System.out.println(valorExpresion);
+                    if(simboloEstructurado== null){
                     simbolo.setValue(valorExpresion);
+                    }else{  
+                        simboloEstructurado.setValue(valorExpresion);
+                    }
                     System.out.println("El valor de '" + lexemaId + "' ha sido actualizado a: " + valorExpresion);
                 } else {
                     error("El identificador '" + lexemaId + "' no está declarado.");
@@ -583,6 +589,7 @@ private List<String> argumentos() {
     
 
     private int parteIzquierda() {
+        simboloEstructurado= null;
         if (tokenActual.getClase() == ClaseLexica.ID) {
             String id = tokenActual.getLexema();
             eat(ClaseLexica.ID);
@@ -931,7 +938,7 @@ private TipoValor estructurado_prima(Symbol simboloActual) {
         // Continuar con accesos adicionales si los hay
         return estructurado_prima(siguienteCampo);
     }
-
+    simboloEstructurado = simboloActual;
     return new TipoValor(simboloActual.getType(), simboloActual.getValue()); // Finaliza el procesamiento de accesos estructurados
 }
 
