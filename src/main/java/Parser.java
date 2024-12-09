@@ -440,10 +440,14 @@ private List<String> argumentos() {
                     // Buscar el símbolo en la pila de tablas de símbolos y actualizar su valor
                 Symbol simbolo = stackSymbolTable.lookup(lexemaId);
                 if (simbolo != null) {
+                    
                     System.out.println(valorExpresion);
                     if(simboloEstructurado== null){
                     simbolo.setValue(valorExpresion);
                     }else{  
+                        if (simboloEstructurado.getType() >8){
+                            error("No se puede asignar un valor a un elemento de tipo struct");
+                        }
                         simboloEstructurado.setValue(valorExpresion);
                     }
                     System.out.println("El valor de '" + lexemaId + "' ha sido actualizado a: " + valorExpresion);
