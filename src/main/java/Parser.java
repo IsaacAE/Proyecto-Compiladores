@@ -231,8 +231,10 @@ public class Parser {
             imprimirTablaDeSimbolos(structTables.get(structName));
         } else if (tokenActual.getClase() == ClaseLexica.PTR) {
             // Manejar punteros
-            puntero();
-            tipoBase = -1; // Representar un puntero
+            int tipoPtr = puntero();
+            tipoBase = -8; // Representar un puntero
+            // Combinar los valores como cadenas y luego convertirlos de vuelta a un entero
+            tipoBase = Integer.parseInt(tipoPtr + "" + tipoBase);
         } else {
             error("Se esperaba un tipo válido.");
             tipoBase = -1; // Código inaccesible en caso de error
@@ -339,9 +341,10 @@ public class Parser {
         return tipo;
     }
 
-    private void puntero() {
+    private int puntero() {
         eat(ClaseLexica.PTR);
-        basico();
+        return basico();
+
     }
 
     // Producción lista_var
