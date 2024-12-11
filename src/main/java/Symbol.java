@@ -85,9 +85,12 @@ public class Symbol {
             } else {
                 primerDigitoChar = tipoIdStr.charAt(0);
             }
-
+		
+		if(primerDigitoChar == '8'){
+		  tipoId = Character.getNumericValue(tipoIdStr.charAt(2));
+		}else{  tipoId = Character.getNumericValue(primerDigitoChar);}
             // Convertir el carácter de vuelta a entero
-            tipoId = Character.getNumericValue(primerDigitoChar);
+          
         }
         if (tipoId > 7) {
             return "struct";
@@ -100,7 +103,6 @@ public class Symbol {
             case 5: return "rune";
             case 6: return "boolean";
             case 7: return "complex";
-            case 9: return "struct";
             case 0: return "void";
             default: return "desconocido";
         }
