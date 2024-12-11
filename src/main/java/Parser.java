@@ -131,13 +131,27 @@ public class Parser {
             List<String> variables = lista_var();
             eat(ClaseLexica.PUNTO_Y_COMA);
 
-            if(tipo < -1){
+            // Convertir el número a String
+            String numeroStr = String.valueOf(tipo); // Asegurar que sea positivo para evitar problemas con '-'
 
-                // Registrar cada variable en la tabla de símbolos actual
+            if(tipo < -1){
+                if(numeroStr.charAt(1) == '8'){
+                    // Registrar cada variable en la tabla de símbolos actual
+                for (String var : variables) {
+                    Symbol varSymbol = new Symbol(-1, tipo, "puntero", null);
+                    agregarSimbolo(var, varSymbol);
+                }
+                }else{
+
+                      // Registrar cada variable en la tabla de símbolos actual
             for (String var : variables) {
                 Symbol varSymbol = new Symbol(-1, tipo, "arreglo", null);
                 agregarSimbolo(var, varSymbol);
             }
+                }
+
+
+              
             }else{
             // Registrar cada variable en la tabla de símbolos actual
             for (String var : variables) {
@@ -231,8 +245,12 @@ public class Parser {
             imprimirTablaDeSimbolos(structTables.get(structName));
         } else if (tokenActual.getClase() == ClaseLexica.PTR) {
             // Manejar punteros
-            puntero();
-            tipoBase = -1; // Representar un puntero
+            int tipoBasico = puntero();
+            String tipoPtr = "-8";
+            tipoPtr += Integer.toString(tipoBasico);
+            tipoBase = Integer.valueOf(tipoPtr);
+            System.out.println("TIPO PUNTERO: "+tipoBase);
+          
         } else {
             error("Se esperaba un tipo válido.");
             tipoBase = -1; // Código inaccesible en caso de error
@@ -339,9 +357,10 @@ public class Parser {
         return tipo;
     }
 
-    private void puntero() {
+    private int puntero() {
         eat(ClaseLexica.PTR);
-        basico();
+        return basico();
+
     }
 
     // Producción lista_var
