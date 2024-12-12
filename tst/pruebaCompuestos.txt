@@ -9,7 +9,7 @@ struct {
 int [5]arr;
 int [3][2]arr2;
 
-func void main(){
+func struct{int hojas; float diámetro; int altura;} main(){
 
 // Más estructuras y anidación
 struct {
@@ -35,5 +35,6 @@ complexStruct.nested.z = 2.5;   // Asignación válida
 
 complexStruct.nested.y = arr[0]; // Error: int no puede asignarse a float
 
+return árbol;
 }
 

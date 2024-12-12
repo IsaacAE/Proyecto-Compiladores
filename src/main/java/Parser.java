@@ -546,10 +546,56 @@ private List<String> argumentos() {
             if (funcionActual == null) {
                 error("No se encontró la función actual para validar el retorno.");
             }
-            if (tipoReturn != funcionActual.getType() ) { // 0 es void
-                error("El tipo de retorno no coincide con el tipo de la función: esperado "
-                        + funcionActual.getType() + ", encontrado " + tipoReturn);
+            if (tipoReturn != funcionActual.getType()) { // 0 es void
+                // Si los tipos no coinciden, verificar si ambos son structs (mayores a 7)
+                if (tipoReturn > 7 && funcionActual.getType() > 7) {
+                    // Construir los nombres de las tablas de símbolos basados en el tipo
+                    String returnStructName = "struct_" + tipoReturn;
+                    String funcStructName = "struct_" + funcionActual.getType();
+            
+                    // Verificar que ambos structs tienen tablas de símbolos asociadas
+                    SymbolTable returnStructTable = structTables.get(returnStructName);
+                    SymbolTable funcStructTable = structTables.get(funcStructName);
+            
+                    if (returnStructTable == null || funcStructTable == null) {
+                        error("No se encontraron tablas de símbolos asociadas para los structs retornados: "
+                                + returnStructName + " o " + funcStructName);
+                    } else {
+                        // Obtener los símbolos de ambas tablas
+                        Set<String> returnStructIds = returnStructTable.getAllIds();
+                        Set<String> funcStructIds = funcStructTable.getAllIds();
+            
+                        // Verificar si ambas tablas tienen los mismos IDs
+                        if (returnStructIds.equals(funcStructIds)) {
+                            boolean match = true;
+                            for (String id : returnStructIds) {
+                                Symbol returnSymbol = returnStructTable.getSymbolSecure(id);
+                                Symbol funcSymbol = funcStructTable.getSymbolSecure(id);
+            
+                                // Comparar tipos de los símbolos
+                                if (returnSymbol.getType() != funcSymbol.getType()) {
+                                    match = false;
+                                    error("El símbolo '" + id + "' tiene diferentes tipos en los structs: "
+                                            + returnSymbol.getType() + " y " + funcSymbol.getType());
+                                    break;
+                                }
+                            }
+            
+                            if (match) {
+                                // Los structs tienen las mismas variables con los mismos tipos, el retorno es válido
+                            }
+                        } else {
+                            error("Los structs retornados no tienen las mismas variables: "
+                                    + returnStructName + " y " + funcStructName);
+                        }
+                    }
+                } else {
+                    // Si los tipos no coinciden y no son structs válidos, lanzar error
+                    error("El tipo de retorno no coincide con el tipo de la función: esperado "
+                            + funcionActual.getType() + ", encontrado " + tipoReturn);
+                }
             }
+            
     
         } else if (tokenActual.getClase() == ClaseLexica.SWITCH) {
             // Sentencia switch
