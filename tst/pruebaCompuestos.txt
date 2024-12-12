@@ -1,17 +1,17 @@
-// Declaración de estructuras
+/// Declaración de estructuras
 struct {
     int hojas;
     float diámetro;
     double altura;
 } árbol;
 
-// Declaración de arreglos
+/// Declaración de arreglos
 int [5]arr;
 int [3][2]arr2;
 
-func void main(){
+func struct{int hojas; float diámetro; double altura;} main(){
 
-// Más estructuras y anidación
+/// Más estructuras y anidación
 struct {
     int x;
     struct {
@@ -20,20 +20,21 @@ struct {
     } nested;
 } complexStruct;
 
-// Inicialización y asignaciones válidas
-árbol.hojas = 10;         // Asignación válida
-árbol.diámetro = 3.14f;       // Asignación válida
-árbol.altura = 2.718123D;      // Asignación válida
+/// Inicialización y asignaciones válidas
+árbol.hojas = 10;         
+árbol.diámetro = 3.14f;       
+árbol.altura = 2.718123D;     
 
-arr[3] = 42;             // Asignación válida
-arr2[1][1] = 1;       // Asignación válida
+arr[3] = 42;             
+arr2[1][1] = 1;       
 
 
-complexStruct.x = 100;          // Asignación válida
-complexStruct.nested.y = 1.5;   // Asignación válida
-complexStruct.nested.z = 2.5;   // Asignación válida
+complexStruct.x = 100;          
+complexStruct.nested.y = 1.5;   
+complexStruct.nested.z = 2.5;   
 
-complexStruct.nested.y = arr[0]; // Error: int no puede asignarse a float
+complexStruct.nested.y = arr[0]; 
 
+return árbol;
 }
 

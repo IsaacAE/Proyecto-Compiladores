@@ -126,7 +126,7 @@ public Token actual;
 \"([^\"\\]|\\.)*\"          { System.out.println("Token encontrado: LITERAL_CADENA (" + yytext() + ")"); return new Token(ClaseLexica.LITERAL_CADENA, yytext()); }
 
 // Comentarios
-"//" [^\n]*             { /* ignorar comentarios de una línea */ }
+"///" [^\n]*             { /* ignorar comentarios de una línea */ }
 "/*" [^*]* "*" ([^/]* "*" )* "/" { /* ignorar comentarios de varias líneas */ }
 
 <<EOF>>           { return new Token(ClaseLexica.EOF, yytext());}

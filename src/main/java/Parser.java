@@ -546,10 +546,56 @@ private List<String> argumentos() {
             if (funcionActual == null) {
                 error("No se encontró la función actual para validar el retorno.");
             }
-            if (tipoReturn != funcionActual.getType() ) { // 0 es void
-                error("El tipo de retorno no coincide con el tipo de la función: esperado "
-                        + funcionActual.getType() + ", encontrado " + tipoReturn);
+            if (tipoReturn != funcionActual.getType()) { // 0 es void
+                // Si los tipos no coinciden, verificar si ambos son structs (mayores a 7)
+                if (tipoReturn > 7 && funcionActual.getType() > 7) {
+                    // Construir los nombres de las tablas de símbolos basados en el tipo
+                    String returnStructName = "struct_" + tipoReturn;
+                    String funcStructName = "struct_" + funcionActual.getType();
+            
+                    // Verificar que ambos structs tienen tablas de símbolos asociadas
+                    SymbolTable returnStructTable = structTables.get(returnStructName);
+                    SymbolTable funcStructTable = structTables.get(funcStructName);
+            
+                    if (returnStructTable == null || funcStructTable == null) {
+                        error("No se encontraron tablas de símbolos asociadas para los structs retornados: "
+                                + returnStructName + " o " + funcStructName);
+                    } else {
+                        // Obtener los símbolos de ambas tablas
+                        Set<String> returnStructIds = returnStructTable.getAllIds();
+                        Set<String> funcStructIds = funcStructTable.getAllIds();
+            
+                        // Verificar si ambas tablas tienen los mismos IDs
+                        if (returnStructIds.equals(funcStructIds)) {
+                            boolean match = true;
+                            for (String id : returnStructIds) {
+                                Symbol returnSymbol = returnStructTable.getSymbolSecure(id);
+                                Symbol funcSymbol = funcStructTable.getSymbolSecure(id);
+            
+                                // Comparar tipos de los símbolos
+                                if (returnSymbol.getType() != funcSymbol.getType()) {
+                                    match = false;
+                                    error("El símbolo '" + id + "' tiene diferentes tipos en los structs: "
+                                            + returnSymbol.getType() + " y " + funcSymbol.getType());
+                                    break;
+                                }
+                            }
+            
+                            if (match) {
+                                // Los structs tienen las mismas variables con los mismos tipos, el retorno es válido
+                            }
+                        } else {
+                            error("Los structs retornados no tienen las mismas variables: "
+                                    + returnStructName + " y " + funcStructName);
+                        }
+                    }
+                } else {
+                    // Si los tipos no coinciden y no son structs válidos, lanzar error
+                    error("El tipo de retorno no coincide con el tipo de la función: esperado "
+                            + funcionActual.getType() + ", encontrado " + tipoReturn);
+                }
             }
+            
     
         } else if (tokenActual.getClase() == ClaseLexica.SWITCH) {
             // Sentencia switch
@@ -770,6 +816,7 @@ private List<String> argumentos() {
     private TipoValor exp_mul_prima(boolean evaluar, TipoValor tipoIzquierdo) {
         while (tokenActual.getClase() == ClaseLexica.MULTIPLICACION ||
                tokenActual.getClase() == ClaseLexica.DIVISION ||
+               tokenActual.getClase() == ClaseLexica.DIVISION_ENTERA ||
                tokenActual.getClase() == ClaseLexica.MODULO) {
             ClaseLexica operador = tokenActual.getClase();
             eat(operador);
@@ -1113,7 +1160,7 @@ private int validarCompatibilidadTipos(int tipoIzquierdo, int tipoDerecho, Clase
     }
 // Operadores aritméticos (+, -, *, /)
 if (operacion == ClaseLexica.MAS || operacion == ClaseLexica.MENOS ||
-operacion == ClaseLexica.MULTIPLICACION || operacion == ClaseLexica.DIVISION) {
+operacion == ClaseLexica.MULTIPLICACION || operacion == ClaseLexica.DIVISION || operacion == ClaseLexica.DIVISION_ENTERA) {
 Type tipoPromovido = Type.getPromotedType(typeTable.getType(tipoIzquierdo), typeTable.getType(tipoDerecho));
 if (tipoPromovido != null) {
     return tipoPromovido.getId(); // Retorna el tipo promovido
@@ -1444,46 +1491,52 @@ public void validarPrototiposConFunciones(SymbolTable tablaGlobal) {
 
 private String realizarOperacionAritmetica(String valorIzquierdo, String valorDerecho, ClaseLexica operador) {
     try {
-        // Convertir valores a Double si tienen decimales o notación exponencial, o a Integer si son enteros
-        Number op1 = parseNumero(valorIzquierdo);
-        Number op2 = parseNumero(valorDerecho);
-        double resultado;
 
-        switch (operador) {
-            case MAS:
-                resultado = op1.doubleValue() + op2.doubleValue();
-                break;
-            case MENOS:
-                resultado = op1.doubleValue() - op2.doubleValue();
-                break;
-            case MULTIPLICACION:
-                resultado = op1.doubleValue() * op2.doubleValue();
-                break;
-            case DIVISION:
-                if (op2.doubleValue() == 0) {
-                    error("División por cero");
-                }
-                resultado = op1.doubleValue() / op2.doubleValue();
-                break;
-            case MODULO:
-                if (op2.doubleValue() == 0) {
-                    error("Módulo por cero");
-                }
-                resultado = op1.doubleValue() % op2.doubleValue();
-                break;
-            default:
-                error("Operador aritmético no válido: " + operador);
-                return null;
+        System.out.println(valorIzquierdo);
+
+        System.out.println(valorDerecho);
+        // Detectar si son números complejos
+        boolean esComplejoIzq = esComplejo(valorIzquierdo);
+        boolean esComplejoDer = esComplejo(valorDerecho);
+
+
+        System.out.println(esComplejoIzq);
+        System.out.println(esComplejoDer);
+
+        if (esComplejoIzq && esComplejoDer) {
+            // Parsear números complejos
+            Complejo complejo1 = parseComplejo(valorIzquierdo);
+            Complejo complejo2 = parseComplejo(valorDerecho);
+
+            Complejo resultado;
+            switch (operador) {
+                case MAS:
+                    resultado = complejo1.sumar(complejo2);
+                    break;
+                case MENOS:
+                    resultado = complejo1.restar(complejo2);
+                    break;
+                case MULTIPLICACION:
+                    resultado = complejo1.multiplicar(complejo2);
+                    break;
+                case DIVISION:
+                    resultado = complejo1.dividir(complejo2);
+                    break;
+                default:
+                    error("Operador aritmético no válido para números complejos: " + operador);
+                    return null;
+            }
+            return resultado.toString(); // Convertir a String
+        } else {
+            // Operaciones normales para números reales
+            return realizarOperacionNumerica(valorIzquierdo, valorDerecho, operador);
         }
-
-        // Devolver el resultado como String
-        return String.valueOf(resultado);
-
-    } catch (NumberFormatException e) {
-        error("Error al convertir valores a número: " + e.getMessage());
+    } catch (Exception e) {
+        error("Error en operación aritmética: " + e.getMessage());
         return null;
     }
 }
+
 
 private Number parseNumero(String valor) throws NumberFormatException {
     // Eliminar sufijos 'f', 'F', 'd', 'D' si están presentes
@@ -1513,6 +1566,100 @@ private Number parseNumero(String valor) throws NumberFormatException {
         throw new NumberFormatException("Formato de número no reconocido y símbolo no encontrado: " + valor);
     }
 }
+
+
+
+
+private boolean esComplejo(String valor) {
+    boolean t = valor.matches("([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)" +
+                         "[+-]" +
+                         "([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)i");
+
+    if(!t){
+        
+            Symbol simbolo = stackSymbolTable.lookup(valor);
+            if (simbolo != null) {
+                String valorSimbolo = simbolo.getValue();
+                t = valorSimbolo.matches("([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)" +
+                "[+-]" +
+                "([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)i");
+
+            }
+            //throw new NumberFormatException("Formato de número no reconocido y símbolo no encontrado: " + valor);
+        
+    }
+
+    return t; 
+}
+
+
+private Complejo parseComplejo(String valor) {
+    try {
+        // Intentar dividir el valor en partes real e imaginaria
+        String[] partes = valor.split("[+-](?=[0-9.]+i)");
+        if (partes.length == 2) {
+            double real = Double.parseDouble(partes[0]);
+            double imaginario = Double.parseDouble(partes[1].replace("i", ""));
+            return new Complejo(real, imaginario);
+        } else {
+            throw new NumberFormatException("Formato de número complejo inválido: " + valor);
+        }
+    } catch (Exception e) {
+        // Si falla, intentar buscar el valor en la pila de tablas de símbolos
+        Symbol simbolo = stackSymbolTable.lookup(valor);
+        if (simbolo != null) {
+            String valorSimbolo = simbolo.getValue();
+            return parseComplejo(valorSimbolo); // Intentar parsear el valor del símbolo
+        }
+        // Si no se encuentra el símbolo, lanzar la excepción original
+        throw new NumberFormatException("Error al parsear número complejo: " + e.getMessage() + 
+                                         ". Además, el símbolo '" + valor + "' no fue encontrado.");
+    }
+}
+
+
+
+private String realizarOperacionNumerica(String valorIzquierdo, String valorDerecho, ClaseLexica operador) {
+    Number op1 = parseNumero(valorIzquierdo);
+    Number op2 = parseNumero(valorDerecho);
+    double resultado;
+
+    switch (operador) {
+        case MAS:
+            resultado = op1.doubleValue() + op2.doubleValue();
+            break;
+        case MENOS:
+            resultado = op1.doubleValue() - op2.doubleValue();
+            break;
+        case MULTIPLICACION:
+            resultado = op1.doubleValue() * op2.doubleValue();
+            break;
+        case DIVISION:
+            if (op2.doubleValue() == 0) {
+                error("División por cero");
+            }
+            resultado = op1.doubleValue() / op2.doubleValue();
+            break;
+        case MODULO:
+            if (op2.doubleValue() == 0) {
+                error("Módulo por cero");
+            }
+            resultado = op1.doubleValue() % op2.doubleValue();
+            break;
+        case DIVISION_ENTERA:
+            // División entera: aplicar división de enteros (sin decimales)
+            int resultadoEntero = (int) op1 / (int) op2;
+            resultado = (double) resultadoEntero;
+            break;
+        default:
+            error("Operador aritmético no válido: " + operador);
+            return null;
+    }
+    return String.valueOf(resultado);
+}
+
+
+
 
 private boolean evaluarOperacionRelacional(String valorIzquierdo, String valorDerecho, ClaseLexica operador) {
     try {

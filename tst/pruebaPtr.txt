@@ -1,8 +1,8 @@
-// Declaración de prototipos
+/// Declaración de prototipos
 proto void invalidPointerAssignment(int value);
-//proto void scan(int ptr);
+///proto void scan(int ptr);
 
-// Declaración de variables
+/// Declaración de variables
 ptr int pInt;
 ptr float pFloat;
 int a;
@@ -10,6 +10,6 @@ float b;
 
 
 func void invalidPointerAssignment() {
-    // pInt = pFloat; // Error: No se puede asignar punteros de tipos diferentes
+    /// pInt = pFloat; // Error: No se puede asignar punteros de tipos diferentes
 }
 
