@@ -816,6 +816,7 @@ private List<String> argumentos() {
     private TipoValor exp_mul_prima(boolean evaluar, TipoValor tipoIzquierdo) {
         while (tokenActual.getClase() == ClaseLexica.MULTIPLICACION ||
                tokenActual.getClase() == ClaseLexica.DIVISION ||
+               tokenActual.getClase() == ClaseLexica.DIVISION_ENTERA ||
                tokenActual.getClase() == ClaseLexica.MODULO) {
             ClaseLexica operador = tokenActual.getClase();
             eat(operador);
@@ -1159,7 +1160,7 @@ private int validarCompatibilidadTipos(int tipoIzquierdo, int tipoDerecho, Clase
     }
 // Operadores aritméticos (+, -, *, /)
 if (operacion == ClaseLexica.MAS || operacion == ClaseLexica.MENOS ||
-operacion == ClaseLexica.MULTIPLICACION || operacion == ClaseLexica.DIVISION) {
+operacion == ClaseLexica.MULTIPLICACION || operacion == ClaseLexica.DIVISION || operacion == ClaseLexica.DIVISION_ENTERA) {
 Type tipoPromovido = Type.getPromotedType(typeTable.getType(tipoIzquierdo), typeTable.getType(tipoDerecho));
 if (tipoPromovido != null) {
     return tipoPromovido.getId(); // Retorna el tipo promovido
@@ -1617,6 +1618,7 @@ private Complejo parseComplejo(String valor) {
 }
 
 
+
 private String realizarOperacionNumerica(String valorIzquierdo, String valorDerecho, ClaseLexica operador) {
     Number op1 = parseNumero(valorIzquierdo);
     Number op2 = parseNumero(valorDerecho);
@@ -1643,6 +1645,11 @@ private String realizarOperacionNumerica(String valorIzquierdo, String valorDere
                 error("Módulo por cero");
             }
             resultado = op1.doubleValue() % op2.doubleValue();
+            break;
+        case DIVISION_ENTERA:
+            // División entera: aplicar división de enteros (sin decimales)
+            int resultadoEntero = (int) op1 / (int) op2;
+            resultado = (double) resultadoEntero;
             break;
         default:
             error("Operador aritmético no válido: " + operador);
