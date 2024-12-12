@@ -1,0 +1,136 @@
+Programa ::= Decl_proto Decl_var Decl_func ';'
+
+Decl_proto ::= 'proto' tipo id '(' argumentos ')' ';' Decl_proto2
+
+Decl_proto2 ::= Decl_proto?
+
+Decl_var ::= tipo Lista_var ';' Decl_var2
+
+Decl_var2 ::= Decl_var?
+
+tipo ::= (basico tipo2 | struct '{' Decl_var '}' | puntero )
+
+tipo2 ::= compuesto?
+
+puntero ::= ptr basico
+
+basico ::= (int | float | double | complex | rune | void | string)
+
+compuesto ::= '[' literal_entera ']' compuesto2 
+
+compuesto ::= ('[' literal_entera ']' compuesto2)?
+
+lista_var ::= id lista_var2
+
+lista_var2 ::= (',' id lista_var2)?
+
+decl_func ::= func tipo id ( argumentos ) bloque decl_func2
+
+decl_func2 ::= decl_func?
+
+argumentos ::= lista_args?
+
+lista_args ::= tipo id lista_args2
+
+lista_args2 ::= (',' tipo id lista_args2)?
+
+bloque ::= '{' declaraciones instrucciones '}'
+
+instrucciones ::= sentencia instrucciones
+
+sentencia ::= parte_izquierda '=' exp ';'
+           | 'if' '(' exp ')' sentencia elseif
+           | 'while' '(' exp ')' sentencia
+           | 'do' sentencia 'while' '(' exp ')' ';'
+           | 'break' ';'
+           | bloque
+           | 'return' exp ';'
+           | 'return' ';'
+           | 'switch' '(' exp ')' '{' casos '}'
+           | 'print' exp ';'
+           | 'scan' parte_izquierda
+           
+           
+elseif ::= ('else' sentencia)?
+
+casos ::= (caso casos | predeterminado)?
+
+caso ::= 'case' opcion ':' instrucciones
+
+opcion ::= literal_entera | literal_runa
+           
+predeterminado ::= 'default' ':' instrucciones
+
+parte_izquierda ::= (id localizacion | id)
+
+exp ::= exp_or     
+
+exp_or ::= exp_and exp_or2
+           
+exp_or2 ::= ('||' exp_and exp_or2)?
+
+exp_and ::= exp_eq exp_and2
+
+exp_and2 ::= ('&&' exp_eq exp_and2)? 
+
+exp_eq ::= exp_rel '{'('==' | '!=') exp_rel'}' 
+
+exp_rel ::= exp_add '{'('<' | '<=' | '>=' | '>') exp_add'}'
+exp_add ::= exp_mul '{'('+' | '-') exp_mul'}' ';'
+exp_mul ::= exp_unary '{'('*' | '/' | '%' | '//') exp_unary'}'
+exp_unary ::= (('!' | '-') exp_unary) | primary ';'
+primary ::= ('(' exp ')' | id [localizacion] | 'false' | literal_cadena | 'true' | literal_runa
+        | literal_entera | literal_flotante | literal_doble | literal_compleja | id '(' parametros ')' | id)
+
+parametros ::= lista_param?
+
+lista_param ::= exp lista_param2
+
+lista_param2 ::= (',' exp lista_param2)?
+
+localizacion ::= arreglo | estructurado
+
+arreglo ::= '[' exp ']' arreglo2
+
+arreglo2 ::= ([ exp ] arreglo2)?
+
+estructurado ::= '.' id estructurado2
+
+estructurado2 ::= ('.' id estructurado2)?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
