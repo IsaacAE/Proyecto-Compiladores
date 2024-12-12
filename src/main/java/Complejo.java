@@ -34,7 +34,11 @@ class Complejo {
     }
 
     @Override
-    public String toString() {
+public String toString() {
+    if (imaginario >= 0) {
         return real + "+" + imaginario + "i";
+    } else {
+        return real + "" + imaginario + "i"; // No añadimos "+" si imaginario es negativo
     }
+}
 }

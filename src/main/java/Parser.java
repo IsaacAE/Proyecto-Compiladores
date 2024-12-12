@@ -40,8 +40,8 @@ public class Parser {
     }
 
     private void error(String mensaje) {
-        imprimirTablaDeSimbolos(stackSymbolTable.base());
-        imprimirTablaDeTipos();
+        //imprimirTablaDeSimbolos(stackSymbolTable.base());
+        //imprimirTablaDeTipos();
         throw new RuntimeException("Error: " + mensaje);
         
     }
@@ -72,8 +72,8 @@ public class Parser {
         decl_proto();
         
         decl_var();
-        System.out.println("TABLA DE SIMBOLOS");
-        imprimirTablaDeSimbolos(stackSymbolTable.peek());
+        //System.out.println("TABLA DE SIMBOLOS");
+        //imprimirTablaDeSimbolos(stackSymbolTable.peek());
         decl_func();
     }
 
@@ -108,9 +108,9 @@ public class Parser {
             eat(ClaseLexica.PARENTESIS_CIERRA);
             eat(ClaseLexica.PUNTO_Y_COMA);
     
-            System.out.println("Prototipo '" + idPrototipo + "' registrado en la tabla global.");
-            System.out.println("Tabla de símbolos para el prototipo '" + idPrototipo + "':");
-            imprimirTablaDeSimbolos(tablaPrototipo);
+            //System.out.println("Prototipo '" + idPrototipo + "' registrado en la tabla global.");
+            //System.out.println("Tabla de símbolos para el prototipo '" + idPrototipo + "':");
+            //imprimirTablaDeSimbolos(tablaPrototipo);
     
             stackSymbolTable.pop(); // Retirar la tabla de argumentos del prototipo
         }
@@ -127,7 +127,7 @@ public class Parser {
             eat(ClaseLexica.LLAVE_CIERRA); // Consumimos la llave de cierre
             tipo = 9; // El último tipo registrado corresponde al struct
         } 
-            System.out.println("El tipo de las siguientes variables es:"+ tipo);
+           // System.out.println("El tipo de las siguientes variables es:"+ tipo);
             List<String> variables = lista_var();
             eat(ClaseLexica.PUNTO_Y_COMA);
 
@@ -194,15 +194,15 @@ public class Parser {
             SymbolTable tablaLocal = stackSymbolTable.peek();
             tablaLocal.addSymbol(idFuncion, simboloFuncion);
     
-            System.out.println("Función '" + idFuncion + "' agregada a la tabla de símbolos global.");
+            //System.out.println("Función '" + idFuncion + "' agregada a la tabla de símbolos global.");
 
             // Procesar el bloque de la función
             eat(ClaseLexica.PARENTESIS_CIERRA);
             bloque();
     
             // Mantener la tabla de la función en la pila (no se elimina)
-            System.out.println("Tabla de símbolos para la función '" + idFuncion + "':");
-            imprimirTablaDeSimbolos(stackSymbolTable.peek());
+            //System.out.println("Tabla de símbolos para la función '" + idFuncion + "':");
+            //imprimirTablaDeSimbolos(stackSymbolTable.peek());
         }
     
         // Procesar funciones adicionales
@@ -230,7 +230,7 @@ public class Parser {
             String structName = "struct_" + structId; // Generar el nombre único
             // Registrar el tipo en TypeTable
             typeTable.addType(0, 0, null);
-            System.out.println("Struct '" + structName + "' registrado con ID: " + structId);
+           // System.out.println("Struct '" + structName + "' registrado con ID: " + structId);
             tipoBase = structId;
             SymbolTable structTable = new SymbolTable();
             stackSymbolTable.push(structTable); // Crear un nuevo ámbito para el struct
@@ -242,14 +242,14 @@ public class Parser {
             structTables.put(structName, stackSymbolTable.pop());
 
             
-            imprimirTablaDeSimbolos(structTables.get(structName));
+           // imprimirTablaDeSimbolos(structTables.get(structName));
         } else if (tokenActual.getClase() == ClaseLexica.PTR) {
             // Manejar punteros
             int tipoBasico = puntero();
             String tipoPtr = "-8";
             tipoPtr += Integer.toString(tipoBasico);
             tipoBase = Integer.valueOf(tipoPtr);
-            System.out.println("TIPO PUNTERO: "+tipoBase);
+           // System.out.println("TIPO PUNTERO: "+tipoBase);
           
         } else {
             error("Se esperaba un tipo válido.");
@@ -460,7 +460,7 @@ private List<String> argumentos() {
                 Symbol simbolo = stackSymbolTable.lookup(lexemaId);
                 if (simbolo != null) {
                     
-                    System.out.println(valorExpresion);
+                   // System.out.println(valorExpresion);
                     if(simboloEstructurado== null){
                     simbolo.setValue(valorExpresion);
                     }else{  
@@ -474,7 +474,7 @@ private List<String> argumentos() {
                     error("El identificador '" + lexemaId + "' no está declarado.");
                 }
                 eat(ClaseLexica.PUNTO_Y_COMA);
-                System.out.println("Asignación procesada correctamente.");
+               // System.out.println("Asignación procesada correctamente.");
             } else {
                 error("Se esperaba '=' después de la parte izquierda.");
             }
@@ -525,7 +525,7 @@ private List<String> argumentos() {
     
         } else if (tokenActual.getClase() == ClaseLexica.BREAK) {
             // Sentencia break
-            System.out.println("Entrando al caso del break");
+            
             eat(ClaseLexica.BREAK);
             eat(ClaseLexica.PUNTO_Y_COMA);
     
@@ -604,7 +604,7 @@ private List<String> argumentos() {
             TipoValor t = exp(false);
             int tipoExpresion = t.getTipo();
             
-            System.out.println(tipoExpresion);
+            //System.out.println(tipoExpresion);
             eat(ClaseLexica.PARENTESIS_CIERRA);
             eat(ClaseLexica.LLAVE_ABRE);
             casos(tipoExpresion); // Validar casos del switch con la expresión
@@ -843,8 +843,15 @@ private List<String> argumentos() {
     
             if (evaluar) {
                 if (operador == ClaseLexica.MENOS) {
-                    double valor = Double.parseDouble(tipoDerecho.getValor());
-                    return new TipoValor(tipoDerecho.getTipo(), String.valueOf(-valor));
+                    String valorDerecho = tipoDerecho.getValor();
+                    if (esComplejo(valorDerecho)) {
+                        // Para números complejos, anteponer el signo "-"
+                        return new TipoValor(tipoDerecho.getTipo(), "-" + valorDerecho);
+                    } else {
+                        // Para números reales, aplicar el operador unario
+                        double valor = Double.parseDouble(valorDerecho);
+                        return new TipoValor(tipoDerecho.getTipo(), String.valueOf(-valor));
+                    }
                 } else if (operador == ClaseLexica.NOT) {
                     boolean valor = Boolean.parseBoolean(tipoDerecho.getValor());
                     return new TipoValor(tipoDerecho.getTipo(), String.valueOf(!valor));
@@ -853,6 +860,7 @@ private List<String> argumentos() {
         }
         return primary();
     }
+    
     
 
 private TipoValor primary() {
@@ -875,7 +883,8 @@ private TipoValor primary() {
         } else if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE || tokenActual.getClase() == ClaseLexica.PUNTO) {
             return localizacion(id);
         } else {
-            return new TipoValor(getTipoVariable(id), id);
+            Symbol simbolo = stackSymbolTable.lookup(id);
+            return new TipoValor(getTipoVariable(id), simbolo.getValue());
         }
 
     } else if (esLiteral(tokenActual.getClase())) {
@@ -969,7 +978,7 @@ private TipoValor estructurado(String id) {
     // Obtener el primer campo después del punto
     String campo = tokenActual.getLexema();
     eat(ClaseLexica.ID);
-    System.out.println("EL PRIMER CAMPO ES: " + campo);
+    //System.out.println("EL PRIMER CAMPO ES: " + campo);
 
     // Verificar que el identificador inicial (`id`) es una estructura
     Symbol simbolo = stackSymbolTable.lookup(id);
@@ -985,8 +994,8 @@ private TipoValor estructurado(String id) {
     if (structTable == null) {
         error("El tipo '" + structName + "' no está registrado como struct.");
     } else {
-        System.out.println("Tabla de símbolos para " + structName);
-        imprimirTablaDeSimbolos(structTable);
+        //System.out.println("Tabla de símbolos para " + structName);
+        //imprimirTablaDeSimbolos(structTable);
     }
 
     // Buscar el primer campo en el struct
@@ -995,7 +1004,7 @@ private TipoValor estructurado(String id) {
         error("El campo '" + campo + "' no está definido en el struct '" + structName + "'.");
     }
 
-    System.out.println("Siguiente campo es: " + "struct_" + siguienteCampo.getType());
+    //System.out.println("Siguiente campo es: " + "struct_" + siguienteCampo.getType());
 
     // Continuar con accesos adicionales si los hay
     return estructurado_prima(siguienteCampo);
@@ -1003,12 +1012,12 @@ private TipoValor estructurado(String id) {
 
 private TipoValor estructurado_prima(Symbol simboloActual) {
     if (tokenActual.getClase() == ClaseLexica.PUNTO) {
-        System.out.println("Estructurado prima: " + "struct_" + simboloActual.getType());
+       // System.out.println("Estructurado prima: " + "struct_" + simboloActual.getType());
         eat(ClaseLexica.PUNTO);
 
         // Obtener el campo que sigue al punto
         String campo = tokenActual.getLexema();
-        System.out.println("Procesando campo: " + campo);
+        //System.out.println("Procesando campo: " + campo);
         eat(ClaseLexica.ID);
 
         // Obtener el tipo del struct actual
@@ -1020,8 +1029,8 @@ private TipoValor estructurado_prima(Symbol simboloActual) {
         if (structTable == null) {
             error("El tipo '" + structName + "' no está registrado como struct.");
         } else {
-            System.out.println("Tabla de símbolos para " + structName);
-            imprimirTablaDeSimbolos(structTable);
+            //System.out.println("Tabla de símbolos para " + structName);
+            //imprimirTablaDeSimbolos(structTable);
         }
 
         // Buscar el campo actual en la tabla del struct correspondiente
@@ -1135,19 +1144,22 @@ private TipoValor llamada(String idFuncion, List<Integer> parametrosLlamada) {
 // Métodos auxiliares para validación y compatibilidad de tipos
 
 private int validarCompatibilidadTipos(int tipoIzquierdo, int tipoDerecho, ClaseLexica operacion) {
-    System.out.println("tipoIzquierdo:" + tipoIzquierdo + " tipoDerecho:" + tipoDerecho);
+   //System.out.println("tipoIzquierdo:" + tipoIzquierdo + " tipoDerecho:" + tipoDerecho);
 
     // Operadores relacionales (==, !=, <, >, <=, >=)
     if (operacion == ClaseLexica.IGUAL || operacion == ClaseLexica.DIFERENTE ||
         operacion == ClaseLexica.MENOR || operacion == ClaseLexica.MENOR_IGUAL ||
         operacion == ClaseLexica.MAYOR || operacion == ClaseLexica.MAYOR_IGUAL) {
         if (tipoIzquierdo == tipoDerecho ) {
-            return 6; // boolean
+            return 6;
+        }else if( (Type.canPromote(typeTable.getType(tipoDerecho), typeTable.getType(tipoIzquierdo))) || (Type.canPromote(typeTable.getType(tipoIzquierdo), typeTable.getType(tipoDerecho)))){ 
+            return 6;
         } else {
-            System.out.println("Error: Tipos incompatibles para el operador relacional.");
-            return -1; // Error
+            error("Error: Tipos incompatibles para operadores relacionales: " + 
+                  getTipoFromInt(tipoIzquierdo) + " y " + getTipoFromInt(tipoDerecho));
         }
     }
+    
 
     // Operadores condicionales (&&, ||)
     if (operacion == ClaseLexica.AND || operacion == ClaseLexica.OR) {
@@ -1277,10 +1289,9 @@ private boolean esLiteral(ClaseLexica clase) {
 
 private Symbol obtenerFuncionActual(SymbolTable tabla) {
     // Busca una función en la tabla actual; asume que es la última declarada
-    System.out.println("###BUSCANDO FUNCION ACTUAL###");
-    
+   
     tabla = stackSymbolTable.peek();
-    imprimirTablaDeSimbolos(tabla);
+   // imprimirTablaDeSimbolos(tabla);
     for (Symbol symbol : tabla.getAllSymbols()) {
         if ("funcion".equals(symbol.getCat())) {
             return symbol;
@@ -1332,7 +1343,7 @@ private String getTipoFromInt(int tipo) {
 private int getTipoVariable(String id) {
     Symbol simbolo = stackSymbolTable.lookup(id);
     if (simbolo == null) {
-        imprimirTablaDeSimbolos(stackSymbolTable.peek());
+        //imprimirTablaDeSimbolos(stackSymbolTable.peek());
         error("Identificador no declarado: " + id);
     }
     return simbolo.getType(); // Retorna el tipo de la variable
@@ -1343,14 +1354,14 @@ private void inicializarTypeTable() {
     typeTable = new TypeTable();
     
     // Registrar tipos básicos
-    typeTable.addType(0, 0, 0); // void
-    typeTable.addType(1, 0, 3); // int
-    typeTable.addType(2, 0, 3); // float
-    typeTable.addType(3, 0, 3); // double
-    typeTable.addType(4, 0, 4); // string
-    typeTable.addType(5, 0, 5); // runa
-    typeTable.addType(6, 0, 6); // boolean
-    typeTable.addType(7, 0, 7); // complex
+    typeTable.addType(1, 0, 0); // void
+    typeTable.addType(1, 4, 3); // int
+    typeTable.addType(1, 4, 3); // float
+    typeTable.addType(1, 8, 3); // double
+    typeTable.addType(1, 2, 4); // string
+    typeTable.addType(1, 1, 5); // runa
+    typeTable.addType(1, 0, 6); // boolean
+    typeTable.addType(1, 16, 7); // complex
     
 
    
@@ -1409,7 +1420,7 @@ private void imprimirTablasDeStructs() {
 
         // Imprimir la tabla de símbolos del struct
         if (structTable != null) {
-            imprimirTablaDeSimbolos(structTable);
+            //imprimirTablaDeSimbolos(structTable);
         } else {
             System.out.println("Tabla vacía o no registrada para " + structName);
         }
@@ -1475,7 +1486,7 @@ public void validarPrototiposConFunciones(SymbolTable tablaGlobal) {
     }
 
     // Imprimir las listas de prototipos y funciones
-    System.out.println("\nPrototipos:");
+   /*  System.out.println("\nPrototipos:");
     for (Map.Entry<String, Symbol> entry : prototiposGlobales) {
         System.out.println(entry.getKey() + " -> " + entry.getValue());
     }
@@ -1485,23 +1496,20 @@ public void validarPrototiposConFunciones(SymbolTable tablaGlobal) {
         System.out.println(entry.getKey() + " -> " + entry.getValue());
     }
 
-    System.out.println("Validación de prototipos y funciones completada con éxito.");
+    System.out.println("Validación de prototipos y funciones completada con éxito.");*/
 }
 
 
 private String realizarOperacionAritmetica(String valorIzquierdo, String valorDerecho, ClaseLexica operador) {
     try {
 
-        System.out.println(valorIzquierdo);
-
-        System.out.println(valorDerecho);
+        
         // Detectar si son números complejos
         boolean esComplejoIzq = esComplejo(valorIzquierdo);
         boolean esComplejoDer = esComplejo(valorDerecho);
 
 
-        System.out.println(esComplejoIzq);
-        System.out.println(esComplejoDer);
+       
 
         if (esComplejoIzq && esComplejoDer) {
             // Parsear números complejos
@@ -1571,52 +1579,66 @@ private Number parseNumero(String valor) throws NumberFormatException {
 
 
 private boolean esComplejo(String valor) {
-    boolean t = valor.matches("([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)" +
-                         "[+-]" +
-                         "([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)i");
+    // Expresión regular para números complejos con un signo opcional al inicio
+    String regex = "^-?" + // Signo negativo opcional al inicio
+                   "([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)" +
+                   "[+-]" +
+                   "([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)i$";
 
-    if(!t){
-        
-            Symbol simbolo = stackSymbolTable.lookup(valor);
-            if (simbolo != null) {
-                String valorSimbolo = simbolo.getValue();
-                t = valorSimbolo.matches("([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)" +
-                "[+-]" +
-                "([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)i");
+    // Verificar si el valor coincide con el patrón de número complejo
+    boolean t = valor.matches(regex);
 
-            }
-            //throw new NumberFormatException("Formato de número no reconocido y símbolo no encontrado: " + valor);
-        
+    if (!t) {
+        // Si no coincide, verificar si es un símbolo en la tabla de símbolos
+        Symbol simbolo = stackSymbolTable.lookup(valor);
+        if (simbolo != null) {
+            String valorSimbolo = simbolo.getValue();
+            t = valorSimbolo.matches(regex);
+        }
     }
 
     return t; 
 }
 
 
+
 private Complejo parseComplejo(String valor) {
     try {
-        // Intentar dividir el valor en partes real e imaginaria
-        String[] partes = valor.split("[+-](?=[0-9.]+i)");
-        if (partes.length == 2) {
-            double real = Double.parseDouble(partes[0]);
-            double imaginario = Double.parseDouble(partes[1].replace("i", ""));
-            return new Complejo(real, imaginario);
-        } else {
-            throw new NumberFormatException("Formato de número complejo inválido: " + valor);
+        valor = valor.trim(); // Eliminar espacios en blanco
+
+        
+
+        // Eliminar la 'i' al final para simplificar el procesamiento
+        String sinImaginario = valor.substring(0, valor.length() - 1);
+
+        // Buscar el último signo '+' o '-' que separa la parte real de la imaginaria
+        int posSigno = Math.max(sinImaginario.lastIndexOf('+'), sinImaginario.lastIndexOf('-'));
+
+        if (posSigno <= 0) {
+            throw new NumberFormatException("Formato inválido para el número complejo: " + valor);
         }
+
+        // Separar la parte real y la parte imaginaria
+        String parteReal = sinImaginario.substring(0, posSigno);
+        String parteImaginaria = sinImaginario.substring(posSigno);
+
+        // Convertir ambas partes a números
+        double real = Double.parseDouble(parteReal.trim());
+        double imaginario = Double.parseDouble(parteImaginaria.trim());
+
+        return new Complejo(real, imaginario);
     } catch (Exception e) {
-        // Si falla, intentar buscar el valor en la pila de tablas de símbolos
+        // Si ocurre un error, verificar si el valor está en la tabla de símbolos
         Symbol simbolo = stackSymbolTable.lookup(valor);
         if (simbolo != null) {
             String valorSimbolo = simbolo.getValue();
             return parseComplejo(valorSimbolo); // Intentar parsear el valor del símbolo
         }
-        // Si no se encuentra el símbolo, lanzar la excepción original
-        throw new NumberFormatException("Error al parsear número complejo: " + e.getMessage() + 
+        // Lanzar la excepción original si no se encuentra el símbolo
+        throw new NumberFormatException("Error al parsear número complejo: " + e.getMessage() +
                                          ". Además, el símbolo '" + valor + "' no fue encontrado.");
     }
 }
-
 
 
 private String realizarOperacionNumerica(String valorIzquierdo, String valorDerecho, ClaseLexica operador) {
