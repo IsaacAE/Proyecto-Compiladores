@@ -843,8 +843,15 @@ private List<String> argumentos() {
     
             if (evaluar) {
                 if (operador == ClaseLexica.MENOS) {
-                    double valor = Double.parseDouble(tipoDerecho.getValor());
-                    return new TipoValor(tipoDerecho.getTipo(), String.valueOf(-valor));
+                    String valorDerecho = tipoDerecho.getValor();
+                    if (esComplejo(valorDerecho)) {
+                        // Para números complejos, anteponer el signo "-"
+                        return new TipoValor(tipoDerecho.getTipo(), "-" + valorDerecho);
+                    } else {
+                        // Para números reales, aplicar el operador unario
+                        double valor = Double.parseDouble(valorDerecho);
+                        return new TipoValor(tipoDerecho.getTipo(), String.valueOf(-valor));
+                    }
                 } else if (operador == ClaseLexica.NOT) {
                     boolean valor = Boolean.parseBoolean(tipoDerecho.getValor());
                     return new TipoValor(tipoDerecho.getTipo(), String.valueOf(!valor));
@@ -853,6 +860,7 @@ private List<String> argumentos() {
         }
         return primary();
     }
+    
     
 
 private TipoValor primary() {
@@ -875,7 +883,8 @@ private TipoValor primary() {
         } else if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE || tokenActual.getClase() == ClaseLexica.PUNTO) {
             return localizacion(id);
         } else {
-            return new TipoValor(getTipoVariable(id), id);
+            Symbol simbolo = stackSymbolTable.lookup(id);
+            return new TipoValor(getTipoVariable(id), simbolo.getValue());
         }
 
     } else if (esLiteral(tokenActual.getClase())) {
@@ -1571,52 +1580,66 @@ private Number parseNumero(String valor) throws NumberFormatException {
 
 
 private boolean esComplejo(String valor) {
-    boolean t = valor.matches("([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)" +
-                         "[+-]" +
-                         "([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)i");
+    // Expresión regular para números complejos con un signo opcional al inicio
+    String regex = "^-?" + // Signo negativo opcional al inicio
+                   "([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)" +
+                   "[+-]" +
+                   "([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)i$";
 
-    if(!t){
-        
-            Symbol simbolo = stackSymbolTable.lookup(valor);
-            if (simbolo != null) {
-                String valorSimbolo = simbolo.getValue();
-                t = valorSimbolo.matches("([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)" +
-                "[+-]" +
-                "([0-9]+(\\.[0-9]{1,7})?([eE][+-]?[0-9]+)?[fF]?|[0-9]+(\\.[0-9]{1,16})?([eE][+-]?[0-9]+)?[dD]?)i");
+    // Verificar si el valor coincide con el patrón de número complejo
+    boolean t = valor.matches(regex);
 
-            }
-            //throw new NumberFormatException("Formato de número no reconocido y símbolo no encontrado: " + valor);
-        
+    if (!t) {
+        // Si no coincide, verificar si es un símbolo en la tabla de símbolos
+        Symbol simbolo = stackSymbolTable.lookup(valor);
+        if (simbolo != null) {
+            String valorSimbolo = simbolo.getValue();
+            t = valorSimbolo.matches(regex);
+        }
     }
 
     return t; 
 }
 
 
+
 private Complejo parseComplejo(String valor) {
     try {
-        // Intentar dividir el valor en partes real e imaginaria
-        String[] partes = valor.split("[+-](?=[0-9.]+i)");
-        if (partes.length == 2) {
-            double real = Double.parseDouble(partes[0]);
-            double imaginario = Double.parseDouble(partes[1].replace("i", ""));
-            return new Complejo(real, imaginario);
-        } else {
-            throw new NumberFormatException("Formato de número complejo inválido: " + valor);
+        valor = valor.trim(); // Eliminar espacios en blanco
+
+        
+
+        // Eliminar la 'i' al final para simplificar el procesamiento
+        String sinImaginario = valor.substring(0, valor.length() - 1);
+
+        // Buscar el último signo '+' o '-' que separa la parte real de la imaginaria
+        int posSigno = Math.max(sinImaginario.lastIndexOf('+'), sinImaginario.lastIndexOf('-'));
+
+        if (posSigno <= 0) {
+            throw new NumberFormatException("Formato inválido para el número complejo: " + valor);
         }
+
+        // Separar la parte real y la parte imaginaria
+        String parteReal = sinImaginario.substring(0, posSigno);
+        String parteImaginaria = sinImaginario.substring(posSigno);
+
+        // Convertir ambas partes a números
+        double real = Double.parseDouble(parteReal.trim());
+        double imaginario = Double.parseDouble(parteImaginaria.trim());
+
+        return new Complejo(real, imaginario);
     } catch (Exception e) {
-        // Si falla, intentar buscar el valor en la pila de tablas de símbolos
+        // Si ocurre un error, verificar si el valor está en la tabla de símbolos
         Symbol simbolo = stackSymbolTable.lookup(valor);
         if (simbolo != null) {
             String valorSimbolo = simbolo.getValue();
             return parseComplejo(valorSimbolo); // Intentar parsear el valor del símbolo
         }
-        // Si no se encuentra el símbolo, lanzar la excepción original
-        throw new NumberFormatException("Error al parsear número complejo: " + e.getMessage() + 
+        // Lanzar la excepción original si no se encuentra el símbolo
+        throw new NumberFormatException("Error al parsear número complejo: " + e.getMessage() +
                                          ". Además, el símbolo '" + valor + "' no fue encontrado.");
     }
 }
-
 
 
 private String realizarOperacionNumerica(String valorIzquierdo, String valorDerecho, ClaseLexica operador) {
