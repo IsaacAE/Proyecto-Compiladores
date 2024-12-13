@@ -1974,6 +1974,29 @@ public void guardarTablaDeSimbolosEnArchivo(SymbolTable tabla, String archivo) {
     }
 }
 
+public void guardarTablaDeSimbolosEnArchivo(SymbolTable tabla, String archivo) {
+    if (tabla != null) {
+        try (FileWriter writer = new FileWriter(archivo)) {
+            writer.write("Tabla de símbolos:\n");
+            
+            // Obtener todos los IDs
+            Set<String> ids = tabla.getAllIds();
+            
+            // Escribir cada ID junto con su símbolo correspondiente
+            for (String id : ids) {
+                Symbol symbol = tabla.getSymbolSecure(id); // Obtener el símbolo por el id
+                if (symbol != null) {
+                    writer.write("ID: " + id + ", " + symbol + "\n");
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error al escribir la tabla de símbolos en el archivo: " + e.getMessage());
+        }
+    } else {
+        System.out.println("La tabla de símbolos está vacía o no existe.");
+    }
+}
+
 public void guardarTablaDeTiposEnArchivo(String archivo) {
     try (FileWriter writer = new FileWriter(archivo)) {
         writer.write("Tabla de Tipos:\n");
