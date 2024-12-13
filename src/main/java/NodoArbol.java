@@ -7,6 +7,7 @@ public class NodoArbol {
     private String tipo; // Tipo del nodo (por ejemplo, PROGRAMA, FUNC, etc.)
     private String valor; // Valor asociado al nodo (el texto del token)
     private List<NodoArbol> hijos; // Hijos del nodo
+    private String anotacion; // Anotación adicional
 
     public NodoArbol(String tipo, String valor) {
         this.tipo = tipo;
@@ -30,23 +31,24 @@ public class NodoArbol {
         return hijos;
     }
 
-   // Método toString para mostrar el árbol de manera más visual
-    public String toString(String indentacion) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(indentacion).append(tipo);
-        if (valor != null && !valor.isEmpty()) {
-            sb.append(" -> ").append(valor); // Mostrar el valor si existe
-        }
-        sb.append("\n");
-        for (NodoArbol hijo : hijos) {
-            sb.append(hijo.toString(indentacion + "  ")); // Recursión para los hijos con mayor indentación
-        }
-        return sb.toString();
+    public String getAnotacion() {
+        return anotacion;
+    }
+
+    public void setAnotacion(String anotacion) {
+        this.anotacion = anotacion;
     }
 
     @Override
     public String toString() {
-        return toString(""); // Llamar al método recursivo con indentación inicial vacía
+        StringBuilder sb = new StringBuilder();
+        sb.append(tipo);
+        if (valor != null && !valor.isEmpty()) {
+            sb.append(" -> ").append(valor);
+        }
+        if (anotacion != null && !anotacion.isEmpty()) {
+            sb.append(" [").append(anotacion).append("]");
+        }
+        return sb.toString();
     }
 }
-

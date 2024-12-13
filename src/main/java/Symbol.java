@@ -17,6 +17,10 @@ public class Symbol {
         this.args = args;
         this.value = null; // El valor puede estar vacío inicialmente
     }
+    
+    public void setAddress(int address) {
+        this.dir = address;
+    }
 
     // Métodos getter
     public int getDir() {

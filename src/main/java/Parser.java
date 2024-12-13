@@ -15,6 +15,9 @@ public class Parser {
     private Lexer lexer;
     private Token tokenActual;
 
+    private ArbolSemantico arbolSemantico;
+    private NodoArbol nodoActual;
+
     private Symbol simboloEstructurado = null; // Variable global para almacenar el último símbolo estructurado
 
     private SymbolTableStack stackSymbolTable = new SymbolTableStack();
@@ -26,6 +29,7 @@ public class Parser {
 
     public Parser(Lexer lexer) {
         this.lexer = lexer;
+        this.arbolSemantico = new ArbolSemantico(null);
     }
 
     private void eat(ClaseLexica claseEsperada) {
@@ -63,8 +67,27 @@ public class Parser {
         if (this.tokenActual.getClase() == ClaseLexica.EOF) {
             validarPrototiposConFunciones(stackSymbolTable.base());
             System.out.println("La cadena es aceptada");
+
+            // Asignar direcciones a las variables en la tabla de símbolos global
+            int direccion = 0;
+            for (Symbol symbol : stackSymbolTable.base().getAllSymbols()) {
+                symbol.setAddress(direccion);
+                Type t = typeTable.getType(symbol.getType());
+                direccion += t.getTam(); 
+            }
+
+            // TO DO
+            // Asignar direcciones a las variables en las tablas de símbolos no globales
+           
+            // OUTPUT DEL ÁRBOL SEMÁNTICO
+            System.out.println("Árbol semántico:");
+            System.out.println(arbolSemantico.toString());
+            System.out.println(stackSymbolTable.toString());
+            System.out.println(typeTable.toString());
+
             guardarTablaDeSimbolosEnArchivo(stackSymbolTable.base(), "TablaDeSimbolos.txt");
             guardarTablaDeTiposEnArchivo("TablaDeTipos.txt");
+
         } else {
             error("Se esperaba el final del archivo");
         }
@@ -72,11 +95,12 @@ public class Parser {
 
     // Producción principal
     private void programa() {
+        NodoArbol nodoPrograma = new NodoArbol("PROGRAMA", null);
+        arbolSemantico.setRaiz(nodoPrograma);
+        nodoActual = nodoPrograma;
+
         decl_proto();
-        
         decl_var();
-        //System.out.println("TABLA DE SIMBOLOS");
-        //imprimirTablaDeSimbolos(stackSymbolTable.peek());
         decl_func();
     }
 
@@ -86,6 +110,10 @@ public class Parser {
             int tipoRetorno = tipo(); // Tipo de retorno del prototipo
             String idPrototipo = tokenActual.getLexema(); // Nombre del prototipo
             eat(ClaseLexica.ID);
+
+            NodoArbol nodoPrototipo = new NodoArbol("PROTO", idPrototipo);
+            arbolSemantico.agregarHijo(nodoActual, nodoPrototipo);
+            nodoActual = nodoPrototipo;
     
             SymbolTable tablaGlobal = stackSymbolTable.base(); // Obtener la tabla global
     
@@ -108,6 +136,8 @@ public class Parser {
             Symbol simboloPrototipo = new Symbol(-1, tipoRetorno, "prototipo", argumentos);
             tablaGlobal.addSymbol(idPrototipo, simboloPrototipo);
             prototiposGlobales.add(Map.entry(idPrototipo, simboloPrototipo));  // Guardar en la lista global
+            
+            
             eat(ClaseLexica.PARENTESIS_CIERRA);
             eat(ClaseLexica.PUNTO_Y_COMA);
     
@@ -116,6 +146,7 @@ public class Parser {
             //imprimirTablaDeSimbolos(tablaPrototipo);
     
             stackSymbolTable.pop(); // Retirar la tabla de argumentos del prototipo
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual); // Retroceder al nodo padre
         }
     }
     
@@ -143,6 +174,10 @@ public class Parser {
                 for (String var : variables) {
                     Symbol varSymbol = new Symbol(-1, tipo, "puntero", null);
                     agregarSimbolo(var, varSymbol);
+
+                    NodoArbol nodoVar = new NodoArbol("VAR", var);
+                    arbolSemantico.agregarHijo(nodoActual, nodoVar);
+                    arbolSemantico.anotarNodo(nodoVar, "Tipo: Puntero a " + getTipoFromInt(tipo));
                 }
                 }else{
 
@@ -150,16 +185,23 @@ public class Parser {
             for (String var : variables) {
                 Symbol varSymbol = new Symbol(-1, tipo, "arreglo", null);
                 agregarSimbolo(var, varSymbol);
+
+                NodoArbol nodoVar = new NodoArbol("VAR", var);
+                    arbolSemantico.agregarHijo(nodoActual, nodoVar);
+                    arbolSemantico.anotarNodo(nodoVar, "Tipo: Arreglo de " + getTipoFromInt(tipo));
+
             }
                 }
-
-
               
             }else{
             // Registrar cada variable en la tabla de símbolos actual
             for (String var : variables) {
                 Symbol varSymbol = new Symbol(-1, tipo, "variable", null);
                 agregarSimbolo(var, varSymbol);
+
+                NodoArbol nodoVar = new NodoArbol("VAR", var);
+                arbolSemantico.agregarHijo(nodoActual, nodoVar);
+                arbolSemantico.anotarNodo(nodoVar, "Tipo: " + getTipoFromInt(tipo));
             }
         }
         }
@@ -169,13 +211,15 @@ public class Parser {
         if (tokenActual.getClase() == ClaseLexica.FUNC) {
             eat(ClaseLexica.FUNC);
     
-            // Obtener el tipo de retorno de la función
-            int tipoRetorno = tipo();
-    
+            int tipoRetorno = tipo();   
             // Obtener el nombre de la función
             String idFuncion = tokenActual.getLexema();
             eat(ClaseLexica.ID);
-    
+
+            NodoArbol nodoFuncion = new NodoArbol("FUNC", idFuncion);
+            arbolSemantico.agregarHijo(nodoActual, nodoFuncion);
+            nodoActual = nodoFuncion;
+
             // Registrar la función en la tabla de símbolos global
             SymbolTable tablaGlobal = stackSymbolTable.base();
             // Verificar si ya existe un prototipo con el mismo ID en la tabla global
@@ -203,7 +247,10 @@ public class Parser {
             eat(ClaseLexica.PARENTESIS_CIERRA);
             bloque();
     
+            // stackSymbolTable.pop(); 
             // Mantener la tabla de la función en la pila (no se elimina)
+
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
             //System.out.println("Tabla de símbolos para la función '" + idFuncion + "':");
             //imprimirTablaDeSimbolos(stackSymbolTable.peek());
         }
@@ -461,12 +508,8 @@ private List<String> argumentos() {
                 // Manejar parte izquierda
                 int tipoIzquierdo = parteIzquierda(); // Obtener el tipo de la parte izquierda
 
-        
-               
-
-
-        
-                   
+                String tipoStr = String.valueOf(tipoIzquierdo);
+                
             if (tokenActual.getClase() == ClaseLexica.ASIGNACION) {
                 eat(ClaseLexica.ASIGNACION);
                 TipoValor t = exp(true);
@@ -475,6 +518,7 @@ private List<String> argumentos() {
                // System.out.println(tipoExpresion);
                
                 String valorExpresion = t.getValor();
+
 
                  // Validar compatibilidad entre la parte izquierda y la expresión
                  compatibilidad= validarCompatibilidadTipos(tipoIzquierdo, tipoExpresion, ClaseLexica.ASIGNACION );
@@ -507,50 +551,114 @@ private List<String> argumentos() {
         } else if (tokenActual.getClase() == ClaseLexica.IF) {
             // Sentencia if
             eat(ClaseLexica.IF);
+            NodoArbol nodoIf = new NodoArbol("IF", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoIf);
+            nodoActual = nodoIf;
+
             eat(ClaseLexica.PARENTESIS_ABRE);
+
+            NodoArbol nodoCondicion = new NodoArbol("CONDICION", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoCondicion);
+            nodoActual = nodoCondicion;
+
             TipoValor t = exp(false);
             int tipoCondicion = t.getTipo();
              
             //if (tipoCondicion != 5) { // 5 representa boolean
                // error("La condición del 'if' debe ser de tipo boolean.");
            // }
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
+
             eat(ClaseLexica.PARENTESIS_CIERRA);
+
+            NodoArbol nodoThen = new NodoArbol("THEN", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoThen);
+            nodoActual = nodoThen;
+
             sentencia();
+
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
+
             if (tokenActual.getClase() == ClaseLexica.ELSE) {
                 eat(ClaseLexica.ELSE);
+
+                NodoArbol nodoElse = new NodoArbol("ELSE", null);
+                arbolSemantico.agregarHijo(nodoActual, nodoElse);
+                nodoActual = nodoElse;
+
                 sentencia();
+
+                nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
             }
     
         } else if (tokenActual.getClase() == ClaseLexica.WHILE) {
             // Sentencia while
             eat(ClaseLexica.WHILE);
+
+            NodoArbol nodoWhile = new NodoArbol("WHILE", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoWhile);
+            nodoActual = nodoWhile;
+
             eat(ClaseLexica.PARENTESIS_ABRE);
+
+            NodoArbol nodoCondicion = new NodoArbol("CONDICION", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoCondicion);
+            nodoActual = nodoCondicion;
+
             TipoValor t = exp(false);
             int tipoCondicion = t.getTipo();
            
             if (tipoCondicion == 4 ) {
                 error("La condición del 'while' debe ser de tipo boolean.");
             }
+
             eat(ClaseLexica.PARENTESIS_CIERRA);
+
+            NodoArbol nodoCuerpo = new NodoArbol("CUERPO", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoCuerpo);
+            nodoActual = nodoCuerpo;
+
             sentencia();
+
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
     
         } else if (tokenActual.getClase() == ClaseLexica.DO) {
             // Sentencia do-while
             eat(ClaseLexica.DO);
+
+            NodoArbol nodoDoWhile = new NodoArbol("DO-WHILE", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoDoWhile);
+            nodoActual = nodoDoWhile;
+
+            NodoArbol nodoCuerpo = new NodoArbol("CUERPO", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoCuerpo);
+            nodoActual = nodoCuerpo;
+            
             sentencia();
+
             eat(ClaseLexica.WHILE);
             eat(ClaseLexica.PARENTESIS_ABRE);
+
+            NodoArbol nodoCondicion = new NodoArbol("CONDICION", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoCondicion);
+            nodoActual = nodoCondicion;
+
             TipoValor t = exp(false);
             int tipoCondicion = t.getTipo();
             if (tipoCondicion == 4) {
                 error("La condición del 'do-while' debe ser de tipo boolean.");
             }
+
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
+
             eat(ClaseLexica.PARENTESIS_CIERRA);
             eat(ClaseLexica.PUNTO_Y_COMA);
-    
+            
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
+
         } else if (tokenActual.getClase() == ClaseLexica.BREAK) {
             // Sentencia break
-            
+
             eat(ClaseLexica.BREAK);
             eat(ClaseLexica.PUNTO_Y_COMA);
     
@@ -625,10 +733,22 @@ private List<String> argumentos() {
         } else if (tokenActual.getClase() == ClaseLexica.SWITCH) {
             // Sentencia switch
             eat(ClaseLexica.SWITCH);
+
+            NodoArbol nodoSwitch = new NodoArbol("SWITCH", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoSwitch);
+            nodoActual = nodoSwitch;
+            
             eat(ClaseLexica.PARENTESIS_ABRE);
+            
+            NodoArbol nodoExpresion = new NodoArbol("EXPRESION", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoExpresion);
+            nodoActual = nodoExpresion;
+
             TipoValor t = exp(false);
             int tipoExpresion = t.getTipo();
             
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
+
             //System.out.println(tipoExpresion);
             eat(ClaseLexica.PARENTESIS_CIERRA);
             eat(ClaseLexica.LLAVE_ABRE);
@@ -664,6 +784,11 @@ private List<String> argumentos() {
     private void casos(int tipoSwitch) {
         while (tokenActual.getClase() == ClaseLexica.CASE) {
             eat(ClaseLexica.CASE);
+
+            NodoArbol nodoCaso = new NodoArbol("CASO", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoCaso);
+            nodoActual = nodoCaso;
+
             TipoValor t = exp(false);
             int tipoCaso = t.getTipo();
             
@@ -673,11 +798,20 @@ private List<String> argumentos() {
             }
             eat(ClaseLexica.DOS_PUNTOS);
             instrucciones(); // Procesar las instrucciones del caso
+
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
         }
         if (tokenActual.getClase() == ClaseLexica.DEFAULT) {
             eat(ClaseLexica.DEFAULT);
             eat(ClaseLexica.DOS_PUNTOS);
+
+            NodoArbol nodoDefault = new NodoArbol("DEFAULT", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoDefault);
+            nodoActual = nodoDefault;
+
             instrucciones(); // Procesar las instrucciones del caso default
+
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
         }
     }
     
@@ -1896,6 +2030,4 @@ private void actualizarDatosStruct(String structName) {
     System.out.println("Datos actualizados para el struct '" + structName + "': Items = " 
                         + totalItems + ", Tamaño = " + totalTam);
 }
-
-
 }

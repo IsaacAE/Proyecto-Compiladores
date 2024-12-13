@@ -9,6 +9,8 @@ import java.util.Optional;
 
 public class SymbolTable {
     private Map<String, Symbol> symbols = new HashMap<>();
+    private int nextAdress = 0;
+    private int nextTemp = 1000;
 
     public void addSymbol(String id, Symbol symbol) {
         symbols.put(id, symbol);
@@ -45,6 +47,16 @@ public List<Map.Entry<String, Symbol>> getSymbolsByCategory(String category) {
     }
 
     return result;
+}
+
+@Override
+public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("Tablas de Simbolos:\n");
+    for (Map.Entry<String, Symbol> entry : symbols.entrySet()) {
+        sb.append(entry.getKey()).append(" -> ").append(entry.getValue()).append("\n");
+    }
+    return sb.toString();
 }
 
 }

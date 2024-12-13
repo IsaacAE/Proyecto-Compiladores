@@ -1,4 +1,6 @@
 package main.java;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Stack;
 
@@ -40,6 +42,15 @@ public class SymbolTableStack {
     return null; // Si no se encuentra en ningún ámbito
 }
 
+@Override
+public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("Pila de Tablas de Simbolos:\n");
+    for (SymbolTable tabla : stack) {
+        sb.append(tabla).append("\n");
+    }
+    return sb.toString();
+}
 
 public SymbolTable base(){
 	return stack.firstElement();

@@ -77,7 +77,6 @@ public void setItems(int items) {
         return false;
     }
     
-    
     // Métodos para manejar miembros de struct
     public void setMembers(Map<String, Integer> members) {
         this.members = members;
