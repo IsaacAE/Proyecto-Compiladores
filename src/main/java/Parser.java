@@ -91,10 +91,10 @@ public class Parser {
             // OUTPUT DEL ÁRBOL SEMÁNTICO
             System.out.println("Árbol semántico:");
             System.out.println(arbolSemantico.toString());
-            System.out.println();
-            imprimirTablaDeSimbolos(stackSymbolTable.base());
-            System.out.println();
-            imprimirTablaDeTipos();
+            System.out.println(stackSymbolTable.toString());
+            System.out.println(typeTable.toString());
+
+
 
         } else {
             error("Se esperaba el final del archivo");
