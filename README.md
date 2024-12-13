@@ -6,6 +6,7 @@
 ## Alumnos
 Alcántara Estrada Kevin Isaac
 Sandoval Mendoza Angel
+Menchaca Carrillo Rodolfo Josue
 
 ### Estructura del directorio
 
