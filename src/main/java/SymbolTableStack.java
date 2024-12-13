@@ -42,6 +42,7 @@ public class SymbolTableStack {
     return null; // Si no se encuentra en ningún ámbito
 }
 
+
 @Override
 public String toString() {
     StringBuilder sb = new StringBuilder();

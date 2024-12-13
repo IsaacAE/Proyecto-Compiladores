@@ -88,13 +88,22 @@ public class Parser {
             guardarTablaDeSimbolosEnArchivo(stackSymbolTable.base(), "TablaDeSimbolos.txt");
             guardarTablaDeTiposEnArchivo("TablaDeTipos.txt");
 
+            // Asignar direcciones a las variables en la tabla de símbolos global
+            int direccion = 0;
+            for (Symbol symbol : stackSymbolTable.base().getAllSymbols()) {
+                symbol.setAddress(direccion);
+                Type t = typeTable.getType(symbol.getType());
+                direccion += t.getTam(); 
+            }
+
+            // TO DO
+            // Asignar direcciones a las variables en las tablas de símbolos no globales
+           
             // OUTPUT DEL ÁRBOL SEMÁNTICO
             System.out.println("Árbol semántico:");
             System.out.println(arbolSemantico.toString());
             System.out.println(stackSymbolTable.toString());
             System.out.println(typeTable.toString());
-
-
 
         } else {
             error("Se esperaba el final del archivo");
