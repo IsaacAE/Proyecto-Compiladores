@@ -47,5 +47,15 @@ public List<Map.Entry<String, Symbol>> getSymbolsByCategory(String category) {
     return result;
 }
 
+@Override
+public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("Tablas de Simbolos:\n");
+    for (Map.Entry<String, Symbol> entry : symbols.entrySet()) {
+        sb.append(entry.getKey()).append(" -> ").append(entry.getValue()).append("\n");
+    }
+    return sb.toString();
+}
+
 }
 

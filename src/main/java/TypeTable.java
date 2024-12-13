@@ -75,5 +75,15 @@ public int size() {
     return types.size();
 }
 
+@Override
+public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("Tabla de Tipos:\n");
+    for (Map.Entry<Integer, Type> entry : types.entrySet()) {
+        sb.append(entry.getKey()).append(" -> ").append(entry.getValue()).append("\n");
+    }
+    return sb.toString();
+}
+
 }
 

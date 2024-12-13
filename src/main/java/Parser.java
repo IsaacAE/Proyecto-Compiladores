@@ -70,10 +70,10 @@ public class Parser {
             // OUTPUT DEL ÁRBOL SEMÁNTICO
             System.out.println("Árbol semántico:");
             System.out.println(arbolSemantico.toString());
-            System.out.println();
-            imprimirTablaDeSimbolos(stackSymbolTable.base());
-            System.out.println();
-            imprimirTablaDeTipos();
+            System.out.println(stackSymbolTable.toString());
+            System.out.println(typeTable.toString());
+
+
 
         } else {
             error("Se esperaba el final del archivo");
@@ -477,16 +477,13 @@ private List<String> argumentos() {
                  String lexemaId = tokenActual.getLexema();
                 // Manejar parte izquierda
                 int tipoIzquierdo = parteIzquierda(); // Obtener el tipo de la parte izquierda
-
-        
-                 
-        
                    
             if (tokenActual.getClase() == ClaseLexica.ASIGNACION) {
                 eat(ClaseLexica.ASIGNACION);
                 TipoValor t = exp(true);
                 int tipoExpresion = t.getTipo();
                 String valorExpresion = t.getValor();
+
 
                  // Validar compatibilidad entre la parte izquierda y la expresión
                  compatibilidad= validarCompatibilidadTipos(tipoIzquierdo, tipoExpresion, ClaseLexica.ASIGNACION );
@@ -519,50 +516,114 @@ private List<String> argumentos() {
         } else if (tokenActual.getClase() == ClaseLexica.IF) {
             // Sentencia if
             eat(ClaseLexica.IF);
+            NodoArbol nodoIf = new NodoArbol("IF", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoIf);
+            nodoActual = nodoIf;
+
             eat(ClaseLexica.PARENTESIS_ABRE);
+
+            NodoArbol nodoCondicion = new NodoArbol("CONDICION", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoCondicion);
+            nodoActual = nodoCondicion;
+
             TipoValor t = exp(false);
             int tipoCondicion = t.getTipo();
              
             //if (tipoCondicion != 5) { // 5 representa boolean
                // error("La condición del 'if' debe ser de tipo boolean.");
            // }
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
+
             eat(ClaseLexica.PARENTESIS_CIERRA);
+
+            NodoArbol nodoThen = new NodoArbol("THEN", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoThen);
+            nodoActual = nodoThen;
+
             sentencia();
+
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
+
             if (tokenActual.getClase() == ClaseLexica.ELSE) {
                 eat(ClaseLexica.ELSE);
+
+                NodoArbol nodoElse = new NodoArbol("ELSE", null);
+                arbolSemantico.agregarHijo(nodoActual, nodoElse);
+                nodoActual = nodoElse;
+
                 sentencia();
+
+                nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
             }
     
         } else if (tokenActual.getClase() == ClaseLexica.WHILE) {
             // Sentencia while
             eat(ClaseLexica.WHILE);
+
+            NodoArbol nodoWhile = new NodoArbol("WHILE", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoWhile);
+            nodoActual = nodoWhile;
+
             eat(ClaseLexica.PARENTESIS_ABRE);
+
+            NodoArbol nodoCondicion = new NodoArbol("CONDICION", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoCondicion);
+            nodoActual = nodoCondicion;
+
             TipoValor t = exp(false);
             int tipoCondicion = t.getTipo();
            
             if (tipoCondicion == 4 ) {
                 error("La condición del 'while' debe ser de tipo boolean.");
             }
+
             eat(ClaseLexica.PARENTESIS_CIERRA);
+
+            NodoArbol nodoCuerpo = new NodoArbol("CUERPO", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoCuerpo);
+            nodoActual = nodoCuerpo;
+
             sentencia();
+
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
     
         } else if (tokenActual.getClase() == ClaseLexica.DO) {
             // Sentencia do-while
             eat(ClaseLexica.DO);
+
+            NodoArbol nodoDoWhile = new NodoArbol("DO-WHILE", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoDoWhile);
+            nodoActual = nodoDoWhile;
+
+            NodoArbol nodoCuerpo = new NodoArbol("CUERPO", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoCuerpo);
+            nodoActual = nodoCuerpo;
+            
             sentencia();
+
             eat(ClaseLexica.WHILE);
             eat(ClaseLexica.PARENTESIS_ABRE);
+
+            NodoArbol nodoCondicion = new NodoArbol("CONDICION", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoCondicion);
+            nodoActual = nodoCondicion;
+
             TipoValor t = exp(false);
             int tipoCondicion = t.getTipo();
             if (tipoCondicion == 4) {
                 error("La condición del 'do-while' debe ser de tipo boolean.");
             }
+
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
+
             eat(ClaseLexica.PARENTESIS_CIERRA);
             eat(ClaseLexica.PUNTO_Y_COMA);
-    
+            
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
+
         } else if (tokenActual.getClase() == ClaseLexica.BREAK) {
             // Sentencia break
-            
+
             eat(ClaseLexica.BREAK);
             eat(ClaseLexica.PUNTO_Y_COMA);
     
@@ -637,10 +698,22 @@ private List<String> argumentos() {
         } else if (tokenActual.getClase() == ClaseLexica.SWITCH) {
             // Sentencia switch
             eat(ClaseLexica.SWITCH);
+
+            NodoArbol nodoSwitch = new NodoArbol("SWITCH", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoSwitch);
+            nodoActual = nodoSwitch;
+            
             eat(ClaseLexica.PARENTESIS_ABRE);
+            
+            NodoArbol nodoExpresion = new NodoArbol("EXPRESION", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoExpresion);
+            nodoActual = nodoExpresion;
+
             TipoValor t = exp(false);
             int tipoExpresion = t.getTipo();
             
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
+
             //System.out.println(tipoExpresion);
             eat(ClaseLexica.PARENTESIS_CIERRA);
             eat(ClaseLexica.LLAVE_ABRE);
@@ -676,6 +749,11 @@ private List<String> argumentos() {
     private void casos(int tipoSwitch) {
         while (tokenActual.getClase() == ClaseLexica.CASE) {
             eat(ClaseLexica.CASE);
+
+            NodoArbol nodoCaso = new NodoArbol("CASO", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoCaso);
+            nodoActual = nodoCaso;
+
             TipoValor t = exp(false);
             int tipoCaso = t.getTipo();
             
@@ -685,11 +763,20 @@ private List<String> argumentos() {
             }
             eat(ClaseLexica.DOS_PUNTOS);
             instrucciones(); // Procesar las instrucciones del caso
+
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
         }
         if (tokenActual.getClase() == ClaseLexica.DEFAULT) {
             eat(ClaseLexica.DEFAULT);
             eat(ClaseLexica.DOS_PUNTOS);
+
+            NodoArbol nodoDefault = new NodoArbol("DEFAULT", null);
+            arbolSemantico.agregarHijo(nodoActual, nodoDefault);
+            nodoActual = nodoDefault;
+
             instrucciones(); // Procesar las instrucciones del caso default
+
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
         }
     }
     

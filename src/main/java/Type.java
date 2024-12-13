@@ -68,7 +68,16 @@ public class Type {
         return false;
     }
     
-    
+    @Override
+    public String toString() {
+        return "Type{" +
+                "id=" + id +
+                ", items=" + items +
+                ", tam=" + tam +
+                ", parent=" + parent +
+                '}';
+    }
+
     // Métodos para manejar miembros de struct
     public void setMembers(Map<String, Integer> members) {
         this.members = members;
