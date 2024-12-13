@@ -1,15 +1,20 @@
 /// Declaración de prototipos
-proto void invalidPointerAssignment(int value);
+proto int invalidPointerAssignment(int value);
 ///proto void scan(int ptr);
 
 /// Declaración de variables
 ptr int pInt;
 ptr float pFloat;
+int [8][2]arr;
 int a;
 float b;
 
 
-func void invalidPointerAssignment() {
+func int invalidPointerAssignment(int value) {
     /// pInt = pFloat; // Error: No se puede asignar punteros de tipos diferentes
+    value = 10;
+    
+    pInt = value;
+    return (value + pInt);
 }
 

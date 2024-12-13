@@ -442,13 +442,34 @@ private List<String> argumentos() {
                 int tipoIzquierdo = parteIzquierda(); // Obtener el tipo de la parte izquierda
 
         
-                 
+                String tipoStr = String.valueOf(tipoIzquierdo);
+
+                // Verificar que el número es menor a -1 y tiene al menos tres caracteres (signo incluido)
+                if (tipoIzquierdo < -1 ) {
+                    // Verificar si el segundo carácter es un '8'
+                    if (tipoStr.charAt(1) == '8') {
+                        // Asignar el valor del tercer carácter como nuevo valor
+                        tipoIzquierdo = Character.getNumericValue(tipoStr.charAt(2));
+                    }
+                }
         
                    
             if (tokenActual.getClase() == ClaseLexica.ASIGNACION) {
                 eat(ClaseLexica.ASIGNACION);
                 TipoValor t = exp(true);
                 int tipoExpresion = t.getTipo();
+
+                String tipoStrE = String.valueOf(tipoExpresion);
+
+                // Verificar que el número es menor a -1 y tiene al menos tres caracteres (signo incluido)
+                if (tipoExpresion < -1 ) {
+                    // Verificar si el segundo carácter es un '8'
+                    if (tipoStrE.charAt(1) == '8') {
+                        // Asignar el valor del tercer carácter como nuevo valor
+                        tipoExpresion = Character.getNumericValue(tipoStrE.charAt(2));
+                    }
+                }
+        
                 String valorExpresion = t.getValor();
 
                  // Validar compatibilidad entre la parte izquierda y la expresión
