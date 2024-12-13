@@ -1,5 +1,3 @@
-/// Prototipos
-///proto float add(int a, int b, int c);
 proto void printResult(string msg);
 proto float calculate(float x, float y);
 
@@ -11,11 +9,11 @@ ptr int p;
 struct {
     int a;
     float b;
-}a;
+}ab;
 
 /// Funciones
 func int add(int a, int b) {
-    return a + b;
+    return 8;
 }
 
 func void printResult(string msg) {
@@ -23,6 +21,8 @@ func void printResult(string msg) {
 }
 
 func float calculate(float x, float y) {
+	x = 100.3;
+	y = -200.7;
     if (x > y) {
         return x / y;
     } else {

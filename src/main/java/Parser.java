@@ -80,11 +80,11 @@ public class Parser {
             // Asignar direcciones a las variables en las tablas de símbolos no globales
            
             // OUTPUT DEL ÁRBOL SEMÁNTICO
-            System.out.println("Árbol semántico:");
-            System.out.println(arbolSemantico.toString());
-            System.out.println(stackSymbolTable.toString());
-            System.out.println(typeTable.toString());
-
+            //System.out.println("Árbol semántico:");
+            //System.out.println(arbolSemantico.toString());
+            //System.out.println(stackSymbolTable.toString());
+            //System.out.println(typeTable.toString());
+            guardarArbolSemanticoEnArchivo(arbolSemantico, "ASA.txt");
             guardarTablaDeSimbolosEnArchivo(stackSymbolTable.base(), "TablaDeSimbolos.txt");
             guardarTablaDeTiposEnArchivo("TablaDeTipos.txt");
 
@@ -279,7 +279,7 @@ public class Parser {
             int structId = typeTable.size(); // Usar el tamaño actual de TypeTable como ID único
             String structName = "struct_" + structId; // Generar el nombre único
             // Registrar el tipo en TypeTable
-            typeTable.addType(0, 0, null);
+            typeTable.addTypeStruct(structId, 0, 0, null);
            // System.out.println("Struct '" + structName + "' registrado con ID: " + structId);
             tipoBase = structId;
             SymbolTable structTable = new SymbolTable();
@@ -300,6 +300,10 @@ public class Parser {
             String tipoPtr = "-8";
             tipoPtr += Integer.toString(tipoBasico);
             tipoBase = Integer.valueOf(tipoPtr);
+            int tam = typeTable.getTam(tipoBasico);
+            int item = typeTable.getItems(tipoBasico);
+            int parent = typeTable.getParent(tipoBasico);
+            typeTable.addTypeStruct(tipoBase, item, tam, parent);
            // System.out.println("TIPO PUNTERO: "+tipoBase);
           
         } else {
@@ -1353,7 +1357,7 @@ private int validarCompatibilidadTipos(int tipoIzquierdo, int tipoDerecho, Clase
         }
     }
 // Operadores aritméticos (+, -, *, /)
-if (operacion == ClaseLexica.MAS || operacion == ClaseLexica.MENOS ||
+if (operacion == ClaseLexica.MAS || operacion == ClaseLexica.MENOS || 
 operacion == ClaseLexica.MULTIPLICACION || operacion == ClaseLexica.DIVISION || operacion == ClaseLexica.DIVISION_ENTERA) {
 Type tipoPromovido = Type.getPromotedType(typeTable.getType(tipoIzquierdo), typeTable.getType(tipoDerecho));
 if (tipoPromovido != null) {
@@ -1362,6 +1366,14 @@ if (tipoPromovido != null) {
     error("Error: Tipos incompatibles para operadores aritméticos: " + 
           getTipoFromInt(tipoIzquierdo) + " y " + getTipoFromInt(tipoDerecho));
 }
+}
+
+if(operacion == ClaseLexica.MODULO){
+    if(tipoIzquierdo == 1 && tipoDerecho ==1){
+        return 1;
+    }else{
+        error("El modulo sólo trabaja con tipos enteros");
+    }
 }
 
 // Operador de asignación (=)
@@ -1400,7 +1412,9 @@ return -1; // Código inaccesible
                tokenActual.getClase() == ClaseLexica.LITERAL_DOUBLE || 
                tokenActual.getClase() == ClaseLexica.LITERAL_CADENA || 
                tokenActual.getClase() == ClaseLexica.TRUE || 
-               tokenActual.getClase() == ClaseLexica.FALSE;
+               tokenActual.getClase() == ClaseLexica.FALSE ||
+               tokenActual.getClase() == ClaseLexica.MENOS ||
+               tokenActual.getClase() == ClaseLexica.NOT;
     }
 
     private boolean esOperadorRelacional(ClaseLexica clase) {
@@ -1438,6 +1452,7 @@ return -1; // Código inaccesible
                tokenActual.getClase() == ClaseLexica.BREAK || 
                tokenActual.getClase() == ClaseLexica.RETURN || 
                tokenActual.getClase() == ClaseLexica.PRINT || 
+               tokenActual.getClase() == ClaseLexica.SCAN || 
                tokenActual.getClase() == ClaseLexica.LLAVE_ABRE;
     }
 
@@ -1548,7 +1563,7 @@ private void inicializarTypeTable() {
     typeTable = new TypeTable();
     
     // Registrar tipos básicos
-    typeTable.addType(1, 0, 0); // void
+    typeTable.addType(1, 1, 0); // void
     typeTable.addType(1, 4, 3); // int
     typeTable.addType(1, 4, 3); // float
     typeTable.addType(1, 8, 3); // double
@@ -2029,5 +2044,22 @@ private void actualizarDatosStruct(String structName) {
 
     System.out.println("Datos actualizados para el struct '" + structName + "': Items = " 
                         + totalItems + ", Tamaño = " + totalTam);
+}
+
+
+public void guardarArbolSemanticoEnArchivo(Object arbolSemantico, String archivo) {
+    if (arbolSemantico == null) {
+        System.err.println("El árbol semántico está vacío.");
+        return;
+    }
+
+    try (FileWriter writer = new FileWriter(archivo)) {
+        // Escribir la representación del árbol en el archivo
+        writer.write("Árbol semántico:\n");
+        writer.write(arbolSemantico.toString());
+        System.out.println("Árbol semántico guardado en: " + archivo);
+    } catch (IOException e) {
+        System.err.println("Error al escribir el árbol semántico en el archivo: " + e.getMessage());
+    }
 }
 }

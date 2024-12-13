@@ -46,12 +46,14 @@ public class TypeTable {
         return (type != null) ? type.getParent() : null;
     }
     
-    public int addStructType(Map<String, Integer> members, Integer parent) {
-    Type newType = new Type(currentId, members.size(), calculateSize(members), parent);
-    newType.setMembers(members); // Almacena los miembros del struct
-    types.put(currentId, newType);
-    return currentId++;
-}
+    // Agregar un nuevo tipo
+    public int addTypeStruct(int id, int items, int tam, Integer parent) {
+        Type newType = new Type(id, items, tam, parent);
+        types.put(id, newType);
+        return id;
+    }
+
+
 
 private int calculateSize(Map<String, Integer> members) {
     int size = 0;

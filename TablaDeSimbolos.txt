@@ -1,5 +1,3 @@
 Tabla de símbolos:
-ID: arr, Symbol{cat='arreglo', tipo=int, direccion=-1, argumentos=N/A, valor=42}
-ID: árbol, Symbol{cat='variable', tipo=struct, direccion=-1, argumentos=N/A, valor=N/A}
-ID: main, Symbol{cat='funcion', tipo=struct, direccion=-1, argumentos=, valor=N/A}
-ID: arr2, Symbol{cat='arreglo', tipo=int, direccion=-1, argumentos=N/A, valor=1}
+ID: main, Symbol{cat='funcion', tipo=int, direccion=0, argumentos=, valor=N/A}
+ID: miEstructura, Symbol{cat='variable', tipo=struct, direccion=4, argumentos=N/A, valor=N/A}

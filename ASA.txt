@@ -1,0 +1,15 @@
+Árbol semántico:
+PROGRAMA
+  VAR -> a [Tipo: int]
+  VAR -> b [Tipo: float]
+  VAR -> c [Tipo: string]
+  VAR -> p [Tipo: int]
+  VAR -> q [Tipo: float]
+  VAR -> y [Tipo: int]
+  VAR -> z [Tipo: float]
+  VAR -> pascua [Tipo: struct]
+  VAR -> anidado [Tipo: struct]
+  VAR -> miEstructura [Tipo: struct]
+  FUNC -> main
+    VAR -> x [Tipo: int]
+    VAR -> resultado [Tipo: int]

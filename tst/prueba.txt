@@ -18,6 +18,8 @@ func int main() {
 }
 
 func float suma(float a, float b) {
+	a = 2.7;
+	b = 9.3 * 82.1;
     return a + b;
 }
 
