@@ -488,33 +488,14 @@ private List<String> argumentos() {
                 int tipoIzquierdo = parteIzquierda(); // Obtener el tipo de la parte izquierda
 
                 String tipoStr = String.valueOf(tipoIzquierdo);
-
-                // Verificar que el número es menor a -1 y tiene al menos tres caracteres (signo incluido)
-                if (tipoIzquierdo < -1 ) {
-                    // Verificar si el segundo carácter es un '8'
-                    if (tipoStr.charAt(1) == '8') {
-                        // Asignar el valor del tercer carácter como nuevo valor
-                        tipoIzquierdo = Character.getNumericValue(tipoStr.charAt(2));
-                    }
-                }
-        
-                   
+                
             if (tokenActual.getClase() == ClaseLexica.ASIGNACION) {
                 eat(ClaseLexica.ASIGNACION);
                 TipoValor t = exp(true);
                 int tipoExpresion = t.getTipo();
-
-                String tipoStrE = String.valueOf(tipoExpresion);
-
-                // Verificar que el número es menor a -1 y tiene al menos tres caracteres (signo incluido)
-                if (tipoExpresion < -1 ) {
-                    // Verificar si el segundo carácter es un '8'
-                    if (tipoStrE.charAt(1) == '8') {
-                        // Asignar el valor del tercer carácter como nuevo valor
-                        tipoExpresion = Character.getNumericValue(tipoStrE.charAt(2));
-                    }
-                }
-        
+                System.out.println(tipoIzquierdo);
+                System.out.println(tipoExpresion);
+               
                 String valorExpresion = t.getValor();
 
 
@@ -665,7 +646,7 @@ private List<String> argumentos() {
             eat(ClaseLexica.RETURN);
             int tipoReturn = 0; // Asumimos que void es por defecto
             if (esInicioExpresion()) {
-                TipoValor t = exp(false);
+                TipoValor t = exp(true);
                 tipoReturn = t.getTipo();
                 
             }
@@ -1302,6 +1283,29 @@ private TipoValor llamada(String idFuncion, List<Integer> parametrosLlamada) {
 
 private int validarCompatibilidadTipos(int tipoIzquierdo, int tipoDerecho, ClaseLexica operacion) {
    //System.out.println("tipoIzquierdo:" + tipoIzquierdo + " tipoDerecho:" + tipoDerecho);
+
+   String tipoStrE = String.valueOf(tipoDerecho);
+
+   String tipoStr = String.valueOf(tipoIzquierdo);
+
+   // Verificar que el número es menor a -1 y tiene al menos tres caracteres (signo incluido)
+   if (tipoIzquierdo < -1 ) {
+       // Verificar si el segundo carácter es un '8'
+       if (tipoStr.charAt(1) == '8') {
+           // Asignar el valor del tercer carácter como nuevo valor
+           tipoIzquierdo = Character.getNumericValue(tipoStr.charAt(2));
+       }
+   }
+
+   // Verificar que el número es menor a -1 y tiene al menos tres caracteres (signo incluido)
+   if (tipoDerecho < -1 ) {
+       // Verificar si el segundo carácter es un '8'
+       if (tipoStrE.charAt(1) == '8') {
+           // Asignar el valor del tercer carácter como nuevo valor
+           tipoDerecho = Character.getNumericValue(tipoStrE.charAt(2));
+       }
+   }
+
 
     // Operadores relacionales (==, !=, <, >, <=, >=)
     if (operacion == ClaseLexica.IGUAL || operacion == ClaseLexica.DIFERENTE ||
