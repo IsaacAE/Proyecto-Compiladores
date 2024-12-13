@@ -1,5 +1,6 @@
 package main.java;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,6 +85,8 @@ public class Parser {
             System.out.println(stackSymbolTable.toString());
             System.out.println(typeTable.toString());
 
+            guardarTablaDeSimbolosEnArchivo(stackSymbolTable.base(), "TablaDeSimbolos.txt");
+            guardarTablaDeTiposEnArchivo("TablaDeTipos.txt");
         } else {
             error("Se esperaba el final del archivo");
         }
@@ -286,6 +289,7 @@ public class Parser {
 
             // Registrar la tabla de símbolos del struct en el HashMap
             structTables.put(structName, stackSymbolTable.pop());
+            actualizarDatosStruct(structName);
 
             
            // imprimirTablaDeSimbolos(structTables.get(structName));
@@ -363,8 +367,24 @@ public class Parser {
         int totalItems = calcularTotalItems(dimensiones);
         int idCompuesto = Integer.parseInt(tipoCompuestoId);
         Integer tipoPadre = typeTable.getType(tipoBase).getParent();
+
+        String idStr = String.valueOf(idCompuesto);
+    
+        char segundoCaracter = idStr.charAt(1);
+        tipoBase = Character.getNumericValue(segundoCaracter);
+
+        // Obtener el tamaño del tipo base usando la tabla de tipos
+        Type tipoBaseType = typeTable.getType(tipoBase);
+        
+            int tamBase = tipoBaseType.getTam();
+            
+            // Calcular el tamaño total
+            int tamTotal = totalItems * tamBase;
+
+
+
         if (!typeTable.contains(idCompuesto)) {
-            typeTable.addTypeArray(idCompuesto, totalItems, 0, tipoPadre); // Añadir el tipo compuesto
+            typeTable.addTypeArray(idCompuesto, totalItems, tamTotal, tipoPadre); // Añadir el tipo compuesto
         }
     
         return idCompuesto;
@@ -493,8 +513,8 @@ private List<String> argumentos() {
                 eat(ClaseLexica.ASIGNACION);
                 TipoValor t = exp(true);
                 int tipoExpresion = t.getTipo();
-                System.out.println(tipoIzquierdo);
-                System.out.println(tipoExpresion);
+               // System.out.println(tipoIzquierdo);
+               // System.out.println(tipoExpresion);
                
                 String valorExpresion = t.getValor();
 
@@ -1483,6 +1503,18 @@ private int getTipoFromString(String tipo) {
 
 
 private String getTipoFromInt(int tipo) {
+
+    if (tipo < -1) {
+        String tipoStr = String.valueOf(tipo);
+    
+        // Verificar si el segundo carácter es un '8'
+        if (tipoStr.length() >= 3 && tipoStr.charAt(1) == '8') { // El índice 1 corresponde al segundo carácter
+            return "ptr";
+        } else {
+            return "arreglo";
+        }
+    }
+
     if (tipo > 7 && tipo <= typeTable.size()) {
         return "struct";
     }
@@ -1521,7 +1553,7 @@ private void inicializarTypeTable() {
     typeTable.addType(1, 8, 3); // double
     typeTable.addType(1, 2, 4); // string
     typeTable.addType(1, 1, 5); // runa
-    typeTable.addType(1, 0, 6); // boolean
+    typeTable.addType(1, 1, 6); // boolean
     typeTable.addType(1, 16, 7); // complex
     
 
@@ -1900,5 +1932,103 @@ private int convertirAEntero(String valor) {
         return -1; // Este return nunca se alcanzará debido al error
     }
 }
+
+
+public void guardarTablaDeSimbolosEnArchivo(SymbolTable tabla, String archivo) {
+    if (tabla != null) {
+        try (FileWriter writer = new FileWriter(archivo)) {
+            writer.write("Tabla de símbolos:\n");
+            
+            // Obtener todos los IDs
+            Set<String> ids = tabla.getAllIds();
+            
+            // Escribir cada ID junto con su símbolo correspondiente
+            for (String id : ids) {
+                Symbol symbol = tabla.getSymbolSecure(id); // Obtener el símbolo por el id
+                if (symbol != null) {
+                    writer.write("ID: " + id + ", " + symbol + "\n");
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error al escribir la tabla de símbolos en el archivo: " + e.getMessage());
+        }
+    } else {
+        System.out.println("La tabla de símbolos está vacía o no existe.");
+    }
+}
+
+public void guardarTablaDeTiposEnArchivo(String archivo) {
+    try (FileWriter writer = new FileWriter(archivo)) {
+        writer.write("Tabla de Tipos:\n");
+
+        // Iterar sobre todos los IDs en la tabla de tipos
+        for (int id : typeTable.getAllIds()) {
+            Type tipo = typeTable.getType(id);
+
+            if (tipo != null) {
+                writer.write("ID: " + id + ", " + tipo + "\n");
+
+                // Si el tipo es una estructura, listar sus miembros
+                Map<String, Integer> miembros = getStructMembers(id);
+                if (miembros != null) {
+                    writer.write("  Miembros:\n");
+                    for (Map.Entry<String, Integer> miembro : miembros.entrySet()) {
+                        writer.write("    - " + miembro.getKey() + ": Tipo ID " + miembro.getValue() + "\n");
+                    }
+                }
+            } else {
+                writer.write("ID: " + id + " está vacío o no es válido.\n");
+            }
+        }
+    } catch (IOException e) {
+        System.err.println("Error al escribir la tabla de tipos en el archivo: " + e.getMessage());
+    }
+}
+
+private void actualizarDatosStruct(String structName) {
+    // Obtener la tabla de símbolos asociada al struct
+    SymbolTable structTable = structTables.get(structName);
+    if (structTable == null) {
+        error("El struct '" + structName + "' no está registrado.");
+        return;
+    }
+
+    // Obtener el ID del tipo asociado al struct
+    int structId = Integer.parseInt(structName.split("_")[1]);
+    System.out.println("STRUCT ID : " +structId);
+    Type structType = typeTable.getType(structId);
+    if (structType == null) {
+        imprimirTablaDeTipos();
+        error("El tipo asociado al struct '" + structName + "' no existe en la tabla de tipos.");
+        
+        return;
+    }
+
+    // Calcular el número total de items y el tamaño total del struct
+    int totalItems = 0;
+    int totalTam = 0;
+
+    for (String memberName : structTable.getAllIds()) {
+        Symbol member = structTable.getSymbolSecure(memberName);
+        if (member != null) {
+            int memberTypeId = member.getType();
+            Type memberType = typeTable.getType(memberTypeId);
+            if (memberType != null) {
+                totalItems += memberType.getItems();
+                totalTam += memberType.getTam();
+            } else {
+                error("El tipo del miembro '" + memberName + "' no está definido.");
+            }
+        }
+    }
+
+    // Actualizar los valores en la tabla de tipos
+    structType.setItems(totalItems);
+    structType.setTam(totalTam);
+
+    System.out.println("Datos actualizados para el struct '" + structName + "': Items = " 
+                        + totalItems + ", Tamaño = " + totalTam);
+}
+
 
 }
