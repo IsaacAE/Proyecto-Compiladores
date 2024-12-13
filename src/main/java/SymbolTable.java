@@ -9,6 +9,8 @@ import java.util.Optional;
 
 public class SymbolTable {
     private Map<String, Symbol> symbols = new HashMap<>();
+    private int nextAdress = 0;
+    private int nextTemp = 1000;
 
     public void addSymbol(String id, Symbol symbol) {
         symbols.put(id, symbol);
