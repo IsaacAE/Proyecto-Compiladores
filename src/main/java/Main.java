@@ -6,8 +6,6 @@ import main.jflex.Lexer;
 
 public class Main {
     public static void main(String[] args) {
-        // TESTS
-        //TestArbolSemantico.runTest();
 
         ArbolSemantico arbol = null; // Inicializamos arbol fuera del bloque try-catch
         try {
