@@ -14,6 +14,9 @@ public class Parser {
     private Lexer lexer;
     private Token tokenActual;
 
+    private ArbolSemantico arbolSemantico;
+    private NodoArbol nodoActual;
+
     private Symbol simboloEstructurado = null; // Variable global para almacenar el último símbolo estructurado
 
     private SymbolTableStack stackSymbolTable = new SymbolTableStack();
@@ -25,6 +28,7 @@ public class Parser {
 
     public Parser(Lexer lexer) {
         this.lexer = lexer;
+        this.arbolSemantico = new ArbolSemantico(null);
     }
 
     private void eat(ClaseLexica claseEsperada) {
@@ -62,6 +66,15 @@ public class Parser {
         if (this.tokenActual.getClase() == ClaseLexica.EOF) {
             validarPrototiposConFunciones(stackSymbolTable.base());
             System.out.println("La cadena es aceptada");
+
+            // OUTPUT DEL ÁRBOL SEMÁNTICO
+            System.out.println("Árbol semántico:");
+            System.out.println(arbolSemantico.toString());
+            System.out.println();
+            imprimirTablaDeSimbolos(stackSymbolTable.base());
+            System.out.println();
+            imprimirTablaDeTipos();
+
         } else {
             error("Se esperaba el final del archivo");
         }
@@ -69,11 +82,12 @@ public class Parser {
 
     // Producción principal
     private void programa() {
+        NodoArbol nodoPrograma = new NodoArbol("PROGRAMA", null);
+        arbolSemantico.setRaiz(nodoPrograma);
+        nodoActual = nodoPrograma;
+
         decl_proto();
-        
         decl_var();
-        //System.out.println("TABLA DE SIMBOLOS");
-        //imprimirTablaDeSimbolos(stackSymbolTable.peek());
         decl_func();
     }
 
@@ -83,6 +97,10 @@ public class Parser {
             int tipoRetorno = tipo(); // Tipo de retorno del prototipo
             String idPrototipo = tokenActual.getLexema(); // Nombre del prototipo
             eat(ClaseLexica.ID);
+
+            NodoArbol nodoPrototipo = new NodoArbol("PROTO", idPrototipo);
+            arbolSemantico.agregarHijo(nodoActual, nodoPrototipo);
+            nodoActual = nodoPrototipo;
     
             SymbolTable tablaGlobal = stackSymbolTable.base(); // Obtener la tabla global
     
@@ -105,6 +123,8 @@ public class Parser {
             Symbol simboloPrototipo = new Symbol(-1, tipoRetorno, "prototipo", argumentos);
             tablaGlobal.addSymbol(idPrototipo, simboloPrototipo);
             prototiposGlobales.add(Map.entry(idPrototipo, simboloPrototipo));  // Guardar en la lista global
+            
+            
             eat(ClaseLexica.PARENTESIS_CIERRA);
             eat(ClaseLexica.PUNTO_Y_COMA);
     
@@ -113,6 +133,7 @@ public class Parser {
             //imprimirTablaDeSimbolos(tablaPrototipo);
     
             stackSymbolTable.pop(); // Retirar la tabla de argumentos del prototipo
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual); // Retroceder al nodo padre
         }
     }
     
@@ -140,6 +161,10 @@ public class Parser {
                 for (String var : variables) {
                     Symbol varSymbol = new Symbol(-1, tipo, "puntero", null);
                     agregarSimbolo(var, varSymbol);
+
+                    NodoArbol nodoVar = new NodoArbol("VAR", var);
+                    arbolSemantico.agregarHijo(nodoActual, nodoVar);
+                    arbolSemantico.anotarNodo(nodoVar, "Tipo: Puntero a " + getTipoFromInt(tipo));
                 }
                 }else{
 
@@ -147,16 +172,23 @@ public class Parser {
             for (String var : variables) {
                 Symbol varSymbol = new Symbol(-1, tipo, "arreglo", null);
                 agregarSimbolo(var, varSymbol);
+
+                NodoArbol nodoVar = new NodoArbol("VAR", var);
+                    arbolSemantico.agregarHijo(nodoActual, nodoVar);
+                    arbolSemantico.anotarNodo(nodoVar, "Tipo: Arreglo de " + getTipoFromInt(tipo));
+
             }
                 }
-
-
               
             }else{
             // Registrar cada variable en la tabla de símbolos actual
             for (String var : variables) {
                 Symbol varSymbol = new Symbol(-1, tipo, "variable", null);
                 agregarSimbolo(var, varSymbol);
+
+                NodoArbol nodoVar = new NodoArbol("VAR", var);
+                arbolSemantico.agregarHijo(nodoActual, nodoVar);
+                arbolSemantico.anotarNodo(nodoVar, "Tipo: " + getTipoFromInt(tipo));
             }
         }
         }
@@ -166,13 +198,15 @@ public class Parser {
         if (tokenActual.getClase() == ClaseLexica.FUNC) {
             eat(ClaseLexica.FUNC);
     
-            // Obtener el tipo de retorno de la función
-            int tipoRetorno = tipo();
-    
+            int tipoRetorno = tipo();   
             // Obtener el nombre de la función
             String idFuncion = tokenActual.getLexema();
             eat(ClaseLexica.ID);
-    
+
+            NodoArbol nodoFuncion = new NodoArbol("FUNC", idFuncion);
+            arbolSemantico.agregarHijo(nodoActual, nodoFuncion);
+            nodoActual = nodoFuncion;
+
             // Registrar la función en la tabla de símbolos global
             SymbolTable tablaGlobal = stackSymbolTable.base();
             // Verificar si ya existe un prototipo con el mismo ID en la tabla global
@@ -200,7 +234,10 @@ public class Parser {
             eat(ClaseLexica.PARENTESIS_CIERRA);
             bloque();
     
+            // stackSymbolTable.pop(); 
             // Mantener la tabla de la función en la pila (no se elimina)
+
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
             //System.out.println("Tabla de símbolos para la función '" + idFuncion + "':");
             //imprimirTablaDeSimbolos(stackSymbolTable.peek());
         }
@@ -1739,6 +1776,5 @@ private int convertirAEntero(String valor) {
         return -1; // Este return nunca se alcanzará debido al error
     }
 }
-
 
 }
