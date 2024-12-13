@@ -88,23 +88,6 @@ public class Parser {
             guardarTablaDeSimbolosEnArchivo(stackSymbolTable.base(), "TablaDeSimbolos.txt");
             guardarTablaDeTiposEnArchivo("TablaDeTipos.txt");
 
-            // Asignar direcciones a las variables en la tabla de símbolos global
-            int direccion = 0;
-            for (Symbol symbol : stackSymbolTable.base().getAllSymbols()) {
-                symbol.setAddress(direccion);
-                Type t = typeTable.getType(symbol.getType());
-                direccion += t.getTam(); 
-            }
-
-            // TO DO
-            // Asignar direcciones a las variables en las tablas de símbolos no globales
-           
-            // OUTPUT DEL ÁRBOL SEMÁNTICO
-            System.out.println("Árbol semántico:");
-            System.out.println(arbolSemantico.toString());
-            System.out.println(stackSymbolTable.toString());
-            System.out.println(typeTable.toString());
-
         } else {
             error("Se esperaba el final del archivo");
         }
@@ -1951,28 +1934,6 @@ private int convertirAEntero(String valor) {
     }
 }
 
-public void guardarTablaDeSimbolosEnArchivo(SymbolTable tabla, String archivo) {
-    if (tabla != null) {
-        try (FileWriter writer = new FileWriter(archivo)) {
-            writer.write("Tabla de símbolos:\n");
-            
-            // Obtener todos los IDs
-            Set<String> ids = tabla.getAllIds();
-            
-            // Escribir cada ID junto con su símbolo correspondiente
-            for (String id : ids) {
-                Symbol symbol = tabla.getSymbolSecure(id); // Obtener el símbolo por el id
-                if (symbol != null) {
-                    writer.write("ID: " + id + ", " + symbol + "\n");
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Error al escribir la tabla de símbolos en el archivo: " + e.getMessage());
-        }
-    } else {
-        System.out.println("La tabla de símbolos está vacía o no existe.");
-    }
-}
 
 public void guardarTablaDeSimbolosEnArchivo(SymbolTable tabla, String archivo) {
     if (tabla != null) {
