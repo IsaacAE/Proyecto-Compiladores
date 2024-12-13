@@ -46,7 +46,7 @@ public class Type {
 
     // Verificar si un tipo puede convertirse a otro
     public boolean canBeCastedTo(Type other) {
-        return this.id == other.id || (this.parent != null && this.parent.equals(other.id));
+        return this.id == other.id || (this.parent.equals(other.id));
     }
     
     // Verifica si un tipo puede ser promovido a otro
