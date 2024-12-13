@@ -9,7 +9,7 @@ struct {
 int [5]arr;
 int [3][2]arr2;
 
-func struct{int hojas; float diámetro; double altura;} main(){
+func void main(){
 
 /// Más estructuras y anidación
 struct {
@@ -35,6 +35,6 @@ complexStruct.nested.z = 2.5;
 
 complexStruct.nested.y = arr[0]; 
 
-return árbol;
+return;
 }
 
