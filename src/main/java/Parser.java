@@ -87,6 +87,15 @@ public class Parser {
 
             guardarTablaDeSimbolosEnArchivo(stackSymbolTable.base(), "TablaDeSimbolos.txt");
             guardarTablaDeTiposEnArchivo("TablaDeTipos.txt");
+
+            // OUTPUT DEL ÁRBOL SEMÁNTICO
+            System.out.println("Árbol semántico:");
+            System.out.println(arbolSemantico.toString());
+            System.out.println();
+            imprimirTablaDeSimbolos(stackSymbolTable.base());
+            System.out.println();
+            imprimirTablaDeTipos();
+
         } else {
             error("Se esperaba el final del archivo");
         }
@@ -1933,7 +1942,6 @@ private int convertirAEntero(String valor) {
     }
 }
 
-
 public void guardarTablaDeSimbolosEnArchivo(SymbolTable tabla, String archivo) {
     if (tabla != null) {
         try (FileWriter writer = new FileWriter(archivo)) {
@@ -2029,6 +2037,4 @@ private void actualizarDatosStruct(String structName) {
     System.out.println("Datos actualizados para el struct '" + structName + "': Items = " 
                         + totalItems + ", Tamaño = " + totalTam);
 }
-
-
 }
