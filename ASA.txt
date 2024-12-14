@@ -1,39 +1,14 @@
 Árbol semántico:
 PROGRAMA
-  PROTO -> constante
-  PROTO -> imprimir
-  PROTO -> leer
-  VAR -> a [Tipo: int]
-  VAR -> b [Tipo: int]
-  VAR -> c [Tipo: int]
-  VAR -> esValido [Tipo: int]
-  VAR -> resultado [Tipo: float]
-  VAR -> número_Complejo [Tipo: complex]
-  VAR -> Ávizo_ñaos [Tipo: string]
-  VAR -> texto [Tipo: string]
-  FUNC -> constante
-  FUNC -> imprimir
-  FUNC -> leer
+  VAR -> hojas [Tipo: int]
+  VAR -> diámetro [Tipo: float]
+  VAR -> altura [Tipo: double]
+  VAR -> árbol [Tipo: struct]
+  VAR -> arr [Tipo: Arreglo de arreglo]
+  VAR -> arr2 [Tipo: Arreglo de arreglo]
   FUNC -> main
-    IF
-      CONDICION
-      THEN
-      ELSE
-        IF
-          CONDICION
-          THEN
-        SWITCH
-          EXPRESION
-          CASO
-          CASO
-          DEFAULT
-          IF
-            CONDICION
-            THEN
-            ELSE
-            WHILE
-              CONDICION
-                CUERPO
-                DO-WHILE
-                  CUERPO
-                    CONDICION
+    VAR -> x [Tipo: int]
+    VAR -> y [Tipo: float]
+    VAR -> z [Tipo: double]
+    VAR -> nested [Tipo: struct]
+    VAR -> complexStruct [Tipo: struct]

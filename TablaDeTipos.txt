@@ -1,10 +1,14 @@
 Tabla de Tipos:
 ID: 0, Type{id=void, items=1, tam=1, parent=void}
-ID: -81, Type{id=ptr, items=1, tam=4, parent=double}
 ID: 1, Type{id=int, items=1, tam=4, parent=double}
 ID: 2, Type{id=float, items=1, tam=4, parent=double}
 ID: 3, Type{id=double, items=1, tam=8, parent=double}
+ID: -132, Type{id=arreglo, items=6, tam=24, parent=double}
 ID: 4, Type{id=string, items=1, tam=2, parent=string}
 ID: 5, Type{id=rune, items=1, tam=1, parent=rune}
 ID: 6, Type{id=boolean, items=1, tam=1, parent=boolean}
 ID: 7, Type{id=complex, items=1, tam=16, parent=complex}
+ID: 8, Type{id=struct, items=3, tam=16, parent=null}
+ID: 11, Type{id=struct, items=3, tam=16, parent=null}
+ID: 12, Type{id=struct, items=2, tam=12, parent=null}
+ID: -15, Type{id=arreglo, items=5, tam=20, parent=double}
