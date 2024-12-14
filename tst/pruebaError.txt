@@ -1,0 +1,18 @@
+proto int suma(int x, int y); 
+proto void imprimir(string mensaje); 
+
+func int main() {
+    int a, b;
+    
+    a = b + ; /// Error: La expresión está incompleta, falta un operando después del operador '+'.
+    
+    if (a > 0) { 
+        c = a;     /// Error: La variable `c` no está declarada antes de usarse.
+    } else {
+        b = d;     /// Error: La variable `d` no está declarada antes de usarse.
+    }
+}
+
+func int suma(int x, int y) {
+    return x + ; /// Error: La expresión está incompleta, falta un operando después del operador '+'.
+}

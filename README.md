@@ -41,6 +41,8 @@ Proyecto-Final
     ├── prueba2.txt // Archivo de entrada que es aceptado por el parser
     ├── prueba3.txt // Archivo de entrada que es aceptado por el parser
     ├── prueba4.txt // Archivo de entrada que es aceptado por el parser
+    ├── pruebaError.txt // Archivo de entrada que contiene errores y debe ser rechazado por el parser.
+    ├── pruebaError2.txt // Archivo de entrada que contiene errores y debe ser rechazado por el parser.
     ├── pruebaStruct.txt // Archivo de entrada que es aceptado por el parser y verifica tipos struct
     ├── pruebaPtr.txt // Archivo de entrada que es aceptado por el parser y verifica tipos puntero
     └── pruebasCompuestos.txt // Archivo de entrada que es aceptado por el parser y verifica tipos compuestos

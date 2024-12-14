@@ -1,0 +1,32 @@
+proto double multiplicar(int a, float b);
+proto void mostrar();                  
+
+func int main() {
+    int x, y, z  /// Error: Falta el punto y coma al final de la declaración de variables.
+    string mensaje = "Hola; /// Error: Falta el cierre de comillas en la cadena.
+
+    y = 10; 
+
+    x = 5 + (y * z; /// Error: Falta un paréntesis de cierre `)` en la expresión.
+
+    print mensaje /// Error: Falta el punto y coma al final de la instrucción.
+
+    if (x < 0 { 
+        y = x + 1;
+    } /// Error: Falta un paréntesis de cierre `)` en la condición del `if`.
+
+    switch (z) { 
+        case 1:
+            x = 100;
+        case : /// Error: Falta un valor para el caso después de `case`.
+            y = 200;
+        default /// Error: Falta el carácter `:` después de `default`.
+            z = 0;
+    }
+
+    return 0 /// Error: Falta el punto y coma al final del `return`.
+}
+
+func double multiplicar(int a, float b) {
+    return a * b /// Error: Falta el punto y coma después de la expresión `return`.
+}
