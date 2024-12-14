@@ -490,14 +490,12 @@ private int basico() {
     return tipo; // Devolver el tipo básico identificado
 }
 
-    
-    private int puntero() {
-        eat(ClaseLexica.PTR);
-        return basico();
+private int puntero() {
+    eat(ClaseLexica.PTR);
+    return basico();
+}
 
-    }
-
-    // Producción lista_var
+// Producción lista_var
 private List<String> lista_var() {
     List<String> variables = new ArrayList<>();
     variables.add(tokenActual.getLexema()); // Registrar la primera variable
@@ -515,8 +513,7 @@ private void lista_var_prima(List<String> variables) {
     }
 }
 
-
-
+// Producción argumentos
 private List<String> argumentos() {
     List<String> listaArgumentos = new ArrayList<>();
 
@@ -552,20 +549,22 @@ private List<String> argumentos() {
     return listaArgumentos;
 }
 
+// Producción bloque
+private void bloque() {
+    eat(ClaseLexica.LLAVE_ABRE);
+    decl_var();
+    instrucciones();
+    eat(ClaseLexica.LLAVE_CIERRA);
+}
 
-    private void bloque() {
-        eat(ClaseLexica.LLAVE_ABRE);
-        decl_var();
-        instrucciones();
-        eat(ClaseLexica.LLAVE_CIERRA);
+// Producción instrucciones
+private void instrucciones() {
+    while (esInicioSentencia()) {
+        sentencia();
     }
+}
 
-    private void instrucciones() {
-        while (esInicioSentencia()) {
-            sentencia();
-        }
-    }
-
+   
     private void sentencia() {
         //System.out.println("Entrando a sentencia");
         int compatibilidad;
