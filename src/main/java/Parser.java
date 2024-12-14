@@ -1620,7 +1620,7 @@ private int getTipoVariable(String id) {
     return simbolo.getType(); // Retorna el tipo de la variable
 }
 
-// Inicializar la tabla de tipos
+// Inicializar la tabla de tipos con los tipos básicos
 private void inicializarTypeTable() {
     typeTable = new TypeTable();
     
@@ -1638,6 +1638,7 @@ private void inicializarTypeTable() {
    
 }
 
+//FUnción para imprimir la tabla de símbolos dada
 private void imprimirTablaDeSimbolos(SymbolTable tabla) {
     if (tabla != null) {
         System.out.println("Tabla de símbolos:");
@@ -1663,7 +1664,7 @@ public Map<String, Integer> getStructMembers(int structId) {
     return structType != null ? structType.getMembers() : null;
 }
 
-
+//Función para imprimir la tabla de tipos
 private void imprimirTablaDeTipos() {
     System.out.println("Tabla de Tipos:");
 
@@ -1700,6 +1701,7 @@ private void imprimirTablasDeStructs() {
     }
 }
 
+//Función para calcular los items de un compuesto
 private int calcularTotalItems(String dimensiones) {
     int total = 1;
     for (char c : dimensiones.toCharArray()) {
@@ -1708,6 +1710,7 @@ private int calcularTotalItems(String dimensiones) {
     return total;
 }
 
+//FUnción auxiliar para verificar que hay al menos tantas funciones declaradas como prototipos declarados
 public void validarPrototiposConFunciones(SymbolTable tablaGlobal) {
     // Obtener funciones directamente desde la tabla de símbolos
     List<Map.Entry<String, Symbol>> funciones = tablaGlobal.getSymbolsByCategory("funcion");
@@ -1756,21 +1759,11 @@ public void validarPrototiposConFunciones(SymbolTable tablaGlobal) {
         }
     }
 
-    // Imprimir las listas de prototipos y funciones
-   /*  System.out.println("\nPrototipos:");
-    for (Map.Entry<String, Symbol> entry : prototiposGlobales) {
-        System.out.println(entry.getKey() + " -> " + entry.getValue());
-    }
-
-    System.out.println("\nFunciones:");
-    for (Map.Entry<String, Symbol> entry : funciones) {
-        System.out.println(entry.getKey() + " -> " + entry.getValue());
-    }
-
-    System.out.println("Validación de prototipos y funciones completada con éxito.");*/
+   
 }
 
 
+//FUnción auxiliar para realizar una operación aritmética con tipos aritméticos o complex
 private String realizarOperacionAritmetica(String valorIzquierdo, String valorDerecho, ClaseLexica operador) {
     try {
 
@@ -1816,7 +1809,7 @@ private String realizarOperacionAritmetica(String valorIzquierdo, String valorDe
     }
 }
 
-
+//Función para parsear de string a número entero
 private Number parseNumero(String valor) throws NumberFormatException {
     // Eliminar sufijos 'f', 'F', 'd', 'D' si están presentes
     String valorLimpio = valor.replaceAll("[fFdD]$", "");
@@ -1848,7 +1841,7 @@ private Number parseNumero(String valor) throws NumberFormatException {
 
 
 
-
+//Función para verificar si un string es de tipo complex
 private boolean esComplejo(String valor) {
     // Expresión regular para números complejos con un signo opcional al inicio
     String regex = "^-?" + // Signo negativo opcional al inicio
@@ -1872,7 +1865,7 @@ private boolean esComplejo(String valor) {
 }
 
 
-
+//FUnción auxiliar para hacer el parseo de literales tipo complex
 private Complejo parseComplejo(String valor) {
     try {
         valor = valor.trim(); // Eliminar espacios en blanco
@@ -1911,7 +1904,7 @@ private Complejo parseComplejo(String valor) {
     }
 }
 
-
+//Función para realizar una operación aritmética con tipos adecuados
 private String realizarOperacionNumerica(String valorIzquierdo, String valorDerecho, ClaseLexica operador) {
     Number op1 = parseNumero(valorIzquierdo);
     Number op2 = parseNumero(valorDerecho);
@@ -1953,7 +1946,7 @@ private String realizarOperacionNumerica(String valorIzquierdo, String valorDere
 
 
 
-
+//FUnción auxiliar para evaluar una expresión con operaodr relacional
 private boolean evaluarOperacionRelacional(String valorIzquierdo, String valorDerecho, ClaseLexica operador) {
     try {
         // Convertir ambos valores a double para comparaciones numéricas
@@ -2011,7 +2004,7 @@ private int convertirAEntero(String valor) {
     }
 }
 
-
+//Función para guardar el resultado de la tabla de símbolos (en este caso la global) en un archivo de texto en el directorio raíz
 public void guardarTablaDeSimbolosEnArchivo(SymbolTable tabla, String archivo) {
     if (tabla != null) {
         try (FileWriter writer = new FileWriter(archivo)) {
@@ -2035,6 +2028,7 @@ public void guardarTablaDeSimbolosEnArchivo(SymbolTable tabla, String archivo) {
     }
 }
 
+//Función para guardar el resultado de la tabla de tipos en un archivo de texto en el directorio raíz
 public void guardarTablaDeTiposEnArchivo(String archivo) {
     try (FileWriter writer = new FileWriter(archivo)) {
         writer.write("Tabla de Tipos:\n");
@@ -2063,6 +2057,7 @@ public void guardarTablaDeTiposEnArchivo(String archivo) {
     }
 }
 
+//Función para actualizar los datos de un tipo struct una vez que se ha terminado de procesar
 private void actualizarDatosStruct(String structName) {
     // Obtener la tabla de símbolos asociada al struct
     SymbolTable structTable = structTables.get(structName);
@@ -2108,7 +2103,7 @@ private void actualizarDatosStruct(String structName) {
                         + totalItems + ", Tamaño = " + totalTam);
 }
 
-
+//Función para guardar el resultado del árbol semántico en un archivo de texto en el directorio raíz
 public void guardarArbolSemanticoEnArchivo(Object arbolSemantico, String archivo) {
     if (arbolSemantico == null) {
         System.err.println("El árbol semántico está vacío.");
