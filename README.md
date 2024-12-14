@@ -11,9 +11,14 @@ Menchaca Carrillo Rodolfo Josue
 ### Estructura del directorio
 
 ``` 
-P3
-├── README.md
-├── Práctica3.pdf // Archivo con los ejercicios referentes a la gramática y su justificación
+Proyecto-Final
+├── README.md // (Este archivo) con la información del proyecto
+├── Gramática_de_proyecto.pdf // Archivo con el procesamiento hecho para la gramática dada
+├── diagramas_sintaxis.xhtml // Archivo con los diagramas de sintaxis de la gramática final
+├── grammar.ebnf // Archivo con la gramática en forma EBNF
+├── ASA.txt // Archivo con el árbol de análisis semántico resultante
+├── TablaDeSimbolos.txt // Archivo con la tabla de símbolos global resultante
+├── TablaDeTipos.txt // Archivo con la tabla de símbolos resultante
 ├── src
 │   └── main
 │       ├── java
@@ -37,12 +42,20 @@ P3
     ├── prueba3.txt // Archivo de entrada que es aceptado por el parser
     ├── prueba4.txt // Archivo de entrada que es aceptado por el parser
     ├── pruebaStruct.txt // Archivo de entrada que es aceptado por el parser y verifica tipos struct
+    ├── pruebaPtr.txt // Archivo de entrada que es aceptado por el parser y verifica tipos puntero
     └── pruebasCompuestos.txt // Archivo de entrada que es aceptado por el parser y verifica tipos compuestos
 ```
 
 ### Uso
 
 #### Compilacion
+
+***NOTA:*** ubicarse en el directorio raíz y tener instalado JFlex (y una versión de jdk 8 superior). 
+
+Para obtener más detalles y descargar la última versión de JFlex, puedes visitar la siguiente página oficial:
+
+[Instrucciones para instalar JFlex](https://jflex.de/download.html)
+
 
 ```bash
 $ jflex src/main/jflex/Lexer.flex
