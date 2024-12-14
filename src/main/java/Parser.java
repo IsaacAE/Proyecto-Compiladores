@@ -1,5 +1,6 @@
 package main.java;
 
+//Importación de bibliotecas necesarias
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,21 +10,23 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.Optional;
 
+//Importación del Lexer desarrollado
 import main.jflex.Lexer;
 
+//Clase para realizar el parseo de un archivo de texto
 public class Parser {
-    private Lexer lexer;
-    private Token tokenActual;
+    private Lexer lexer; //instancia del lexer
+    private Token tokenActual; //token revisado actualmente
 
-    private ArbolSemantico arbolSemantico;
-    private NodoArbol nodoActual;
+    private ArbolSemantico arbolSemantico; //árbol de análisis semántico
+    private NodoArbol nodoActual; // nodo actual del árbol de análisis semántico
 
     private Symbol simboloEstructurado = null; // Variable global para almacenar el último símbolo estructurado
 
-    private SymbolTableStack stackSymbolTable = new SymbolTableStack();
-    private TypeTable typeTable = new TypeTable();
-    private Map<String, SymbolTable> structTables = new HashMap<>();
-    private List<Map.Entry<String, Symbol>> prototiposGlobales = new ArrayList<>();
+    private SymbolTableStack stackSymbolTable = new SymbolTableStack(); //pila de tabla de símbolos
+    private TypeTable typeTable = new TypeTable(); //tabla de tipos
+    private Map<String, SymbolTable> structTables = new HashMap<>(); //hashmap que relaciona una tabla de símbolos con un struct
+    private List<Map.Entry<String, Symbol>> prototiposGlobales = new ArrayList<>(); //lista de prototipos globales declarados
 
 
 
@@ -32,66 +35,101 @@ public class Parser {
         this.arbolSemantico = new ArbolSemantico(null);
     }
 
-    private void eat(ClaseLexica claseEsperada) {
-        if (tokenActual.getClase() == claseEsperada) {
-            try {
-                tokenActual = lexer.yylex();
-            } catch (IOException ioe) {
-                System.err.println("Error al leer el siguiente token");
-            }
-        } else {
-            error("Se esperaba: " + claseEsperada + ", pero se encontró: " + tokenActual.getClase());
-        }
-    }
-
-    private void error(String mensaje) {
-        //imprimirTablaDeSimbolos(stackSymbolTable.base());
-        //imprimirTablaDeTipos();
-        throw new RuntimeException("Error: " + mensaje);
-        
-    }
-
-    public void parse() {
+    
+    /**
+ * Consume el token actual si coincide con la clase léxica esperada.
+ * Avanza al siguiente token si la comparación es exitosa.
+ * 
+ * @param claseEsperada La clase léxica que se espera encontrar en el token actual.
+ */
+private void eat(ClaseLexica claseEsperada) {
+    // Verificar si el token actual coincide con la clase esperada
+    if (tokenActual.getClase() == claseEsperada) {
         try {
-            this.tokenActual = lexer.yylex();
+            // Avanzar al siguiente token usando el analizador léxico (lexer)
+            tokenActual = lexer.yylex();
         } catch (IOException ioe) {
-            System.err.println("Error: No fue posible obtener el primer token de la entrada.");
-            System.exit(1);
+            // Manejar errores de entrada/salida al intentar leer el siguiente token
+            System.err.println("Error al leer el siguiente token");
         }
-
-        // Inicializar la tabla global de símbolos
-        stackSymbolTable.push(new SymbolTable());
-        inicializarTypeTable();
-        programa();
-
-        if (this.tokenActual.getClase() == ClaseLexica.EOF) {
-            validarPrototiposConFunciones(stackSymbolTable.base());
-            System.out.println("La cadena es aceptada");
-
-            // Asignar direcciones a las variables en la tabla de símbolos global
-            int direccion = 0;
-            for (Symbol symbol : stackSymbolTable.base().getAllSymbols()) {
-                symbol.setAddress(direccion);
-                Type t = typeTable.getType(symbol.getType());
-                direccion += t.getTam(); 
-            }
-
-            // TO DO
-            // Asignar direcciones a las variables en las tablas de símbolos no globales
-           
-            // OUTPUT DEL ÁRBOL SEMÁNTICO
-            //System.out.println("Árbol semántico:");
-            //System.out.println(arbolSemantico.toString());
-            //System.out.println(stackSymbolTable.toString());
-            //System.out.println(typeTable.toString());
-            guardarArbolSemanticoEnArchivo(arbolSemantico, "ASA.txt");
-            guardarTablaDeSimbolosEnArchivo(stackSymbolTable.base(), "TablaDeSimbolos.txt");
-            guardarTablaDeTiposEnArchivo("TablaDeTipos.txt");
-
-        } else {
-            error("Se esperaba el final del archivo");
-        }
+    } else {
+        // Generar un error si el token actual no coincide con la clase esperada
+        error("Se esperaba: " + claseEsperada + ", pero se encontró: " + tokenActual.getClase());
     }
+}
+
+
+   /**
+ * Lanza un error crítico con un mensaje específico.
+ * 
+ * Este método se utiliza para manejar errores durante el análisis léxico o sintáctico,
+ * deteniendo la ejecución del programa y proporcionando información sobre el problema.
+ *
+ * @param mensaje El mensaje que describe el error ocurrido.
+ */
+private void error(String mensaje) {
+    // Lanza una excepción de tipo RuntimeException con el mensaje del error
+    throw new RuntimeException("Error: " + mensaje);
+}
+
+
+   /**
+ * Método principal del analizador sintáctico.
+ * 
+ * Este método realiza las siguientes acciones:
+ * 1. Inicializa el análisis léxico y obtiene el primer token.
+ * 2. Configura la tabla global de símbolos y la tabla de tipos.
+ * 3. Llama al método principal de la gramática (`programa`).
+ * 4. Verifica que toda la entrada haya sido procesada correctamente (EOF).
+ * 5. Valida los prototipos de funciones, asigna direcciones a las variables y genera los archivos de salida.
+ */
+public void parse() {
+    try {
+        // Obtener el primer token de la entrada usando el analizador léxico
+        this.tokenActual = lexer.yylex();
+    } catch (IOException ioe) {
+        // Manejar errores de entrada/salida al intentar leer el primer token
+        System.err.println("Error: No fue posible obtener el primer token de la entrada.");
+        System.exit(1); // Terminar el programa si ocurre un error crítico
+    }
+
+    // Inicializar la tabla global de símbolos en la pila
+    stackSymbolTable.push(new SymbolTable());
+    // Inicializar la tabla de tipos
+    inicializarTypeTable();
+    // Procesar el programa usando la gramática
+    programa();
+
+    // Verificar si se alcanzó el final del archivo (EOF)
+    if (this.tokenActual.getClase() == ClaseLexica.EOF) {
+        // Validar que los prototipos definidos coincidan con las funciones implementadas
+        validarPrototiposConFunciones(stackSymbolTable.base());
+        System.out.println("La cadena es aceptada");
+
+        // Asignar direcciones de memoria a las variables en la tabla global de símbolos
+        int direccion = 0;
+        for (Symbol symbol : stackSymbolTable.base().getAllSymbols()) {
+            symbol.setAddress(direccion);
+            // Incrementar la dirección usando el tamaño del tipo asociado
+            Type t = typeTable.getType(symbol.getType());
+            direccion += t.getTam(); 
+        }
+
+        // TO DO: Asignar direcciones a las variables en tablas de símbolos locales (no globales)
+        
+        // Generar archivos de salida:
+        // 1. Árbol semántico
+        guardarArbolSemanticoEnArchivo(arbolSemantico, "ASA.txt");
+        // 2. Tabla de símbolos
+        guardarTablaDeSimbolosEnArchivo(stackSymbolTable.base(), "TablaDeSimbolos.txt");
+        // 3. Tabla de tipos
+        guardarTablaDeTiposEnArchivo("TablaDeTipos.txt");
+    } else {
+        // Si no se alcanzó EOF, se lanza un error indicando que faltó procesar parte de la entrada
+        error("Se esperaba el final del archivo");
+    }
+}
+
 
     // Producción principal
     private void programa() {
