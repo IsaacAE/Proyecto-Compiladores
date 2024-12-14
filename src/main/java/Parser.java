@@ -335,168 +335,162 @@ private void decl_func_prima() {
 
     
     
+// Función tipo: Identifica y procesa el tipo de una variable o función
+private int tipo() {
+    int tipoBase = -1; // Valor por defecto para el tipo
 
-    private int tipo() {
-        int tipoBase=-1;
-    
-        if (esTipoBasico(tokenActual.getClase())) {
-           // System.out.println("Entrando a tipo basico");
-            tipoBase = basico(); // Identificar el tipo básico
-            tipoBase = tipo_prima(tipoBase); // Manejar tipos compuestos, si los hay
-        } else if (tokenActual.getClase() == ClaseLexica.STRUCT) {
-            eat(ClaseLexica.STRUCT);
-            int structId = typeTable.size(); // Usar el tamaño actual de TypeTable como ID único
-            String structName = "struct_" + structId; // Generar el nombre único
-            // Registrar el tipo en TypeTable
-            typeTable.addTypeStruct(structId, 0, 0, null);
-           // System.out.println("Struct '" + structName + "' registrado con ID: " + structId);
-            tipoBase = structId;
-            SymbolTable structTable = new SymbolTable();
-            stackSymbolTable.push(structTable); // Crear un nuevo ámbito para el struct
-            eat(ClaseLexica.LLAVE_ABRE);
-            decl_var(); // Procesar las variables internas del struct
-            eat(ClaseLexica.LLAVE_CIERRA);
+    // Verificar si el token actual es un tipo básico
+    if (esTipoBasico(tokenActual.getClase())) {
+        // Procesar tipo básico
+        tipoBase = basico(); // Identificar el tipo básico
+        tipoBase = tipo_prima(tipoBase); // Manejar tipos compuestos (arreglos), si los hay
+    } 
+    // Manejar definición de un struct
+    else if (tokenActual.getClase() == ClaseLexica.STRUCT) {
+        eat(ClaseLexica.STRUCT); // Consumir el token 'STRUCT'
 
-            // Registrar la tabla de símbolos del struct en el HashMap
-            structTables.put(structName, stackSymbolTable.pop());
-            actualizarDatosStruct(structName);
+        // Crear un ID único para el struct basado en el tamaño actual de la tabla de tipos
+        int structId = typeTable.size();
+        String structName = "struct_" + structId; // Nombre único del struct
 
-            
-           // imprimirTablaDeSimbolos(structTables.get(structName));
-        } else if (tokenActual.getClase() == ClaseLexica.PTR) {
-            // Manejar punteros
-            int tipoBasico = puntero();
-            String tipoPtr = "-8";
-            tipoPtr += Integer.toString(tipoBasico);
-            tipoBase = Integer.valueOf(tipoPtr);
-            int tam = typeTable.getTam(tipoBasico);
-            int item = typeTable.getItems(tipoBasico);
-            int parent = typeTable.getParent(tipoBasico);
-            typeTable.addTypeStruct(tipoBase, item, tam, parent);
-           // System.out.println("TIPO PUNTERO: "+tipoBase);
-          
-        } else {
-            error("Se esperaba un tipo válido.");
-            tipoBase = -1; // Código inaccesible en caso de error
-        }
-    
-        return tipoBase;
+        // Registrar el struct en la tabla de tipos con valores por defecto
+        typeTable.addTypeStruct(structId, 0, 0, null);
+
+        // Inicializar el tipo base como el ID del struct
+        tipoBase = structId;
+
+        // Crear una nueva tabla de símbolos para el ámbito del struct
+        SymbolTable structTable = new SymbolTable();
+        stackSymbolTable.push(structTable); // Agregar la tabla a la pila
+
+        eat(ClaseLexica.LLAVE_ABRE); // Consumir '{'
+        decl_var(); // Procesar las variables dentro del struct
+        eat(ClaseLexica.LLAVE_CIERRA); // Consumir '}'
+
+        // Registrar la tabla de símbolos del struct en el HashMap
+        structTables.put(structName, stackSymbolTable.pop());
+        actualizarDatosStruct(structName); // Actualizar los datos del struct en la tabla de tipos
+    } 
+    // Manejar punteros
+    else if (tokenActual.getClase() == ClaseLexica.PTR) {
+        int tipoBasico = puntero(); // Procesar el tipo del puntero
+
+        // Construir el identificador del puntero como una cadena
+        String tipoPtr = "-8" + Integer.toString(tipoBasico);
+        tipoBase = Integer.valueOf(tipoPtr); // Convertir a entero
+
+        // Obtener información del tipo base
+        int tam = typeTable.getTam(tipoBasico);
+        int item = typeTable.getItems(tipoBasico);
+        int parent = typeTable.getParent(tipoBasico);
+
+        // Registrar el tipo puntero en la tabla de tipos
+        typeTable.addTypeStruct(tipoBase, item, tam, parent);
+    } 
+    // Si no es un tipo válido, lanzar un error
+    else {
+        error("Se esperaba un tipo válido.");
+        tipoBase = -1;
     }
-    
-    private int tipo_prima(int tipoBase) {
-        if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
-            tipoBase = compuesto(tipoBase); // Procesar la primera dimensión y las adicionales
-        }
-        return tipoBase; // Retorna el tipo final, ya sea básico o compuesto
-    }
-    
 
-    private int compuesto(int tipoBase) {
-        eat(ClaseLexica.CORCHETE_ABRE);
-    
-        // Inicializar la cadena que representará las dimensiones
-        String dimensiones = "";
-    
+    return tipoBase; // Devolver el tipo identificado
+}
+
+// Función tipo_prima: Maneja tipos compuestos (arreglos) si los hay
+private int tipo_prima(int tipoBase) {
+    if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
+        tipoBase = compuesto(tipoBase); // Procesar el tipo compuesto (arreglo)
+    }
+    return tipoBase; // Retornar el tipo final (básico o compuesto)
+}
+
+// Función compuesto: Procesa el primer nivel de un tipo compuesto (arreglo)
+private int compuesto(int tipoBase) {
+    eat(ClaseLexica.CORCHETE_ABRE); // Consumir '['
+
+    // Inicializar la cadena que representará las dimensiones
+    String dimensiones = "";
+
+    // Verificar si el token actual es un literal entero (tamaño del arreglo)
+    if (tokenActual.getClase() == ClaseLexica.LITERAL_ENTERA) {
+        int dimension = Integer.parseInt(tokenActual.getLexema());
+        eat(ClaseLexica.LITERAL_ENTERA); // Consumir el literal entero
+        dimensiones += dimension; // Agregar la dimensión inicial
+    } else {
+        error("Se esperaba un literal entero como tamaño del arreglo.");
+    }
+
+    eat(ClaseLexica.CORCHETE_CIERRA); // Consumir ']'
+
+    // Pasar el tipo base y las dimensiones acumuladas a compuesto_prima
+    return compuesto_prima(tipoBase, dimensiones);
+}
+
+// Función compuesto_prima: Procesa dimensiones adicionales para tipos compuestos
+private int compuesto_prima(int tipoBase, String dimensiones) {
+    if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
+        eat(ClaseLexica.CORCHETE_ABRE); // Consumir '['
+
+        // Verificar si el token actual es un literal entero
         if (tokenActual.getClase() == ClaseLexica.LITERAL_ENTERA) {
             int dimension = Integer.parseInt(tokenActual.getLexema());
-            eat(ClaseLexica.LITERAL_ENTERA);
-    
-            dimensiones += dimension; // Agregar la dimensión inicial
+            eat(ClaseLexica.LITERAL_ENTERA); // Consumir el literal entero
+            dimensiones += dimension; // Concatenar la nueva dimensión
         } else {
             error("Se esperaba un literal entero como tamaño del arreglo.");
         }
-    
-        eat(ClaseLexica.CORCHETE_CIERRA);
-    
-        // Pasar el tipo base y las dimensiones acumuladas a compuesto_prima
+
+        eat(ClaseLexica.CORCHETE_CIERRA); // Consumir ']'
+
+        // Recursión para manejar más dimensiones
         return compuesto_prima(tipoBase, dimensiones);
     }
-    
-    
 
-    private int compuesto_prima(int tipoBase, String dimensiones) {
-        if (tokenActual.getClase() == ClaseLexica.CORCHETE_ABRE) {
-            eat(ClaseLexica.CORCHETE_ABRE);
-    
-            if (tokenActual.getClase() == ClaseLexica.LITERAL_ENTERA) {
-                int dimension = Integer.parseInt(tokenActual.getLexema());
-                eat(ClaseLexica.LITERAL_ENTERA);
-    
-                dimensiones += dimension; // Concatenar la nueva dimensión
-            } else {
-                error("Se esperaba un literal entero como tamaño del arreglo.");
-            }
-    
-            eat(ClaseLexica.CORCHETE_CIERRA);
-    
-            // Recursión para manejar más dimensiones
-            return compuesto_prima(tipoBase, dimensiones);
-        }
-    
-        // Construir el identificador único del tipo compuesto
-        String tipoCompuestoId = "-" + tipoBase + dimensiones;
-    
-        // Registrar en la tabla de tipos y retornar el ID único
-         // Calcular el número total de ítems multiplicando los dígitos de las dimensiones
-        int totalItems = calcularTotalItems(dimensiones);
-        int idCompuesto = Integer.parseInt(tipoCompuestoId);
-        Integer tipoPadre = typeTable.getType(tipoBase).getParent();
+    // Construir el identificador único del tipo compuesto
+    String tipoCompuestoId = "-" + tipoBase + dimensiones;
 
-        String idStr = String.valueOf(idCompuesto);
-    
-        char segundoCaracter = idStr.charAt(1);
-        tipoBase = Character.getNumericValue(segundoCaracter);
+    // Calcular el número total de elementos multiplicando las dimensiones
+    int totalItems = calcularTotalItems(dimensiones);
+    int idCompuesto = Integer.parseInt(tipoCompuestoId);
 
-        // Obtener el tamaño del tipo base usando la tabla de tipos
-        Type tipoBaseType = typeTable.getType(tipoBase);
-        
-            int tamBase = tipoBaseType.getTam();
-            
-            // Calcular el tamaño total
-            int tamTotal = totalItems * tamBase;
+    // Obtener el tipo padre del tipo base
+    Integer tipoPadre = typeTable.getType(tipoBase).getParent();
 
+    // Obtener el tamaño del tipo base
+    Type tipoBaseType = typeTable.getType(tipoBase);
+    int tamBase = tipoBaseType.getTam();
 
+    // Calcular el tamaño total del arreglo
+    int tamTotal = totalItems * tamBase;
 
-        if (!typeTable.contains(idCompuesto)) {
-            typeTable.addTypeArray(idCompuesto, totalItems, tamTotal, tipoPadre); // Añadir el tipo compuesto
-        }
-    
-        return idCompuesto;
-    }
-    
-    
-
-
-    private int basico() {
-        int tipo;
-        switch (tokenActual.getClase()) {
-            case INT: tipo = 1;
-            break;
-            case FLOAT: tipo = 2;
-            break;
-            case DOUBLE: tipo = 3;
-            break;
-            case STRING: tipo = 4;
-            break;
-            case RUNE: tipo = 5;
-            break;
-            case TRUE: tipo = 6;
-            break;
-            case FALSE: tipo = 6;
-            break;
-            case COMPLEX: tipo = 7;
-            break;
-            case VOID: tipo = 0;
-            break;
-            default: tipo = -1;
-        }
-        eat(tokenActual.getClase());
-        
-        
-        
-        return tipo;
+    // Registrar el tipo compuesto en la tabla si no existe ya
+    if (!typeTable.contains(idCompuesto)) {
+        typeTable.addTypeArray(idCompuesto, totalItems, tamTotal, tipoPadre);
     }
 
+    return idCompuesto; // Retornar el ID del tipo compuesto
+}
+
+// Función basico: Identifica tipos básicos como int, float, etc.
+private int basico() {
+    int tipo;
+    switch (tokenActual.getClase()) {
+        case INT: tipo = 1; break;
+        case FLOAT: tipo = 2; break;
+        case DOUBLE: tipo = 3; break;
+        case STRING: tipo = 4; break;
+        case RUNE: tipo = 5; break;
+        case TRUE: tipo = 6; break;
+        case FALSE: tipo = 6; break;
+        case COMPLEX: tipo = 7; break;
+        case VOID: tipo = 0; break;
+        default: tipo = -1; // Tipo desconocido
+    }
+    eat(tokenActual.getClase()); // Consumir el token actual
+    return tipo; // Devolver el tipo básico identificado
+}
+
+    
     private int puntero() {
         eat(ClaseLexica.PTR);
         return basico();

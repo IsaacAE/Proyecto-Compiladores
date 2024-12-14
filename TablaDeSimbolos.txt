@@ -1,5 +1,7 @@
 Tabla de símbolos:
-ID: arr, Symbol{cat='arreglo', tipo=int, direccion=0, argumentos=N/A, valor=42}
-ID: árbol, Symbol{cat='variable', tipo=struct, direccion=20, argumentos=N/A, valor=N/A}
-ID: main, Symbol{cat='funcion', tipo=void, direccion=36, argumentos=, valor=N/A}
-ID: arr2, Symbol{cat='arreglo', tipo=int, direccion=37, argumentos=N/A, valor=1}
+ID: arr, Symbol{cat='arreglo', tipo=int, direccion=0, argumentos=N/A, valor=N/A}
+ID: a, Symbol{cat='variable', tipo=int, direccion=64, argumentos=N/A, valor=20.0}
+ID: b, Symbol{cat='variable', tipo=float, direccion=68, argumentos=N/A, valor=N/A}
+ID: pFloat, Symbol{cat='puntero', tipo=float, direccion=72, argumentos=N/A, valor=N/A}
+ID: invalidPointerAssignment, Symbol{cat='funcion', tipo=int, direccion=76, argumentos=int value, valor=N/A}
+ID: pInt, Symbol{cat='puntero', tipo=int, direccion=80, argumentos=N/A, valor=10}

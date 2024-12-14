@@ -1,14 +1,9 @@
 Árbol semántico:
 PROGRAMA
-  VAR -> hojas [Tipo: int]
-  VAR -> diámetro [Tipo: float]
-  VAR -> altura [Tipo: double]
-  VAR -> árbol [Tipo: struct]
+  PROTO -> invalidPointerAssignment
+  VAR -> pInt [Tipo: Puntero a ptr]
+  VAR -> pFloat [Tipo: Puntero a ptr]
   VAR -> arr [Tipo: Arreglo de arreglo]
-  VAR -> arr2 [Tipo: Arreglo de arreglo]
-  FUNC -> main
-    VAR -> x [Tipo: int]
-    VAR -> y [Tipo: float]
-    VAR -> z [Tipo: double]
-    VAR -> nested [Tipo: struct]
-    VAR -> complexStruct [Tipo: struct]
+  VAR -> a [Tipo: int]
+  VAR -> b [Tipo: float]
+  FUNC -> invalidPointerAssignment
