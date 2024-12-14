@@ -143,165 +143,196 @@ public void parse() {
     }
 
     private void decl_proto() {
+        // Mientras el token actual sea de clase PROTO, se procesa el prototipo
         while (tokenActual.getClase() == ClaseLexica.PROTO) {
-            eat(ClaseLexica.PROTO);
-            int tipoRetorno = tipo(); // Tipo de retorno del prototipo
-            String idPrototipo = tokenActual.getLexema(); // Nombre del prototipo
-            eat(ClaseLexica.ID);
-
+            eat(ClaseLexica.PROTO); // Consumir el token 'PROTO'
+    
+            // Obtener el tipo de retorno del prototipo
+            int tipoRetorno = tipo();
+    
+            // Obtener el identificador (nombre) del prototipo
+            String idPrototipo = tokenActual.getLexema();
+            eat(ClaseLexica.ID); // Consumir el token identificador
+    
+            // Crear un nodo en el árbol semántico para el prototipo
             NodoArbol nodoPrototipo = new NodoArbol("PROTO", idPrototipo);
             arbolSemantico.agregarHijo(nodoActual, nodoPrototipo);
-            nodoActual = nodoPrototipo;
+            nodoActual = nodoPrototipo; // Actualizar el nodo actual al nodo del prototipo
     
-            SymbolTable tablaGlobal = stackSymbolTable.base(); // Obtener la tabla global
+            // Obtener la tabla de símbolos global
+            SymbolTable tablaGlobal = stackSymbolTable.base();
     
             // Verificar si ya existe un prototipo con el mismo ID en la tabla global
             Optional<Symbol> simboloExistenteOpt = tablaGlobal.getSymbol(idPrototipo);
             if (simboloExistenteOpt.isPresent() && "prototipo".equals(simboloExistenteOpt.get().getCat())) {
+                // Si el prototipo ya está declarado, generar un error
                 error("El prototipo '" + idPrototipo + "' ya está declarado en la tabla global.");
             }
     
-            eat(ClaseLexica.PARENTESIS_ABRE);
+            eat(ClaseLexica.PARENTESIS_ABRE); // Consumir el paréntesis de apertura '('
     
             // Crear una nueva tabla de símbolos para los argumentos del prototipo
             SymbolTable tablaPrototipo = new SymbolTable();
-            stackSymbolTable.push(tablaPrototipo); // Empujar la tabla a la pila
+            stackSymbolTable.push(tablaPrototipo); // Agregar la tabla de símbolos a la pila
     
-            // Procesar los argumentos del prototipo y registrar en la tabla
+            // Procesar los argumentos del prototipo y almacenarlos en una lista
             List<String> argumentos = argumentos();
     
-            // Registrar el prototipo en la tabla global con la lista de tipos de argumentos
+            // Registrar el prototipo en la tabla global con su tipo de retorno y lista de argumentos
             Symbol simboloPrototipo = new Symbol(-1, tipoRetorno, "prototipo", argumentos);
-            tablaGlobal.addSymbol(idPrototipo, simboloPrototipo);
-            prototiposGlobales.add(Map.entry(idPrototipo, simboloPrototipo));  // Guardar en la lista global
-            
-            
-            eat(ClaseLexica.PARENTESIS_CIERRA);
-            eat(ClaseLexica.PUNTO_Y_COMA);
+            tablaGlobal.addSymbol(idPrototipo, simboloPrototipo); // Agregar el prototipo a la tabla global
     
-            //System.out.println("Prototipo '" + idPrototipo + "' registrado en la tabla global.");
-            //System.out.println("Tabla de símbolos para el prototipo '" + idPrototipo + "':");
-            //imprimirTablaDeSimbolos(tablaPrototipo);
+            // Guardar el prototipo en la lista global de prototipos
+            prototiposGlobales.add(Map.entry(idPrototipo, simboloPrototipo));
     
-            stackSymbolTable.pop(); // Retirar la tabla de argumentos del prototipo
-            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual); // Retroceder al nodo padre
+            eat(ClaseLexica.PARENTESIS_CIERRA); // Consumir el paréntesis de cierre ')'
+            eat(ClaseLexica.PUNTO_Y_COMA);      // Consumir el punto y coma ';'
+    
+            // Retirar la tabla de símbolos del prototipo de la pila
+            stackSymbolTable.pop();
+    
+            // Volver al nodo padre en el árbol semántico
+            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
         }
     }
     
+    
 
-    // Producción decl_var
-    private void decl_var() {
-        while (esTipo(tokenActual.getClase())) {
-            int tipo = tipo();
-            
-            // Manejo de struct anónimo (token actual es '}')
+    // Producción decl_var: Declaración de variables
+private void decl_var() {
+    // Mientras el token actual sea un tipo válido, se procesa la declaración
+    while (esTipo(tokenActual.getClase())) {
+        // Obtener el tipo de la variable
+        int tipo = tipo();
+
+        // Manejo de struct anónimo (cuando el token actual es '}')
         if (tokenActual.getClase() == ClaseLexica.LLAVE_CIERRA) {
-            eat(ClaseLexica.LLAVE_CIERRA); // Consumimos la llave de cierre
-            tipo = 9; // El último tipo registrado corresponde al struct
-        } 
-           // System.out.println("El tipo de las siguientes variables es:"+ tipo);
-            List<String> variables = lista_var();
-            eat(ClaseLexica.PUNTO_Y_COMA);
+            eat(ClaseLexica.LLAVE_CIERRA); // Consumir la llave de cierre
+            tipo = 9; // El tipo 9 representa un struct anónimo
+        }
 
-            // Convertir el número a String
-            String numeroStr = String.valueOf(tipo); // Asegurar que sea positivo para evitar problemas con '-'
+        // System.out.println("El tipo de las siguientes variables es: " + tipo);
 
-            if(tipo < -1){
-                if(numeroStr.charAt(1) == '8'){
-                    // Registrar cada variable en la tabla de símbolos actual
+        // Obtener la lista de variables declaradas
+        List<String> variables = lista_var();
+        eat(ClaseLexica.PUNTO_Y_COMA); // Consumir el punto y coma ';' al final de la declaración
+
+        // Convertir el número del tipo a String
+        String numeroStr = String.valueOf(tipo);
+
+        // Si el tipo es menor que -1, se maneja como puntero o arreglo
+        if (tipo < -1) {
+            // Verificar si el tipo es un puntero (el segundo carácter del número es '8')
+            if (numeroStr.charAt(1) == '8') {
+                // Registrar cada variable como un puntero en la tabla de símbolos actual
                 for (String var : variables) {
                     Symbol varSymbol = new Symbol(-1, tipo, "puntero", null);
                     agregarSimbolo(var, varSymbol);
 
+                    // Crear un nodo en el árbol semántico para la variable
                     NodoArbol nodoVar = new NodoArbol("VAR", var);
                     arbolSemantico.agregarHijo(nodoActual, nodoVar);
                     arbolSemantico.anotarNodo(nodoVar, "Tipo: Puntero a " + getTipoFromInt(tipo));
                 }
-                }else{
+            } else {
+                // Registrar cada variable como un arreglo en la tabla de símbolos actual
+                for (String var : variables) {
+                    Symbol varSymbol = new Symbol(-1, tipo, "arreglo", null);
+                    agregarSimbolo(var, varSymbol);
 
-                      // Registrar cada variable en la tabla de símbolos actual
-            for (String var : variables) {
-                Symbol varSymbol = new Symbol(-1, tipo, "arreglo", null);
-                agregarSimbolo(var, varSymbol);
-
-                NodoArbol nodoVar = new NodoArbol("VAR", var);
+                    // Crear un nodo en el árbol semántico para la variable
+                    NodoArbol nodoVar = new NodoArbol("VAR", var);
                     arbolSemantico.agregarHijo(nodoActual, nodoVar);
                     arbolSemantico.anotarNodo(nodoVar, "Tipo: Arreglo de " + getTipoFromInt(tipo));
-
-            }
                 }
-              
-            }else{
-            // Registrar cada variable en la tabla de símbolos actual
+            }
+        } else {
+            // Si no es un puntero o arreglo, registrar como una variable normal
             for (String var : variables) {
                 Symbol varSymbol = new Symbol(-1, tipo, "variable", null);
                 agregarSimbolo(var, varSymbol);
 
+                // Crear un nodo en el árbol semántico para la variable
                 NodoArbol nodoVar = new NodoArbol("VAR", var);
                 arbolSemantico.agregarHijo(nodoActual, nodoVar);
                 arbolSemantico.anotarNodo(nodoVar, "Tipo: " + getTipoFromInt(tipo));
             }
         }
+    }
+}
+
+
+    // Producción decl_func: Declaración de funciones
+private void decl_func() {
+    // Verificar si el token actual es 'FUNC' para procesar una declaración de función
+    if (tokenActual.getClase() == ClaseLexica.FUNC) {
+        eat(ClaseLexica.FUNC); // Consumir el token 'FUNC'
+
+        // Obtener el tipo de retorno de la función
+        int tipoRetorno = tipo();
+
+        // Obtener el nombre de la función
+        String idFuncion = tokenActual.getLexema();
+        eat(ClaseLexica.ID); // Consumir el token identificador de la función
+
+        // Crear un nodo en el árbol semántico para la función
+        NodoArbol nodoFuncion = new NodoArbol("FUNC", idFuncion);
+        arbolSemantico.agregarHijo(nodoActual, nodoFuncion);
+        nodoActual = nodoFuncion; // Actualizar el nodo actual al nodo de la función
+
+        // Obtener la tabla de símbolos global
+        SymbolTable tablaGlobal = stackSymbolTable.base();
+
+        // Verificar si ya existe una función con el mismo ID en la tabla global
+        Optional<Symbol> simboloExistenteOpt = tablaGlobal.getSymbol(idFuncion);
+        if (simboloExistenteOpt.isPresent() && "funcion".equals(simboloExistenteOpt.get().getCat())) {
+            error("El prototipo '" + idFuncion + "' ya está declarado en la tabla global.");
         }
+
+        eat(ClaseLexica.PARENTESIS_ABRE); // Consumir el paréntesis de apertura '('
+
+        // Crear una nueva tabla de símbolos para el ámbito local de la función
+        SymbolTable tablaFuncion = new SymbolTable();
+        stackSymbolTable.push(tablaFuncion); // Agregar la tabla local a la pila
+
+        // Procesar los argumentos de la función y registrarlos
+        List<String> argumentos = argumentos();
+
+        // Crear el símbolo de la función con su tipo de retorno y argumentos
+        Symbol simboloFuncion = new Symbol(-1, tipoRetorno, "funcion", argumentos);
+        
+        // Registrar la función en la tabla de símbolos global
+        tablaGlobal.addSymbol(idFuncion, simboloFuncion);
+        
+        // Registrar la función en la tabla de símbolos local (para el ámbito de la función)
+        SymbolTable tablaLocal = stackSymbolTable.peek();
+        tablaLocal.addSymbol(idFuncion, simboloFuncion);
+
+        // System.out.println("Función '" + idFuncion + "' agregada a la tabla de símbolos global.");
+
+        eat(ClaseLexica.PARENTESIS_CIERRA); // Consumir el paréntesis de cierre ')'
+
+        // Procesar el bloque de instrucciones de la función
+        bloque();
+
+
+        // Volver al nodo padre en el árbol semántico después de procesar la función
+        nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
+
     }
 
-    private void decl_func() {
-        if (tokenActual.getClase() == ClaseLexica.FUNC) {
-            eat(ClaseLexica.FUNC);
-    
-            int tipoRetorno = tipo();   
-            // Obtener el nombre de la función
-            String idFuncion = tokenActual.getLexema();
-            eat(ClaseLexica.ID);
+    // Procesar funciones adicionales (si hay más definiciones de funciones)
+    decl_func_prima();
+}
 
-            NodoArbol nodoFuncion = new NodoArbol("FUNC", idFuncion);
-            arbolSemantico.agregarHijo(nodoActual, nodoFuncion);
-            nodoActual = nodoFuncion;
-
-            // Registrar la función en la tabla de símbolos global
-            SymbolTable tablaGlobal = stackSymbolTable.base();
-            // Verificar si ya existe un prototipo con el mismo ID en la tabla global
-            Optional<Symbol> simboloExistenteOpt = tablaGlobal.getSymbol(idFuncion);
-            if (simboloExistenteOpt.isPresent() && "funcion".equals(simboloExistenteOpt.get().getCat())) {
-                error("El prototipo '" + idFuncion + "' ya está declarado en la tabla global.");
-            }
-            eat(ClaseLexica.PARENTESIS_ABRE);
-            
-    
-            // Crear una nueva tabla de símbolos para el ámbito de la función
-            SymbolTable tablaFuncion = new SymbolTable();
-            stackSymbolTable.push(tablaFuncion);
-            List<String> argumentos = argumentos();
-           
-            // Crear el símbolo de la función
-            Symbol simboloFuncion = new Symbol(-1, tipoRetorno, "funcion", argumentos);
-            tablaGlobal.addSymbol(idFuncion, simboloFuncion);
-            SymbolTable tablaLocal = stackSymbolTable.peek();
-            tablaLocal.addSymbol(idFuncion, simboloFuncion);
-    
-            //System.out.println("Función '" + idFuncion + "' agregada a la tabla de símbolos global.");
-
-            // Procesar el bloque de la función
-            eat(ClaseLexica.PARENTESIS_CIERRA);
-            bloque();
-    
-            // stackSymbolTable.pop(); 
-            // Mantener la tabla de la función en la pila (no se elimina)
-
-            nodoActual = arbolSemantico.getPadreNodoArbol(nodoActual);
-            //System.out.println("Tabla de símbolos para la función '" + idFuncion + "':");
-            //imprimirTablaDeSimbolos(stackSymbolTable.peek());
-        }
-    
-        // Procesar funciones adicionales
-        decl_func_prima();
+// Producción decl_func_prima: Declaración de funciones adicionales
+private void decl_func_prima() {
+    // Si el token actual es 'FUNC', se procesa otra declaración de función
+    if (tokenActual.getClase() == ClaseLexica.FUNC) {
+        decl_func();
     }
-    
-    private void decl_func_prima() {
-        if (tokenActual.getClase() == ClaseLexica.FUNC) {
-            decl_func();
-        }
-    }
+}
+
     
     
 
