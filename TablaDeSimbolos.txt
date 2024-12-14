@@ -1,7 +1,13 @@
 Tabla de símbolos:
-ID: arr, Symbol{cat='arreglo', tipo=int, direccion=0, argumentos=N/A, valor=N/A}
-ID: a, Symbol{cat='variable', tipo=int, direccion=64, argumentos=N/A, valor=20.0}
-ID: b, Symbol{cat='variable', tipo=float, direccion=68, argumentos=N/A, valor=N/A}
-ID: pFloat, Symbol{cat='puntero', tipo=float, direccion=72, argumentos=N/A, valor=N/A}
-ID: invalidPointerAssignment, Symbol{cat='funcion', tipo=int, direccion=76, argumentos=int value, valor=N/A}
-ID: pInt, Symbol{cat='puntero', tipo=int, direccion=80, argumentos=N/A, valor=10}
+ID: texto, Symbol{cat='variable', tipo=string, direccion=0, argumentos=N/A, valor=N/A}
+ID: a, Symbol{cat='variable', tipo=int, direccion=2, argumentos=N/A, valor=7.0}
+ID: b, Symbol{cat='variable', tipo=int, direccion=6, argumentos=N/A, valor=-7.0}
+ID: c, Symbol{cat='variable', tipo=int, direccion=10, argumentos=N/A, valor=100.0}
+ID: leer, Symbol{cat='funcion', tipo=void, direccion=14, argumentos=string Ávizo_ñaos, ptr valor, valor=N/A}
+ID: resultado, Symbol{cat='variable', tipo=float, direccion=15, argumentos=N/A, valor=4.28}
+ID: constante, Symbol{cat='funcion', tipo=int, direccion=19, argumentos=int a, valor=N/A}
+ID: número_Complejo, Symbol{cat='variable', tipo=complex, direccion=23, argumentos=N/A, valor=8.0+1.0i}
+ID: imprimir, Symbol{cat='funcion', tipo=void, direccion=39, argumentos=string Ávizo_ñaos, valor=N/A}
+ID: Ávizo_ñaos, Symbol{cat='variable', tipo=string, direccion=40, argumentos=N/A, valor=N/A}
+ID: main, Symbol{cat='funcion', tipo=int, direccion=42, argumentos=, valor=N/A}
+ID: esValido, Symbol{cat='variable', tipo=int, direccion=46, argumentos=N/A, valor=0}

@@ -1,12 +1,12 @@
 proto int constante(int a);
-proto void imprimir(string mensaje);
-proto void leer(string mensaje, ptr int valor);
+proto void imprimir(string Ávizo_ñaos);
+proto void leer(string Ávizo_ñaos, ptr int valor);
 
 int a, b, c;
 int esValido;
 float resultado;
-complex numeroComplejo;
-string mensaje, texto;
+complex número_Complejo;
+string Ávizo_ñaos, texto;
 
 
 
@@ -15,12 +15,12 @@ func int constante(int a) {
     return a;
 }
 
-func void imprimir(string mensaje) {
-    print mensaje;
+func void imprimir(string Ávizo_ñaos) {
+    print Ávizo_ñaos;
 }
 
-func void leer(string mensaje, ptr int valor) {
-    print mensaje;
+func void leer(string Ávizo_ñaos, ptr int valor) {
+    print Ávizo_ñaos;
     scan valor;
 }
 
@@ -72,7 +72,7 @@ func int main() {
 
     /// Operadores unarios y complejos
     b = -a;
-    numeroComplejo = (1.0+2.0i) * (2.0-3.0i);
+    número_Complejo = (1.0+2.0i) * (2.0-3.0i);
 
     /// Ciclo while
     while (b < 10) {

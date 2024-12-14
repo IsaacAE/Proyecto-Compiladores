@@ -9,31 +9,31 @@ struct {
         struct {
         int y;
         float z;
-    } pascua;
-    } anidado;
-} miEstructura;
+    } a_34;
+    } ñángo;
+} pingüino;
 
 func int main() {
     int x, resultado;
    
 
     /// Inicialización de miEstructura
-    miEstructura.anidado.pascua.z = 1;
-     miEstructura.a = 10;
-    miEstructura.b = 3.14;
-    miEstructura.c = "Hola Mundo";
+    pingüino.ñángo.a_34.z = 1;
+    pingüino.a = 10;
+    pingüino.b = 3.14;
+    pingüino.c = "Hola Mundo";
 
     
     
 
     /// Operación usando un campo de miEstructura
-    x = miEstructura.a;
+    x = pingüino.a;
 
     print("Valor de x:");
     print(x);
 
-    print("Valor de miEstructura.b:");
-    print(miEstructura.b);
+    print("Valor de pingüino.b:");
+    print(pingüino.b);
 
 
     return 0;

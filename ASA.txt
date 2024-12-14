@@ -1,9 +1,39 @@
 Árbol semántico:
 PROGRAMA
-  PROTO -> invalidPointerAssignment
-  VAR -> pInt [Tipo: Puntero a ptr]
-  VAR -> pFloat [Tipo: Puntero a ptr]
-  VAR -> arr [Tipo: Arreglo de arreglo]
+  PROTO -> constante
+  PROTO -> imprimir
+  PROTO -> leer
   VAR -> a [Tipo: int]
-  VAR -> b [Tipo: float]
-  FUNC -> invalidPointerAssignment
+  VAR -> b [Tipo: int]
+  VAR -> c [Tipo: int]
+  VAR -> esValido [Tipo: int]
+  VAR -> resultado [Tipo: float]
+  VAR -> número_Complejo [Tipo: complex]
+  VAR -> Ávizo_ñaos [Tipo: string]
+  VAR -> texto [Tipo: string]
+  FUNC -> constante
+  FUNC -> imprimir
+  FUNC -> leer
+  FUNC -> main
+    IF
+      CONDICION
+      THEN
+      ELSE
+        IF
+          CONDICION
+          THEN
+        SWITCH
+          EXPRESION
+          CASO
+          CASO
+          DEFAULT
+          IF
+            CONDICION
+            THEN
+            ELSE
+            WHILE
+              CONDICION
+                CUERPO
+                DO-WHILE
+                  CUERPO
+                    CONDICION
